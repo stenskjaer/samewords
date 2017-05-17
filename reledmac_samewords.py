@@ -147,9 +147,10 @@ def list_maintext_words(search_string=''):
         elif re.match('\W', symbol):
             word = add_word_to_list(word, word_list)
             position += 1
+    else:
+        word = add_word_to_list(word, word_list)
 
     return word_list
-
 
 def add_word_to_list(word, word_list):
     """
