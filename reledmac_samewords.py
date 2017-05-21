@@ -1,5 +1,6 @@
 import re
 
+__version__ = '0.0.1'
 
 def macro_expression_content(search_string, position=0, opener='{', closer='}', capture_wrap=False):
     """Get the content of a latex expression that has been opened with "{" to any
@@ -369,26 +370,23 @@ def critical_note_match_replace_samewords(input_string):
                 edtext_content = macro_expression_content(edtext_element, position=len(r'\edtext'), capture_wrap=False)
 
                 if r'\edtext' in edtext_content:
-                    # Save parent context here... This cant just be a combination of edtext_content and context_list
-                    # because if you are further down than level 2, there will be lost content.
-
+                    # We have a nested apparatus note here, so before moving on, we process that.
                     lemma_level += 1
-
                     edtext_content, context_before, context_after = sub_processing(
                         edtext_split(edtext_content), context_before=context_before,
                         context_after=context_after, lemma_level=lemma_level
                     )
                     edtext_content = ''.join(edtext_content)
                     edtext_element = r'\edtext{' + edtext_content + '}{' + appnote_content + '}'
-
                     lemma_level -= 1
 
+                # Check that we have a lemma element.
                 if r'\lemma' in appnote_content:
                     lemma_content = macro_expression_content(appnote_content, position=len(r'\lemma'))
                 else:
                     raise ValueError('No lemma element found in the apparatus note %s' % appnote_content)
 
-                # Determine lemma type.
+                # Determine lemma type. The `dots` variable is used for processing of ldots notes.
                 lemma_word_list = list_maintext_words(lemma_content)
                 dots = []
                 if re.search(r'\\l?dots({})?', lemma_content):
@@ -408,7 +406,6 @@ def critical_note_match_replace_samewords(input_string):
                 for search_word in search_words:
 
                     if search_in_proximity(search_word, context_before, context_after):
-                        # Match of current word, so we need to mark it in proximity and current critical note.
 
                         if len(search_word.split(' ')) > 1:
                             # Notice: We must check if a multiword phrase occurs in the proximity. But we only need to
@@ -416,6 +413,7 @@ def critical_note_match_replace_samewords(input_string):
                             # only first word
                             search_word = search_word.split(' ')[0]
 
+                        # Update the proximate content.
                         context_before, context_after = replace_in_proximity(context_before, context_after, search_word)
 
                         edtext_element = replace_in_critical_note(
@@ -423,7 +421,9 @@ def critical_note_match_replace_samewords(input_string):
                         edtext_element = replace_in_critical_note(
                             edtext_element, search_word, lemma_level=lemma_level, in_lemma=True)
 
-                # We build the return list as a separate variable as we need to pull material from the input list.
+                # We build the return list as a separate variable as we need to pull material from the input list. As
+                #  the proximate replacements may not cover whole text, we wrap it all with all preceding and
+                # following content, if any.
                 proximate_before = context_before.pop()
                 proximate_after = context_after.pop()
                 output_list = input_list[:pivot_index - len(proximate_before)]
@@ -487,13 +487,13 @@ def wrap_in_sameword(word, context_string, lemma_level=0):
 
 def replace_in_critical_note(search_string, replace_word, lemma_level=1, in_lemma=False, dots=list()):
     """
-    Given a critical note starting from the \edtext macro, replace all instances of specified word at any level of
-    critical note, without touching the content of the apparatus note.
+    Replace all instances of `replace_word` in a apparatus note (full `\edtext{}{}`) and return the updated string.
 
+    This is done by building a string and making replacements as we go along. The function recurses on nested edtext
+    elements.
 
     :param search_string: The string containing the critical note.
     :param replace_word: The word to be replaced.
-    :param return_string: The string that will be returned. This should be left blank on first level call.
     :param lemma_level: The level from which the lemma refers to the word to be `replace_word`.
     :param in_lemma: If true, it will replace the search word in lemma element, otherwise it will replace in edtext.
     :param dots: The search words in case we are in a lemma containing a version of `\dots`.
@@ -532,7 +532,8 @@ def replace_in_critical_note(search_string, replace_word, lemma_level=1, in_lemm
                     sub_return_string = wrap_in_sameword(replace_word, edtext_content[:edtext_position], lemma_level)
 
                     # Replace inside edtext, calling this function. First we need the location of the sub critical note.
-                    sub_edtext_length = macro_expression_length(edtext_content, position=edtext_position, macro=r'\edtext')
+                    sub_edtext_length = macro_expression_length(edtext_content,
+                                                                position=edtext_position, macro=r'\edtext')
                     sub_appnote_length = macro_expression_length(edtext_content,
                                                                  position=edtext_position + sub_edtext_length)
                     sub_critnote_end = edtext_position + sub_edtext_length + sub_appnote_length

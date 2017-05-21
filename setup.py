@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 from setuptools import setup, find_packages
 
-setup(name='lbp_print',
+from reledmac_samewords import __version__
+
+setup(name='reledmac_samewords',
       version=__version__,
       packages=find_packages(),
       install_requires=[
-          'docopt==0.6.2',
           'pytest==3.0.7',
       ],
       classifiers=[

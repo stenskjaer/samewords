@@ -5,7 +5,7 @@ from reledmac_samewords import *
 no_proximity_match = r"""sw \edtext{so}{\lemma{so}\Bfootnote{foot content}}  and again sw it is all and something after."""
 
 three_close_levels = r"""so \edtext{\edtext{\edtext{so}{\lemma{so}\Bfootnote{lev 3}}}{\lemma{so}\Bfootnote{lev 2}}}{\lemma{so}\Bfootnote{lev 1}}"""
-three_close_levels_result = r"\sameword{so} \edtext{\edtext{\edtext{\sameword[1,2,3]{so}}{\lemma{\sameword{so}}\Bfootnote{lev 3}}}{\lemma{\sameword{so}}\Bfootnote{lev 2}}}{\lemma{\sameword{so}}\Bfootnote{lev 1}}"
+three_close_levels_result = r"""\sameword{so} \edtext{\edtext{\edtext{\sameword[1,2,3]{so}}{\lemma{\sameword{so}}\Bfootnote{lev 3}}}{\lemma{\sameword{so}}\Bfootnote{lev 2}}}{\lemma{\sameword{so}}\Bfootnote{lev 1}}"""
 
 flat_proximity_match = r"""so sw \edtext{so}{\lemma{so}\Bfootnote{foot content}}  and again sw it is all and something after."""
 flat_proximity_match_result = r"\sameword{so} sw \edtext{\sameword[1]{so}}{\lemma{\sameword{so}}\Bfootnote{foot content}}  and again sw it is all and something after."
@@ -80,7 +80,7 @@ class TestSamewordWrapping:
         assert critical_note_match_replace_samewords(no_proximity_match) == no_proximity_match
 
 
-class TestProximityListing():
+class TestProximityListing:
     simple_string = "One major reason for \edtext{the}{\lemma{the}\Bfootnote{an}} interest \edtext{in}{\lemma{in}\Bfootnote{an}} intentionality in medieval philosophy is that it has been widely recognized that Franz Brentano was reviving a scholastic notion when he introduced intentionality as “the mark of the mental” (Brentano 1924). But Brentano never used \edtext{the}{\lemma{the}\Bfootnote{an}} terminology of representation to explicate intentionality. This was done much later, in post-Wittgensteinian philosophy of mind. In later medieval philosophy, it was, however, \edtext{standard}{\lemma{standard}\Bfootnote{cont}} to explain the content of a thought by referring to \edtext{the}{\lemma{the}\Bfootnote{or its}} representational nature."
 
     def test_proximity_listing_left(self):
@@ -125,11 +125,9 @@ class TestMainReplaceFunction:
 
 class TestReplaceInEdtext:
     edtext_unnested = r"\edtext{sw so sw another thing}{\lemma{sw \ldots thing}\Afootnote{ critical note}}"
-    edtext_unnested_result = r"\edtext{\sameword[1]{sw} so \sameword[1]{sw} another thing}{\lemma{sw \ldots " \
-                             r"thing}\Afootnote{ critical note}}"
+    edtext_unnested_result = r"\edtext{\sameword[1]{sw} so \sameword[1]{sw} another thing}{\lemma{sw \ldots thing}\Afootnote{ critical note}}"
 
-    edtext_nested = r"\edtext{sw so \edtext{\edtext{sw}{\lemma{sw}\Bfootnote{B note here}} another thing}{\lemma{sw " \
-                    "another thing}\Bfootnote{B footnote her}}}{\lemma{sw \ldots thing}\Afootnote{ critical note}} "
+    edtext_nested = r"\edtext{sw so \edtext{\edtext{sw}{\lemma{sw}\Bfootnote{B note here}} another thing}{\lemma{sw another thing}\Bfootnote{B footnote her}}}{\lemma{sw \ldots thing}\Afootnote{ critical note}} "
     edtext_nested_result = r'\edtext{\sameword[1]{sw} so \edtext{\edtext{\sameword[1]{sw}}{\lemma{sw}\Bfootnote{B note here}} another thing}{\lemma{sw another thing}\Bfootnote{B footnote her}}}{\lemma{sw \ldots thing}\Afootnote{ critical note}} '
 
     def test_replace_in_edtext(self):
