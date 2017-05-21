@@ -303,8 +303,136 @@ def replace_in_string(search_word, search_string):
         search_string = updated_string
 
     return search_string
+
+
+def sameword_wrapped(context_string, word_position):
+    """
+    Check if the provided string is already wrapped in a sameword macro
+
+    :param context_string: The immediate context of the word
+    :param word_position: The position of the word being checked in the context string.
+    :return: Boolean
+    """
+    if context_string[word_position - len(r'\sameword{'):word_position] == r'\sameword{':
+        return True
+    return False
+
+
+def wrap_in_sameword(word, context_string, lemma_level=0):
+
+    position = context_string.find(word)
+    if lemma_level is not 0:
+        lemma_level = str(lemma_level)
+        level_argument = '[' + lemma_level + ']'
     else:
-        return search_string
+        level_argument = None
+
+    if position is not None:
+        wrap_search = re.search(r'(\\sameword)([^{]+)?{' + word + '}', context_string)
+        if wrap_search:
+            # Word already wrapped.
+            if wrap_search.group(2):
+                # Wrap contains level indication
+                existing_level = wrap_search.group(2)
+                level_argument = '[' + lemma_level + ',' + existing_level[1:]
+
+        if level_argument:
+            if wrap_search:
+                return context_string.replace(wrap_search.group(0), r'\sameword' + level_argument + '{' + word + '}')
+            else:
+                return context_string.replace(word, r'\sameword' + level_argument + '{' + word + '}')
+        else:
+            if wrap_search:
+                # If the word is already wrapped, pass? How about other instances?
+                pass
+            else:
+                return context_string.replace(word, r'\sameword{' + word + '}')
+
+
+def replace_in_critical_note(search_string, replace_word, lemma_level=1, in_lemma=False, dots=list()):
+    """
+    Replace all instances of `replace_word` in a apparatus note (full `\edtext{}{}`) and return the updated string.
+
+    This is done by building a string and making replacements as we go along. The function recurses on nested edtext
+    elements.
+
+    :param search_string: The string containing the critical note.
+    :param replace_word: The word to be replaced.
+    :param lemma_level: The level from which the lemma refers to the word to be `replace_word`.
+    :param in_lemma: If true, it will replace the search word in lemma element, otherwise it will replace in edtext.
+    :param dots: The search words in case we are in a lemma containing a version of `\dots`.
+    :return: The updated string.
+    """
+
+    position = len(r'\edtext')
+
+    return_string = search_string[:position]
+
+    edtext_content_string = macro_expression_content(search_string, position, capture_wrap=True)
+    edtext_content_list = edtext_split(edtext_content_string)
+
+    # Should we replace in edtext or lemma?
+    if in_lemma is False:
+
+        # We are in the edtext
+        # Is there a nested critical note?
+
+        if dots:
+            # We have a ldots lemma, so we only replace a the beginning and end of the edtext element.
+            if replace_word == dots[0]:
+                edtext_content_list[0] = wrap_in_sameword(replace_word, edtext_content_list[0], lemma_level)
+            elif replace_word == dots[1]:
+                edtext_content_list[len(edtext_content_list) - 2] \
+                    = wrap_in_sameword(replace_word, edtext_content_list[len(edtext_content_list) - 2], lemma_level)
+            return_string += ''.join(edtext_content_list)
+        else:
+
+            for pivot_index, edtext_content in enumerate(edtext_content_list):
+
+                if r'\edtext' in edtext_content:
+
+                    # Replace up to sub critical note (using a temporary return_string
+                    edtext_position = edtext_content.find(r'\edtext{')
+                    sub_return_string = wrap_in_sameword(replace_word, edtext_content[:edtext_position], lemma_level)
+
+                    # Replace inside edtext, calling this function. First we need the location of the sub critical note.
+                    sub_edtext_length = macro_expression_length(edtext_content,
+                                                                position=edtext_position, macro=r'\edtext')
+                    sub_appnote_length = macro_expression_length(edtext_content,
+                                                                 position=edtext_position + sub_edtext_length)
+                    sub_critnote_end = edtext_position + sub_edtext_length + sub_appnote_length
+                    sub_return_string += replace_in_critical_note(edtext_content[edtext_position:sub_critnote_end],
+                                                                  replace_word, lemma_level=lemma_level)
+
+                    # Relace rest of current edtext from after sub critical note
+                    sub_return_string += wrap_in_sameword(replace_word, edtext_content[sub_critnote_end:], lemma_level)
+                    edtext_content_list[pivot_index] = sub_return_string
+
+                else:
+                    edtext_content_list[pivot_index] = wrap_in_sameword(replace_word, edtext_content, lemma_level)
+
+                return_string += edtext_content_list[pivot_index]
+
+        # Bump position to end of edtext_content
+        position += len(edtext_content_string)
+
+    else:
+        # In lemma: Add edtext content and bump position to after that.
+        return_string += edtext_content_string
+        position += len(edtext_content_string)
+
+        lemma_content = macro_expression_content(search_string[position:], position=len(r'{\lemma'))
+
+        return_string += r'{\lemma{'
+        position += len(r'{\lemma{')
+        return_string += wrap_in_sameword(replace_word, lemma_content, lemma_level=0)
+
+        position += len(lemma_content)
+
+    # Add the following app note, where nothing should be changed, and return it
+    return_string += search_string[position:]
+
+    return return_string
 
 
 def critical_note_match_replace_samewords(input_string):
@@ -437,133 +565,3 @@ def critical_note_match_replace_samewords(input_string):
     result = sub_processing(edtext_split(input_string), context_before=list(), context_after=list(), lemma_level=1)[0]
 
     return ''.join(result)
-
-
-def sameword_wrapped(context_string, word_position):
-    """
-    Check if the provided string is already wrapped in a sameword macro
-
-    :param context_string: The immediate context of the word
-    :param word_position: The position of the word being checked in the context string.
-    :return: Boolean
-    """
-    if context_string[word_position - len(r'\sameword{'):word_position] == r'\sameword{':
-        return True
-    return False
-
-
-def wrap_in_sameword(word, context_string, lemma_level=0):
-
-    position = context_string.find(word)
-    if lemma_level is not 0:
-        lemma_level = str(lemma_level)
-        level_argument = '[' + lemma_level + ']'
-    else:
-        level_argument = None
-
-    if position is not None:
-        wrap_search = re.search(r'(\\sameword)([^{]+)?{' + word + '}', context_string)
-        if wrap_search:
-            # Word already wrapped.
-            if wrap_search.group(2):
-                # Wrap contains level indication
-                existing_level = wrap_search.group(2)
-                level_argument = '[' + lemma_level + ',' + existing_level[1:]
-
-        if level_argument:
-            if wrap_search:
-                return context_string.replace(wrap_search.group(0), r'\sameword' + level_argument + '{' + word + '}')
-            else:
-                return context_string.replace(word, r'\sameword' + level_argument + '{' + word + '}')
-        else:
-            if wrap_search:
-                # If the word is already wrapped, pass? How about other instances?
-                pass
-            else:
-                return context_string.replace(word, r'\sameword{' + word + '}')
-
-
-def replace_in_critical_note(search_string, replace_word, lemma_level=1, in_lemma=False, dots=list()):
-    """
-    Replace all instances of `replace_word` in a apparatus note (full `\edtext{}{}`) and return the updated string.
-
-    This is done by building a string and making replacements as we go along. The function recurses on nested edtext
-    elements.
-
-    :param search_string: The string containing the critical note.
-    :param replace_word: The word to be replaced.
-    :param lemma_level: The level from which the lemma refers to the word to be `replace_word`.
-    :param in_lemma: If true, it will replace the search word in lemma element, otherwise it will replace in edtext.
-    :param dots: The search words in case we are in a lemma containing a version of `\dots`.
-    :return: The updated string.
-    """
-
-    position = len(r'\edtext')
-
-    return_string = search_string[:position]
-
-    edtext_content_string = macro_expression_content(search_string, position, capture_wrap=True)
-    edtext_content_list = edtext_split(edtext_content_string)
-
-    # Should we replace in edtext or lemma?
-    if in_lemma is False:
-
-        # We are in the edtext
-        # Is there a nested critical note?
-
-        if dots:
-            # We have a ldots lemma, so we only replace a the beginning and end of the edtext element.
-            if replace_word == dots[0]:
-                edtext_content_list[0] = wrap_in_sameword(replace_word, edtext_content_list[0], lemma_level)
-            elif replace_word == dots[1]:
-                edtext_content_list[len(edtext_content_list) - 2] \
-                    = wrap_in_sameword(replace_word, edtext_content_list[len(edtext_content_list) - 2], lemma_level)
-            return_string += ''.join(edtext_content_list)
-        else:
-
-            for pivot_index, edtext_content in enumerate(edtext_content_list):
-
-                if r'\edtext' in edtext_content:
-
-                    # Replace up to sub critical note (using a temporary return_string
-                    edtext_position = edtext_content.find(r'\edtext{')
-                    sub_return_string = wrap_in_sameword(replace_word, edtext_content[:edtext_position], lemma_level)
-
-                    # Replace inside edtext, calling this function. First we need the location of the sub critical note.
-                    sub_edtext_length = macro_expression_length(edtext_content,
-                                                                position=edtext_position, macro=r'\edtext')
-                    sub_appnote_length = macro_expression_length(edtext_content,
-                                                                 position=edtext_position + sub_edtext_length)
-                    sub_critnote_end = edtext_position + sub_edtext_length + sub_appnote_length
-                    sub_return_string += replace_in_critical_note(edtext_content[edtext_position:sub_critnote_end],
-                                                                  replace_word, lemma_level=lemma_level)
-
-                    # Relace rest of current edtext from after sub critical note
-                    sub_return_string += wrap_in_sameword(replace_word, edtext_content[sub_critnote_end:], lemma_level)
-                    edtext_content_list[pivot_index] = sub_return_string
-
-                else:
-                    edtext_content_list[pivot_index] = wrap_in_sameword(replace_word, edtext_content, lemma_level)
-
-                return_string += edtext_content_list[pivot_index]
-
-        # Bump position to end of edtext_content
-        position += len(edtext_content_string)
-
-    else:
-        # In lemma: Add edtext content and bump position to after that.
-        return_string += edtext_content_string
-        position += len(edtext_content_string)
-
-        lemma_content = macro_expression_content(search_string[position:], position=len(r'{\lemma'))
-
-        return_string += r'{\lemma{'
-        position += len(r'{\lemma{')
-        return_string += wrap_in_sameword(replace_word, lemma_content, lemma_level=0)
-
-        position += len(lemma_content)
-
-    # Add the following app note, where nothing should be changed, and return it
-    return_string += search_string[position:]
-
-    return return_string
