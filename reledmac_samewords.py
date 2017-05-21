@@ -97,8 +97,7 @@ def macro_expression_length(search_string, position=0, opener='{', closer='}', m
                 position += 1
             position += 1
         except IndexError:
-            raise ValueError("Unbalanced brackets. The provided string terminated before all "
-                             "brackets were closed.")
+            raise ValueError("Unbalanced brackets. The provided string terminated before all brackets were closed.")
     return position - start_position
 
 
@@ -109,7 +108,17 @@ def list_maintext_words(search_string=''):
     :param search_string: The string to create list of.
     :return: List of words
     """
-    import re
+    def add_word_to_list(word, word_list):
+        """
+        If `word` is not empty, add it to the `word_list` and return the list.
+
+        :param word: Word value to be checked.
+        :param word_list: The list it should be added to.
+        :return: The (possibly opdated) wordlist.
+        """
+        if word is not '':
+            word_list.append(word)
+        return ''
 
     word_list = []
 
@@ -152,19 +161,6 @@ def list_maintext_words(search_string=''):
         word = add_word_to_list(word, word_list)
 
     return word_list
-
-
-def add_word_to_list(word, word_list):
-    """
-    If `word` is not empty, add it to the `word_list` and return the list.
-
-    :param word: Word value to be checked.
-    :param word_list: The list it should be added to.
-    :return: The (possibly opdated) wordlist.
-    """
-    if word is not '':
-        word_list.append(word)
-    return ''
 
 
 def iter_proximate_words(input_list, index=0, word_count_sum=0, side='', length=30):
