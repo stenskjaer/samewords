@@ -15,6 +15,9 @@ false_positives = r"\edtext{in}{\lemma{in}\Bfootnote{note content}} species inte
 nested_1 = r"""sw \emph{so} \edtext{so}{\lemma{so}\Bfootnote{foot content}} \emph{so} \edtext{so}{\lemma{so}\Bfootnote{foot content}} \edtext{sw so \edtext{\edtext{sw}{\lemma{sw}\Bfootnote{B note here}} thing}{\lemma{sw thing}\Bfootnote{B footnote her}} and again sw it is all}{\lemma{sw \ldots all}\Afootnote{sw critical note}} and something after."""
 nested_1_result = r"""sw \emph{\sameword{so}} \edtext{\sameword[1]{so}}{\lemma{\sameword{so}}\Bfootnote{foot content}} \emph{\sameword{so}} \edtext{\sameword[1]{so}}{\lemma{\sameword{so}}\Bfootnote{foot content}} \edtext{\sameword[1]{sw} \sameword{so} \edtext{\edtext{\sameword[2,3]{sw}}{\lemma{\sameword{sw}}\Bfootnote{B note here}} thing}{\lemma{\sameword{sw}"""
 
+nested_ambiguity = r"""before and \edtext{first here \edtext{and another \edtext{and}{\lemma{and}\Afootnote{lvl 3}} that's it}{\lemma{and \dots{} it}\Afootnote{lvl 2}}}{\lemma{first \dots{} it}\Afootnote{note lvl 1}} after"""
+nested_ambiguity_result = r"""before \sameword{and} \edtext{first here \edtext{\sameword[2]{and} another \edtext{\sameword[2,3]{and}}{\lemma{\sameword{and}}\Afootnote{lvl 3}} that's it}{\lemma{\sameword{and} \dots{} it}\Afootnote{lvl 2}}}{\lemma{first \dots{} it}\Afootnote{note lvl 1}} after"""
+
 nested_ldots_lemma = r"""sw and \edtext{sw so \edtext{\edtext{sw}{\lemma{sw}\Bfootnote{B note here}} another thing \edtext{and more}{\lemma{and more}\Bfootnote{and more note}}}{\lemma{sw another thing and more}\Bfootnote{B footnote her}}}{\lemma{sw \ldots more}\Afootnote{sw critical note}} and a sw after and one more \edtext{flat}{\lemma{flat}\Bfootnote{note here}} entry."""
 nested_ldots_lemma_result = r"""\sameword{sw} and \edtext{\sameword[1]{sw} so \edtext{\edtext{\sameword[1,3]{sw}}{\lemma{\sameword{sw}}\Bfootnote{B note here}} another thing \edtext{and \sameword[1]{more}}{\lemma{and more}\Bfootnote{and more note}}}{\lemma{sw another thing and more}\Bfootnote{B footnote her}}}{\lemma{\sameword{sw} \ldots \sameword{more}}\Afootnote{sw critical note}} and a \sameword{sw} after and one \sameword{more} \edtext{flat}{\lemma{flat}\Bfootnote{note here}} entry."""
 
@@ -78,35 +81,46 @@ class TestProximityListing():
     simple_string = "One major reason for \edtext{the}{\lemma{the}\Bfootnote{an}} interest \edtext{in}{\lemma{in}\Bfootnote{an}} intentionality in medieval philosophy is that it has been widely recognized that Franz Brentano was reviving a scholastic notion when he introduced intentionality as “the mark of the mental” (Brentano 1924). But Brentano never used \edtext{the}{\lemma{the}\Bfootnote{an}} terminology of representation to explicate intentionality. This was done much later, in post-Wittgensteinian philosophy of mind. In later medieval philosophy, it was, however, \edtext{standard}{\lemma{standard}\Bfootnote{cont}} to explain the content of a thought by referring to \edtext{the}{\lemma{the}\Bfootnote{or its}} representational nature."
 
     def test_proximity_listing_left(self):
-        assert list(iter_proximate_words(edtext_split(self.simple_string), pivot=7, index=6, side='left')) \
-               == [' intentionality in medieval philosophy is that it has been widely recognized that Franz Brentano was reviving a scholastic notion when he introduced intentionality as “the mark of the mental” (Brentano 1924). But Brentano never used ', '\\edtext{the}{\\lemma{the}\\Bfootnote{an}}', ' terminology of representation to explicate intentionality. This was done much later, in post-Wittgensteinian philosophy of mind. In later medieval philosophy, it was, however, ']
+        input_list = edtext_split(self.simple_string)
+        output_list = [' terminology of representation to explicate intentionality. This was done much later, in post-Wittgensteinian philosophy of mind. In later medieval philosophy, it was, however, ','\\edtext{standard}{\\lemma{standard}\\Bfootnote{cont}}',' to explain the content of a thought by referring to ', '\\edtext{the}{\\lemma{the}\\Bfootnote{or its}}', ' representational nature.']
+        assert iter_proximate_words(input_list, index=len(input_list) - 1, side='left') == output_list
 
     def test_proximity_listing_right(self):
-        assert list(iter_proximate_words(edtext_split(self.simple_string), pivot=7, index=8, side='right')) == [' to explain the content of a thought by referring to ', '\\edtext{the}{\\lemma{the}\\Bfootnote{or its}}', ' representational nature.']
+        output_list = ['One major reason for ', '\\edtext{the}{\\lemma{the}\\Bfootnote{an}}', ' interest ', '\\edtext{in}{\\lemma{in}\\Bfootnote{an}}', ' intentionality in medieval philosophy is that it has been widely recognized that Franz Brentano was reviving a scholastic notion when he introduced intentionality as “the mark of the mental” (Brentano 1924). But Brentano never used ']
+        assert iter_proximate_words(edtext_split(self.simple_string), side='right') == output_list
 
 
 class TestMainReplaceFunction:
 
+    def test_long_proximate_before_after(self):
+        test_string = r"""List comprehensions provide a concise a way to create lists. Common applications are to make new lists where each element is the result of some operations applied to each member of another sequence or iterable, or \edtext{to}{\lemma{to}\Bfootnote{note}} create a subsequence of those elements that satisfy a certain condition. List comprehensions provide a concise way to create lists. \edtext{Common}{\lemma{Common}\Bfootnote{note}} applications are to make new lists where each element is the result of some operations applied to each member of another sequence or iterable, or to create a subsequence of those elements that satisfy a certain condition. Start \edtext{a}{\lemma{a}\Bfootnote{lvl 1}} and another a List comprehensions provide a concise way to create lists. Common applications are to make new lists where each element is the result of some operations applied to each member of another sequence or iterable, or to create a subsequence \edtext{of}{\lemma{of}\Bfootnote{note}} those elements that satisfy a certain condition."""
+        print(critical_note_match_replace_samewords(test_string))
+
+    def test_nested_ambiguity(self):
+        assert critical_note_match_replace_samewords(nested_ambiguity) == nested_ambiguity_result
+
     def test_false_positives(self):
-        assert critical_note_match_replace_samewords(edtext_split(false_positives)) == false_positives
+        assert critical_note_match_replace_samewords(false_positives) == false_positives
 
     def test_flat_ldots_lemma(self):
-        assert critical_note_match_replace_samewords(edtext_split(flat_ldots_lemma)) == flat_ldots_lemma_result
+        assert critical_note_match_replace_samewords(flat_ldots_lemma) == flat_ldots_lemma_result
 
     def test_no_proximity_match(self):
-        assert critical_note_match_replace_samewords(edtext_split(no_proximity_match)) == no_proximity_match
+        assert critical_note_match_replace_samewords(no_proximity_match) == no_proximity_match
 
     def test_three_close_levels(self):
-        assert critical_note_match_replace_samewords(edtext_split(three_close_levels)) == three_close_levels_result
+        assert critical_note_match_replace_samewords(three_close_levels) == three_close_levels_result
 
     def test_flat_proximity_match(self):
-        assert critical_note_match_replace_samewords(edtext_split(flat_proximity_match)) == flat_proximity_match_result
+        assert critical_note_match_replace_samewords(flat_proximity_match) == flat_proximity_match_result
 
     def test_nested_ldots_lemma(self):
-        assert critical_note_match_replace_samewords(edtext_split(nested_ldots_lemma)) == nested_ldots_lemma_result
+        assert critical_note_match_replace_samewords(nested_ldots_lemma) == nested_ldots_lemma_result
+
 
     def test_complex_real_example(self):
-        assert critical_note_match_replace_samewords(edtext_split(nested_2)) == nested_2_result
+        assert critical_note_match_replace_samewords(nested_2) == nested_2_result
+
 
 
 class TestReplaceInEdtext:
