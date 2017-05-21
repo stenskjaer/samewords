@@ -300,7 +300,9 @@ def replace_in_string(search_word, search_string):
             except IndexError:
                 updated_string += search_string[position + len(search_word):]
 
-        return updated_string
+        search_string = updated_string
+
+    return search_string
     else:
         return search_string
 
