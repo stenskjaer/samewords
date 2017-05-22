@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Collection of functions for identifying and annotating potentially ambiguous words in a string.
 """
 
 import re
+
 
 def macro_expression_content(search_string, position=0, opener='{', closer='}', capture_wrap=False):
     """Get the content of a latex expression that has been opened with "{" to any
