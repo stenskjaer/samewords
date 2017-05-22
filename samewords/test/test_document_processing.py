@@ -2,15 +2,15 @@ from samewords.document import *
 
 
 def test_document_content():
-    with open('./test/documents/da-49-l1q1.tex') as f:
+    with open('./samewords/test/assets/da-49-l1q1.tex') as f:
         content = f.read()
-    assert document_content('./test/documents/da-49-l1q1.tex') == content
+    assert document_content('./samewords/test/assets/da-49-l1q1.tex') == content
 
 
 class TestParagraphHandling:
-    document = document_content('./test/documents/da-49-l1q1.tex')
-    numbered = document_content('./test/documents/da-49-l1q1-numbered.tex')
-    numbered_autopar = document_content('./test/documents/da-49-l1q1-numbered-autopar.tex')
+    document = document_content('./samewords/test/assets/da-49-l1q1.tex')
+    numbered = document_content('./samewords/test/assets/da-49-l1q1-numbered.tex')
+    numbered_autopar = document_content('./samewords/test/assets/da-49-l1q1-numbered-autopar.tex')
 
     def test_chunk_document(self):
         chunked_dict = {
