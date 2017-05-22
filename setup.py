@@ -20,4 +20,7 @@ setup(name='samewords',
       author='Michael Stenskjær Christensen',
       author_email='michael.stenskjaer@gmail.com',
       license='MIT',
+      entry_points = {
+          'console_scripts' : ['samewords=samewords.cli:main']
+      },
 )
