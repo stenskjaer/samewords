@@ -1,6 +1,6 @@
 import pytest
 
-from reledmac_samewords import *
+from samewords.annotate import *
 
 no_proximity_match = r"""sw \edtext{so}{\lemma{so}\Bfootnote{foot content}}  and again sw it is all and something after."""
 

@@ -1,6 +1,9 @@
-import re
+#!/usr/bin/env python3
+"""
+Collection of functions for identifying and annotating potentially ambiguous words in a string.
+"""
 
-__version__ = '0.0.1'
+import re
 
 def macro_expression_content(search_string, position=0, opener='{', closer='}', capture_wrap=False):
     """Get the content of a latex expression that has been opened with "{" to any
