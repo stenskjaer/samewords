@@ -1,0 +1,201 @@
+
+%this tex file was auto produced from TEI by lombardpress-print on 2017-05-21T21:24:14.898+02:00 using the file:/Users/michael/Documents/coding/SCTA/lbp_print/xslt/1.0.0/modules/critical/preamble.xsl
+\documentclass[a4paper, 12pt]{book}
+
+% imakeidx must be loaded beore eledmac
+\usepackage{imakeidx}
+\usepackage{titlesec}
+\usepackage{libertine}
+\usepackage{csquotes}
+
+\usepackage{geometry}
+\geometry{left=4cm, right=4cm, top=3cm, bottom=3cm}
+
+\usepackage{fancyhdr}
+% fancyheading settings
+\pagestyle{fancy}
+
+% latin language
+\usepackage{polyglossia}
+\setmainlanguage{english}
+\setotherlanguage{latin}
+
+% a critical mark
+\usepackage{amssymb}
+
+% git package
+\usepackage{gitinfo2}
+
+
+% title settings
+\titleformat{\chapter}{\normalfont\large\scshape}{\thechapter}{50pt}{}
+\titleformat{\section}{\normalfont\scshape}{\thesection}{1em}{}
+\titleformat{\subsection}[block]{\centering\normalfont\itshape}{\thesubsection}{}{}
+\titlespacing*{\subsection}{20pt}{3.25ex plus 1ex minus.2 ex}{1.5ex plus.2ex}[20pt]
+
+% reledmac settings
+\usepackage[final]{reledmac}
+
+\Xinplaceoflemmaseparator{0pt} % Don't add space after nolemma notes.
+\Xlemmadisablefontselection[A] % In fontium lemmata, don't copy font formatting.
+\Xarrangement{paragraph}
+\linenummargin{outer}
+\sidenotemargin{inner}
+\lineation{page}
+
+\Xendbeforepagenumber{p.~}
+\Xendafterpagenumber{,}
+\Xendlineprefixsingle{l.~}
+\Xendlineprefixmore{ll.~}
+
+\Xnumberonlyfirstinline[]
+\Xnumberonlyfirstintwolines[]
+\Xbeforenotes{\baselineskip}
+
+% This should prevent overfull vboxes
+\AtBeginDocument{\Xmaxhnotes{0.5\textheight}}
+\AtBeginDocument{\maxhnotesX{0.5\textheight}}
+
+\Xprenotes{\baselineskip}
+
+\let\Afootnoterule=\relax
+\let\Bfootnoterule=\relax
+
+% other settings
+\linespread{1.1}
+
+
+
+% custom macros
+\newcommand{\name}[1]{#1}
+\newcommand{\lemmaQuote}[1]{\textsc{#1}}
+\newcommand{\worktitle}[1]{\textit{#1}}
+\newcommand{\supplied}[1]{⟨#1⟩} 
+\newcommand{\suppliedInVacuo}[1]{$\ulcorner$#1$\urcorner$} 
+\newcommand{\secluded}[1]{{[}#1{]}}
+\newcommand{\metatext}[1]{<#1>}
+\newcommand{\hand}[1]{\textsuperscript{#1}}
+\newcommand{\del}[1]{[#1 del. ms]}
+\newcommand{\no}[1]{\emph{#1}\quad}
+\newcommand{\corruption}[1]{\textdagger#1\textdagger}
+
+\begin{document}
+\fancyhead{}
+\fancyfoot[C]{\thepage}
+\fancyhead[R]{Quaestiones in libros De anima}
+\fancyhead[L]{Johannes Dinsdale}
+
+\fancyhead[C]{DRAFT}
+
+
+\chapter*{Johannes Dinsdale: Quaestiones in libros De anima}
+\addcontentsline{toc}{chapter}{Quaestiones in libros De anima}
+
+
+\begin{latin}
+\beginnumbering
+
+\pstart[\subsection*{\metatext{Quaestio 1: Utrum de anima possit nobis acquiri scientia}}]
+\edlabelS{da-49-l1q1-274hkz}%
+\ledsidenote{B 148va}\ledsidenote{O 164rb}%
+\edtext{Item}{\lemma{Item}\Bfootnote{\emph{om.} B}} quaeratur\edtext{}{\lemma{}\Bfootnote[nosep]{nunc \emph{post} quaeratur B}} primo utrum de anima possit nobis acquiri scientia. 
+\edlabelE{da-49-l1q1-274hkz}
+\pend
+
+\medbreak
+
+\pstart[\medbreak{}]
+\edlabelS{da-49-l1q1-j01jdw}%
+\no{1}
+Videtur quod non. 
+\edlabelE{da-49-l1q1-j01jdw}
+\pend
+
+\pstart
+\edlabelS{da-49-l1q1-ysmgk1}%
+\no{1.1}
+Illud de quo est scientia est intelligibile, quia cum scientia sit habitus intellectus, de quo est scientia oportet esse intelligibile; sed anima non est intelligibile, quia omnis nostra cognitio ortum habet a sensu, \edtext{unde ipsum intelligere non est}{\lemma{unde \dots{} est}\Bfootnote{quia nihil intelligimus B}} sine phantasmate, sed anima sub sensu non cadit, nec phantasma facit; ergo et cetera. 
+\edlabelE{da-49-l1q1-ysmgk1}
+\pend
+
+\pstart
+\edlabelS{da-49-l1q1-mjzkyp}%
+\no{1.2}
+Praeterea, unum et idem non potest esse simul movens et motum, quia\edtext{}{\lemma{}\Bfootnote[nosep]{si \emph{post} quia B}} sic \edtext{idem esset}{\lemma{idem esset}\Bfootnote{\emph{inv.} B}} actu et potentia respectu eiusdem; sed cognitum est movens respectu cognocentis; ergo unum et idem non potest esse \edtext{cognoscens}{\lemma{cognoscens}\Bfootnote{movens B}} et \edtext{cognitum}{\lemma{cognitum}\Bfootnote{motum B}},\edtext{}{\lemma{}\Bfootnote[nosep]{sed \emph{post} motum B}} hoc tamen contingeret si de anima \edtext{esset scientia}{\lemma{esset scientia}\Bfootnote{cognitionem haberemus B}}. 
+\edlabelE{da-49-l1q1-mjzkyp}
+\pend
+
+\pstart
+\edlabelS{da-49-l1q1-mjgjs9}%
+\no{1.3}
+Praeterea, \edtext{sicut oculus \edtext{nycticoracis}{\lemma{nycticoracis}\Bfootnote{vespertilionis O}} \edtext{\suppliedInVacuo{se habet}}{\lemma{se habet}\Bfootnote{\emph{spat. vac. 8 litt.} B; \emph{om.} O}} ad lumen solis, sic intellectus noster ad ea quae sunt manifestissima in natura}{\lemma{}\Afootnote[nosep]{Cf. Arist. \worktitle{Metaph.}\index[works]{} II.1 993b9--11 (νυκτερίς).}}, de quorum numero est anima, \edtext{saltim}{\lemma{saltim}\Bfootnote{\emph{om.} B}} humana; sed oculus nycticoracis non potest apprehendere lumen solis; ergo et cetera. 
+\edlabelE{da-49-l1q1-mjgjs9}
+\pend
+
+\pstart
+\edlabelS{da-49-l1q1-xdpfxs}%
+\no{1.4}
+Praeterea, nostrum intelligere est cum continuo et tempore; sed anima, cum sit indivisibilis et perpetua, nec est continua nec temporalis; ergo et cetera. 
+\edlabelE{da-49-l1q1-xdpfxs}
+\pend
+
+\medbreak
+
+\pstart[\medbreak{}]
+\edlabelS{da-49-l1q1-o9whrl}%
+\no{2}
+Oppositum patet per . 
+\edlabelE{da-49-l1q1-o9whrl}
+\pend
+
+\medbreak
+
+\pstart[\medbreak{}]
+\edlabelS{da-49-l1q1-ywem12}%
+\no{3.1}
+Dicendum quod cum scientia sit habitus acquisitus per demonstrationem, et ad demonstrationem tria requirantur ( \edtext{scilicet}{\lemma{scilicet}\Bfootnote{\emph{om.} B}} subiectum, passio, et principium per quod ostenditur passio de subiecto), ubi est , ibi \edtext{contingit ponere scientiam}{\lemma{contingit ponere scientiam}\Bfootnote{est scientiam ponere B}}. Nunc autem anima cuius sunt \edtext{multae}{\lemma{multae}\Bfootnote{\emph{om.} B}} proprietates et passiones, ut patebit inferius. Sunt etiam principia per quae de anima. Si enim accipiatur quod quid est animae pro medio, \edtext{per ipsum}{\lemma{per ipsum}\Bfootnote{\emph{om.} B}} concludi potest propria passio eius de anima, et ita de anima potest \edtext{aliquid sciri sive}{\lemma{aliquid sciri sive}\Bfootnote{\emph{om.} B}} esse aliqualis scientia. 
+\edlabelE{da-49-l1q1-ywem12}
+\pend
+
+\pstart
+\edlabelS{da-49-l1q1-t57fj3}%
+\no{3.2}
+Praeterea, accidentia non sunt , sed in alio. Qui ergo cognoscit accidentia, manuduci potest in cognitionem eius cuius sunt. Nunc autem multa accidentia ipsius animae nobis sunt manifesta: Operationes \edtext{enim}{\lemma{enim}\Bfootnote{\emph{om.} B}} artificiales nobis notae sunt, quae \edtext{tamen}{\lemma{tamen}\Bfootnote{\emph{om.} B}} non fiunt absque intelligere, et intelligere procedit ab aliqua potentia, et potentia \edtext{fluit}{\lemma{fluit}\Bfootnote{\emph{om.} B}} ab essentia; \edtext{et sic est de aliis}{\lemma{et \dots{} aliis}\Bfootnote{eodem modo est de B}} operationibus quae procedunt ab irascibili. Unde per multa \edtext{quae nobis nota sunt}{\lemma{quae nobis nota sunt}\Bfootnote{nobis B}} devenire \edtext{possumus}{\lemma{possumus}\Bfootnote{possunt B}} in cognitionem animae. Quia tamen scire est \edtext{per causam}{\lemma{per causam}\Bfootnote{causam rei B}} cognoscere , et talis \edtext{cognitio de anima}{\lemma{cognitio de anima}\Bfootnote{\emph{om.} B}} procedit per effectus \edtext{et}{\lemma{et}\Bfootnote{\emph{om.} B}} non per causam, ideo Philosophus\index[persons]{} talem cognitionem tradens de anima \edtext{istam cognitionem nominat}{\lemma{istam cognitionem nominat}\Bfootnote{ipsam vocat B}} \edtext{\enquote{historiam}}{\lemma{}\Afootnote[nosep]{Arist. \worktitle{DA}\index[works]{} I.1 402a4.}}. Extensive tamen dici potest scientia. 
+\edlabelE{da-49-l1q1-t57fj3}
+\pend
+
+\medbreak
+
+\pstart[\medbreak{}]
+\edlabelS{da-49-l1q1-1mle08}%
+\no{Ad 1.1}
+Ad primum argumentum dicendum \edtext{quod minor est falsa}{\lemma{quod minor est falsa}\Bfootnote{per interemptionem minoris B}}. \edtext{Et}{\lemma{Et}\Bfootnote{\emph{om.} B}} ad probationem dicendum quod \edtext{aliquid}{\lemma{aliquid}\Bfootnote{aliquod B}} cadit |\ledsidenote{B 148vb} in sensu dupliciter: aut per positionem aut \edtext{per}{\lemma{per}\Bfootnote{\emph{om.} O}} privationem. Per privationem sicut tenebra et indivisibilia, ut punctum et unitas. Per positionem contingit dupliciter, aut per speciem sui, aut per speciem alterius; per speciem sui \edtext{sicut}{\lemma{sicut}\Bfootnote{ut B}} color videtur, \edtext{per speciem alterius \edtext{sicut}{\lemma{sicut}\Bfootnote{ut B}} \edtext{videtur}{\lemma{videtur}\Bfootnote{\emph{om.} B}} Diari\index[persons]{} filius}{\lemma{}\Afootnote[nosep]{Arist. \worktitle{DA}\index[works]{} II.6 418a20--22.}}. Unde, licet anima non cadat sub sensu per \edtext{se}{\lemma{se}\Bfootnote{rei B}}, \edtext{cadit}{\lemma{cadit}\Bfootnote{cadat B O}} tamen sub sensu per alterum, ut per sui effectus, \edtext{et}{\lemma{et}\Bfootnote{\emph{om.} B}} eodem modo, licet per se phantasma non faciat, \edtext{aliud}{\lemma{aliud}\Bfootnote{aliquid O B}} tamen phantasma facit, quod in eius cognitionem ducere potest. 
+\edlabelE{da-49-l1q1-1mle08}
+\pend
+
+\pstart
+\edlabelS{da-49-l1q1-i9rohp}%
+\no{Ad 1.2}
+Ad \edtext{aliud}{\lemma{aliud}\Bfootnote{secundum B}} dicendum quod : uno modo est actus imperfecti, \edtext{sicut}{\lemma{sicut}\Bfootnote{et sic O}} definitur \edtext{a Philosopho\index[persons]{} in}{\lemma{a Philosopho in}\Bfootnote{\emph{om.} B}} \edtext{tertio \worktitle{Physicorum}\index[works]{};}{\lemma{}\Afootnote[nosep]{Arist. \worktitle{Phys.}\index[works]{} III.2 201b31--33.}} alio modo est actus perfecti, \edtext{sicut}{\lemma{sicut}\Bfootnote{sic O}} intelligere et \edtext{cognoscere}{\lemma{cognoscere}\Bfootnote{sentire O}} dicuntur motus: Primo modo non potest idem esse movens et motum per se, per accidens tamen nihil prohibet, sicut nauta \edtext{movet navem per se}{\lemma{movet navem per se}\Bfootnote{per se \emph{ante} movet navem \emph{scr.} B}}, \edtext{qua mota movet seipsum}{\lemma{qua mota movet seipsum}\Bfootnote{et motu navi movetur B}}\edtext{}{\lemma{}\Bfootnote[nosep]{per accidens \emph{post} movetur B}}. Secundo modo nihil prohibet idem \edtext{movere se ipsum}{\lemma{movere se ipsum}\Bfootnote{esse movens et motum respectu sui ipsius B}}. Sed tamen differentia est: aliqua \edtext{enim}{\lemma{enim}\Bfootnote{\emph{om.} B}} est substantia semper actu intelligens, et talis \edtext{substantia}{\lemma{substantia}\Bfootnote{\emph{om.} O}} potest intelligere se per se, \edtext{sicut est de prima causa et intelligentiis}{\lemma{sicut \dots{} intelligentiis}\Bfootnote{sed est de prima causa et intelligentiis O; \emph{om.} B}}; sed aliqua est\edtext{}{\lemma{}\Bfootnote[nosep]{substantia \emph{post} est B}} non semper actu intelligens, \edtext{sicut est anima humana}{\lemma{sicut est anima humana}\Bfootnote{\emph{om.} B}}, et talis\edtext{}{\lemma{}\Bfootnote[nosep]{substantia \emph{post} talis B}} \edtext{non intelligit}{\lemma{non intelligit}\Bfootnote{non potest intelligere B}} se per se, quia nihil intelligitur nisi secundum quod actu est, et talis substantia, cum sit in potentia intelligens \edtext{non est in actu nisi per alterum, ut per speciem intelligibilem, ideo}{\lemma{non \dots{} ideo}\Bfootnote{non est in actu nisi per alterum, ut per speciem intelligibilem, ideo O; per speciem alterius B}} per alterum potest intelligere. Per hoc enim quod anima intelligit obiectum per speciem potest intelligere suum actum, et per actum potest reflectere \edtext{se}{\lemma{se}\Bfootnote{\emph{om.} B}} supra suam essentiam; \edtext{unde anima nostra quodammodo intelligit se sicut nauta movet navem}{\lemma{unde \dots{} navem}\Bfootnote{unde anima nostra quodammodo intelligit se sicut nauta movet navem O; \emph{om.} B}}. 
+\edlabelE{da-49-l1q1-i9rohp}
+\pend
+
+\pstart
+\edlabelS{da-49-l1q1-52psh5}%
+\no{Ad 1.3}
+Ad \edtext{aliud}{\lemma{aliud}\Bfootnote{tertium B}} dicendum quod licet oculus nycticoracis non possit apprehendere directe lumen solis, \edtext{potest tamen indirecte aliquam claritatem apprehendere}{\lemma{potest \dots{} apprehendere}\Bfootnote{potest tamen indirecte aliquam claritatem apprehendere O; aliquem tamen effectum eius potest apprehendere B}}, et si visus \edtext{eius}{\lemma{eius}\Bfootnote{\emph{om.} B}} esset discursivus, \edtext{posset}{\lemma{posset}\Bfootnote{possit B}} \edtext{cognoscere}{\lemma{cognoscere}\Bfootnote{intelligere B}} lumen solis. Nunc \edtext{autem, etsi}{\lemma{autem, etsi}\Bfootnote{\emph{om.} B}} intellectus noster\edtext{}{\lemma{}\Bfootnote[nosep]{etsi \emph{post} noster \emph{del.} O}} non \edtext{potest}{\lemma{potest}\Bfootnote{posset O; possit B}}\edtext{}{\lemma{}\Bfootnote[nosep]{directe \emph{post} potest B}} in cognitionem \edtext{perfectam}{\lemma{perfectam}\Bfootnote{\emph{om.} B}} substantiarum separatarum, tamen \edtext{aliqui effectus earum apparent nobis, \edtext{per quos manuducimur in earum notitiam}{\lemma{per \dots{} notitiam}\Bfootnote{\emph{in marg.} O}}}{\lemma{aliqui \dots{} notitiam}\Bfootnote{aliqui effectus earum apparent nobis per quos manuducimur in earum notitiam (per
+quos manuducimur in earum notitiam \emph{in marg.}) O; potest in effectus earum B}}, et quia intellectus noster est discursivus, ideo \edtext{potest}{\lemma{potest}\Bfootnote{per effectus possumus B}} in \edtext{aliqualem}{\lemma{aliqualem}\Bfootnote{aliqualiter O}} cognitionem \edtext{earum ut per effectus}{\lemma{earum ut per effectus}\Bfootnote{substantiarum separatarum B}}. Magis |\ledsidenote{O 164va} tamen cognoscimus de anima quam de \edtext{substantiis}{\lemma{substantiis}\Bfootnote{aliis O}} separatis, quia effectus \edtext{ipsius}{\lemma{ipsius}\Bfootnote{\emph{om.} B}} animae \edtext{nobis apparentes}{\lemma{nobis apparentes}\Bfootnote{\emph{om.} B}} magis adaequant virtutem eius quam effectus\edtext{}{\lemma{}\Bfootnote[nosep]{quae \emph{post} effectus O}} substantiarum separatarum \edtext{nobis apparentes}{\lemma{nobis apparentes}\Bfootnote{\emph{om.} B}} \edtext{adaequant virtutem earum}{\lemma{adaequant virtutem earum}\Bfootnote{\emph{om.} O}}. 
+\edlabelE{da-49-l1q1-52psh5}
+\pend
+
+\pstart
+\edlabelS{da-49-l1q1-h6ks8n}%
+\no{Ad 1.4}
+Ad aliud dicendum quod \edtext{intelligere nostrum}{\lemma{intelligere nostrum}\Bfootnote{\emph{inv.} B}} non est sine\edtext{}{\lemma{}\Bfootnote[nosep]{phantasmate B}} continuo et tempore, quia non est sine phantasmate. Non tamen oportet\edtext{}{\lemma{}\Bfootnote[nosep]{quod \emph{post} oportet B}} omne \edtext{intelligere esse}{\lemma{intelligere esse}\Bfootnote{quod a nobis est quocumque modo intelligibile sit B}} continuum et \edtext{temporale}{\lemma{temporale}\Bfootnote{temporalis B}}. 
+\edlabelE{da-49-l1q1-h6ks8n}
+\pend
+
+
+\endnumbering
+\end{latin} 
+\end{document}
