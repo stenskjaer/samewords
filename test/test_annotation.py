@@ -129,6 +129,21 @@ class TestMainReplaceFunction:
     def test_multiword_lemma(self):
         assert critical_note_match_replace_samewords(multiword_lemma) == multiword_lemma_result
 
+    def test_text_with_arbitrary_commands(self):
+        text = r"""
+        \edlabelS{da-49-l1q1-ysmgk1}%
+        \no{1.1}
+        Illud de quo est scientia est intelligibile, quia cum scientia sit habitus intellectus, de quo est scientia oportet esse intelligibile; sed anima non est intelligibile, quia omnis nostra cognitio ortum habet a sensu, \edtext{unde ipsum intelligere non est}{\lemma{unde \dots{} est}\Bfootnote{quia nihil intelligimus B}} sine phantasmate, sed anima sub sensu non cadit, nec phantasma facit; ergo et cetera. 
+        \edlabelE{da-49-l1q1-ysmgk1}
+        """
+        result = r"""
+        \edlabelS{da-49-l1q1-ysmgk1}%
+        \no{1.1}
+        Illud de quo \sameword{est} scientia \sameword{est} intelligibile, quia cum scientia sit habitus intellectus, de quo \sameword{est} scientia oportet esse intelligibile; sed anima non \sameword{est} intelligibile, quia omnis nostra cognitio ortum habet a sensu, \edtext{unde ipsum intelligere non \sameword[1]{est}}{\lemma{unde \dots{} \sameword{est}}\Bfootnote{quia nihil intelligimus B}} sine phantasmate, sed anima sub sensu non cadit, nec phantasma facit; ergo et cetera. 
+        \edlabelE{da-49-l1q1-ysmgk1}
+        """
+        assert critical_note_match_replace_samewords(text) == result
+
     def test_no_annotation_in_footnote(self):
         assert critical_note_match_replace_samewords(no_annotation_in_footnote) == no_annotation_in_footnote_result
 
