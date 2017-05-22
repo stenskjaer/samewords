@@ -543,12 +543,6 @@ def critical_note_match_replace_samewords(input_string):
 
                     if search_in_proximity(search_word, context_before, context_after):
 
-                        if len(search_word.split(' ')) > 1:
-                            # Notice: We must check if a multiword phrase occurs in the proximity. But we only need to
-                            # mark up the first word in the phrase with \sameword. In that case, revise search_word to
-                            # only first word
-                            search_word = search_word.split(' ')[0]
-
                         # Update the proximate content.
                         context_before, context_after = replace_in_proximity(context_before, context_after, search_word)
 
