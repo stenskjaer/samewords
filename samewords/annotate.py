@@ -272,7 +272,10 @@ def replace_in_proximity(context_before_list, context_after_list, search_word):
                 chunk_list = iter_proximate_words(context_item, side=side, index=len(context_item) - 1)
 
             for index, chunk in enumerate(chunk_list):
-                chunk = replace_in_string(word, chunk)
+                if r'\edtext' in chunk:
+                    chunk = replace_in_critical_note(chunk, word, lemma_level=0)
+                else:
+                    chunk = replace_in_string(word, chunk)
                 chunk_list[index] = chunk
             context_list[item_index] = chunk_list
         return context_list
@@ -337,7 +340,11 @@ def wrap_in_sameword(word, context_string, lemma_level=0):
             if wrap_search.group(2):
                 # Wrap contains level indication
                 existing_level = wrap_search.group(2)
-                level_argument = '[' + lemma_level + ',' + existing_level[1:]
+                if level_argument is None:
+                    # If lemma level of current annotation is None, don't change the existing annotation.
+                    level_argument = wrap_search.group(2)
+                else:
+                    level_argument = '[' + lemma_level + ',' + existing_level[1:]
 
         if level_argument:
             if wrap_search:
@@ -555,12 +562,9 @@ def critical_note_match_replace_samewords(input_string):
                 # following content, if any.
                 proximate_before = context_before.pop()
                 proximate_after = context_after.pop()
-                output_list = input_list[:pivot_index - len(proximate_before)]
-                output_list += proximate_before
-                output_list += [edtext_element]
-                output_list += proximate_after
-                output_list += input_list[len(proximate_after) + pivot_index + 1:]
-                input_list = output_list
+                input_list[pivot_index - len(proximate_before):pivot_index] = proximate_before
+                input_list[pivot_index] = edtext_element
+                input_list[pivot_index + 1:len(proximate_after) + pivot_index + 1] = proximate_after
 
         return input_list, context_before, context_after
 
