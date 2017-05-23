@@ -14,7 +14,7 @@ We have a passage of regular text here, such a nice place for a critical note.
 
 It is very unclear which of three instances of "a" the note refers to.
 
-(Reledmac)[https://www.ctan.org/pkg/reledmac] is a very high quality package for
+[Reledmac](https://www.ctan.org/pkg/reledmac) is a high quality package for
 LaTeX that facilitates typesetting of critical editions of prime quality. It
 already provides facilities for disambiguating identical words, but it requires
 the creator of the critical text to manually mark all potential instances of
@@ -22,9 +22,7 @@ ambiguous references manually. *Samewords* automates this step for the editor.
 
 # Installation
 
-Download the repository. Notice that the xslt is included as submodule
-of [lbp-print-xslt](https://github.com/lombardpress/lbp-print-xslt), so include
-it in cloning by using `--recursive`.
+Download the repository. 
 ```
 git clone https://github.com/stenskjaer/samewords.git
 ```
@@ -140,7 +138,7 @@ Options:
 
 For now the package only has one option aside from the `--help/-h` and
 `--version/-v`. Use `--output` to indicate in which folder of to which file you
-want the resulting file to be saved.
+want save the result.
 
 For example:
 ```bash
