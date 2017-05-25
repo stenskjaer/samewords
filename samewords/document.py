@@ -25,12 +25,12 @@ def chunk_document(content):
     :param content: The content of the document as a string. 
     :return: Dictionary with three keys: { before : 'content', inside : 'content', after : 'content' }
     """
-    start = content.find(r'\beginnumbering')
-    end = content.find(r'\endnumbering')
+    start = content.find('\\beginnumbering\n') + len('\\beginnumbering\n')
+    end = content.find('\n\\endnumbering')
     return {
         'before' : content[:start],
-        'inside' : content[start:end + len(r'\endnumbering')],
-        'after' : content[end + len(r'\endnumbering'):],
+        'inside' : content[start:end],
+        'after' : content[end:],
     }
 
 
@@ -42,8 +42,8 @@ def chunk_paragraphs(content):
     after the `\beginnumbering` as in the documentation. 
     """
 
-    if content.find(r'\beginnumbering\n\autopar'):
-        paragraph_positions = [pstart.start() for pstart in re.finditer(r'\n\n', content)]
+    if content.find(r'\autopar') is not -1:
+        paragraph_positions = [pstart.start() for pstart in re.finditer('\n\n', content)]
     else:
         paragraph_positions = [pstart.start() for pstart in re.finditer(r'\\pstart', content)]
 
@@ -52,6 +52,6 @@ def chunk_paragraphs(content):
         try:
             paragraphs.append(content[par:paragraph_positions[index + 1]])
         except IndexError:
-            pass
+            paragraphs.append(content[par:])
 
     return paragraphs
