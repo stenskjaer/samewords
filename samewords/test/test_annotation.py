@@ -129,6 +129,11 @@ class TestMainReplaceFunction:
     def test_multiword_lemma(self):
         assert critical_note_match_replace_samewords(multiword_lemma) == multiword_lemma_result
 
+    def test_wrapping_of_already_wrapped(self):
+        identical_wrap_result = r"""Praeterea intellectus intelligit se: \edtext{\sameword[1]{aut}}{\lemma{\sameword{aut}}\Bfootnote{aliter Aguin.}} ergo per suam essentiam, \edtext{\sameword[1]{aut}}{\lemma{\sameword{aut}}\Bfootnote{aliter Aguin.}} per speciem, \edtext{\sameword[1]{aut}}{\lemma{\sameword{aut}}\Bfootnote{aliter Aguin.}} per suum actum; sed \edtext{\sameword[1]{nec}}{\lemma{\sameword{nec}}\Bfootnote{non Aguin.}} per speciem |\ledsidenote{B 174vb} \sameword{nec} per suum actum;"""
+        identical_wrap = r"""Praeterea intellectus intelligit se: \edtext{aut}{\lemma{aut}\Bfootnote{aliter Aguin.}} ergo per suam essentiam, \edtext{aut}{\lemma{aut}\Bfootnote{aliter Aguin.}} per speciem, \edtext{aut}{\lemma{aut}\Bfootnote{aliter Aguin.}} per suum actum; sed \edtext{nec}{\lemma{nec}\Bfootnote{non Aguin.}} per speciem |\ledsidenote{B 174vb} nec per suum actum;"""
+        print(critical_note_match_replace_samewords(identical_wrap))
+
     def test_text_with_arbitrary_commands(self):
         text = r"""
         \edlabelS{da-49-l1q1-ysmgk1}%

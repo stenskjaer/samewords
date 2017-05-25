@@ -355,8 +355,8 @@ def wrap_in_sameword(word, context_string, lemma_level=0):
                 return context_string.replace(word, r'\sameword' + level_argument + '{' + word + '}')
         else:
             if wrap_search:
-                # If the word is already wrapped, pass? How about other instances?
-                pass
+                # If the word is already wrapped, we don't do anything, just return the string as it is.
+                return context_string
             else:
                 return context_string.replace(word, r'\sameword{' + word + '}')
 
