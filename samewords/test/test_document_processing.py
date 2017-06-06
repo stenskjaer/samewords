@@ -2,8 +2,8 @@ from samewords.document import *
 
 
 def test_document_content():
-    with open('./samewords/test/assets/da-49-l1q1.tex') as f:
-        content = f.read()
+    with open('./samewords/test/assets/da-49-l1q1.tex', 'rb') as f:
+        content = f.read().decode('utf-8')
     assert document_content('./samewords/test/assets/da-49-l1q1.tex') == content
 
 
