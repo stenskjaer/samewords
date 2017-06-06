@@ -113,6 +113,7 @@ def list_maintext_words(search_string=''):
     :param search_string: The string to create list of.
     :return: List of words
     """
+
     def add_word_to_list(word, word_list):
         """
         If `word` is not empty, add it to the `word_list` and return the list.
@@ -288,32 +289,79 @@ def replace_in_proximity(context_before_list, context_after_list, search_word):
     return left, right
 
 
-def replace_in_string(search_word, search_string):
+def replace_in_string(search_word, replacement_string, lemma_level=0):
     """
     Recursively replace the search word in the search string with a version that is wrapped in sameword. This only
     replaces on words that do are not already wrapped in a sameword.
 
+    - multiword lemma:
+    - split search_string into list.
+    - find first item with first word. Add to tmp. replacement string
+    - if next item contains next word, add to tmp. replacement string (until the replacement string matches search word)
+    - wrap the tmp string with sameword.
+    - how about nested multwords? (some \sameword{word here}, needing to be replaced. A problem?
+
     :return: Updated or unchanged string.
     """
-    positions = [item.start() for item in re.finditer(r'\b' + search_word + r'\b', search_string)
-                 if not sameword_wrapped(search_string, item.start())]
-
-    if positions:
-        updated_string = search_string[:positions[0]]
-
-        for index, position in enumerate(positions):
-            updated_string += r'\sameword{' + search_word + '}'
+    def move_punctuation(input_list):
+        return_list = []
+        for item in input_list:
             try:
-                updated_string += search_string[position + len(search_word):positions[index + 1]]
+                if item[-1] in ',.?!;':
+                    return_list.append(item[:-1])
+                    return_list.append(item[-1])
+                else:
+                    return_list.append(item)
             except IndexError:
-                updated_string += search_string[position + len(search_word):]
+                return_list.append(item)
+        return return_list
 
-        search_string = updated_string
+    def check_list_match(pattern_list, replace_list, return_list=list()):
+        try:
+            if re.search(r'\b' + pattern_list[0] + r'\b', replace_list[0]):
+                return_list.append(replace_list[0])
+                return check_list_match(pattern_list[1:], replace_list[1:], return_list)
+            else:
+                return return_list
+        except IndexError:
+            return return_list
 
-    return search_string
+    def make_replacements(search_list, replacement_list, updated_list=list()):
+        match_in_replace_list = check_list_match(search_list, replacement_list, return_list=[])
+        try:
+            if match_in_replace_list:
+                if len(match_in_replace_list) > 1:
+                    # This doesn't work properly. Should I rewrite the sameword wrapping function?a
+                    updated_list.append(
+                        wrap_phrase(' '.join(match_in_replace_list), lemma_level=lemma_level))
+                else:
+                    updated_list.append(wrap_single_word(' '.join(search_list), ' '.join(match_in_replace_list),
+                                                         lemma_level=lemma_level))
+                return make_replacements(search_list, replacement_list[len(match_in_replace_list):], updated_list)
+            updated_list.append(replacement_list[0])
+            return make_replacements(search_list, replacement_list[1:], updated_list)
+        except IndexError:
+            return re.sub(' ([.,;:?])', r'\1', ' '.join(updated_list))
+
+    unwrapped = False
+    try:
+        if replacement_string[0] is '{' and replacement_string[-1] is '}':
+            replacement_string = replacement_string[1:-1]
+            unwrapped = True
+    except IndexError:
+        # The input replacement string is empty, so just return with processing.
+        return replacement_string
+
+    replacement_string_listed = move_punctuation(replacement_string.split(' '))
+    search_word_listed = search_word.split(' ')
+    updated_replacement = make_replacements(search_word_listed, replacement_string_listed)
+
+    if unwrapped:
+        return '{' + updated_replacement + '}'
+    return updated_replacement
 
 
-def sameword_wrapped(context_string, word_position):
+def sameword_wrapped(input_string):
     """
     Check if the provided string is already wrapped in a sameword macro
 
@@ -321,17 +369,65 @@ def sameword_wrapped(context_string, word_position):
     :param word_position: The position of the word being checked in the context string.
     :return: Boolean
     """
-    if context_string[word_position - len(r'\sameword{'):word_position] == r'\sameword{':
+    if input_string[:len(r'\sameword{')] == r'\sameword{' and input_string[-1] == '}':
         return True
     return False
 
 
-def wrap_in_sameword(word, context_string, lemma_level=0):
+def wrap_phrase(phrase, lemma_level=0):
+    """
+    Wrap the word or phrase in the appropriate \sameword{}-element.
+    
+    This means that if the word or phrase is already wrapped in a \sameword{}, it cannot be wrapped in another. If 
+    one or more words of a phrase are wrapped, it should wrap the whole phrase. It also needs to handle the 
+    conditions of lemma level numbering. 
+    
+    :param phrase: the word or phrase that should be wrapped. 
+    :param lemma_level: the level of the lemma annotation. Default=0
+    :return: The wrapped input phrase
+    """
+    # Should we handle the lemma level?
+    if lemma_level is not 0:
+        level_argument = '[' + str(lemma_level) + ']'
+    else:
+        level_argument = ''
 
+    # Is the phrase wrapped?
+    sameword_pattern = re.compile(r'(\\sameword)([^{]+)?{')
+    pattern_match = re.match(sameword_pattern, phrase)
+    exact_wrap = False
+    extended_wrap = False
+    if pattern_match:
+        sameword_match = pattern_match.group(0)
+        sameword_level = pattern_match.group(2)
+        sameword_match_length = macro_expression_length(phrase, macro=sameword_match[:-1])
+        if sameword_match_length == len(phrase):
+            exact_wrap = True
+        elif re.match('}+', phrase[sameword_match_length:]):
+            extended_wrap = True
+
+    if exact_wrap:
+        if sameword_level:
+            # Wrap contains level indication
+            if level_argument is None:
+                # If lemma level of current annotation is None, don't change the existing annotation.
+                level_argument = sameword_level
+
+        if level_argument:
+            return phrase.replace(sameword_match, r'\sameword' + level_argument + '{')
+        else:
+            return phrase
+    else:
+        if extended_wrap:
+            return phrase.replace(sameword_match, r'\sameword' + level_argument + '{')
+        else:
+            return r'\sameword' + level_argument + '{' + phrase + '}'
+
+
+def wrap_single_word(word, context_string, lemma_level=0):
     position = context_string.find(word)
     if lemma_level is not 0:
-        lemma_level = str(lemma_level)
-        level_argument = '[' + lemma_level + ']'
+        level_argument = '[' + str(lemma_level) + ']'
     else:
         level_argument = None
 
@@ -346,7 +442,7 @@ def wrap_in_sameword(word, context_string, lemma_level=0):
                     # If lemma level of current annotation is None, don't change the existing annotation.
                     level_argument = wrap_search.group(2)
                 else:
-                    level_argument = '[' + lemma_level + ',' + existing_level[1:]
+                    level_argument = '[' + str(lemma_level) + ',' + existing_level[1:]
 
         if level_argument:
             if wrap_search:
@@ -392,11 +488,11 @@ def replace_in_critical_note(search_string, replace_word, lemma_level=1, in_lemm
         if dots:
             # We have a ldots lemma, so we only replace a the beginning and end of the edtext element.
             if replace_word == dots[0]:
-                edtext_content_list[0] = wrap_in_sameword(replace_word, edtext_content_list[0], lemma_level)
+                edtext_content_list[0] = replace_in_string(replace_word, edtext_content_list[0], lemma_level)
             elif replace_word == dots[1]:
                 edtext_content_list[len(edtext_content_list) - 2] \
-                    = wrap_in_sameword(replace_word, edtext_content_list[len(edtext_content_list) - 2], lemma_level)
-            return_string += ''.join(edtext_content_list)
+                    = replace_in_string(replace_word, edtext_content_list[len(edtext_content_list) - 2], lemma_level)
+            return_string += wrap_in_brackets(''.join(edtext_content_list))
         else:
 
             for pivot_index, edtext_content in enumerate(edtext_content_list):
@@ -405,7 +501,7 @@ def replace_in_critical_note(search_string, replace_word, lemma_level=1, in_lemm
 
                     # Replace up to sub critical note (using a temporary return_string
                     edtext_position = edtext_content.find(r'\edtext{')
-                    sub_return_string = wrap_in_sameword(replace_word, edtext_content[:edtext_position], lemma_level)
+                    sub_return_string = replace_in_string(replace_word, edtext_content[:edtext_position], lemma_level)
 
                     # Replace inside edtext, calling this function. First we need the location of the sub critical note.
                     sub_edtext_length = macro_expression_length(edtext_content,
@@ -417,27 +513,28 @@ def replace_in_critical_note(search_string, replace_word, lemma_level=1, in_lemm
                                                                   replace_word, lemma_level=lemma_level)
 
                     # Relace rest of current edtext from after sub critical note
-                    sub_return_string += wrap_in_sameword(replace_word, edtext_content[sub_critnote_end:], lemma_level)
+                    sub_return_string += replace_in_string(replace_word, edtext_content[sub_critnote_end:], lemma_level)
                     edtext_content_list[pivot_index] = sub_return_string
 
                 else:
-                    edtext_content_list[pivot_index] = wrap_in_sameword(replace_word, edtext_content, lemma_level)
+                    edtext_content_list[pivot_index] = wrap_in_brackets(
+                        replace_in_string(replace_word, edtext_content, lemma_level))
 
                 return_string += edtext_content_list[pivot_index]
 
         # Bump position to end of edtext_content
-        position += len(edtext_content_string)
+        position += len(wrap_in_brackets(edtext_content_string))
 
     else:
         # In lemma: Add edtext content and bump position to after that.
-        return_string += edtext_content_string
-        position += len(edtext_content_string)
+        return_string += wrap_in_brackets(edtext_content_string)
+        position += len(wrap_in_brackets(edtext_content_string))
 
         lemma_content = macro_expression_content(search_string[position:], position=len(r'{\lemma'))
 
         return_string += r'{\lemma{'
         position += len(r'{\lemma{')
-        return_string += wrap_in_sameword(replace_word, lemma_content, lemma_level=0)
+        return_string += replace_in_string(replace_word, lemma_content, lemma_level=0)
 
         position += len(lemma_content)
 
@@ -445,6 +542,12 @@ def replace_in_critical_note(search_string, replace_word, lemma_level=1, in_lemm
     return_string += search_string[position:]
 
     return return_string
+
+
+def wrap_in_brackets(target):
+    # if target is not '':
+    #     return '{' + target + '}'
+    return target
 
 
 def critical_note_match_replace_samewords(input_string):
@@ -544,7 +647,6 @@ def critical_note_match_replace_samewords(input_string):
                 for search_word in search_words:
 
                     if search_in_proximity(search_word, context_before, context_after):
-
                         # Update the proximate content.
                         context_before, context_after = replace_in_proximity(context_before, context_after, search_word)
 

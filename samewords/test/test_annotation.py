@@ -26,8 +26,8 @@ nested_dots_lemma = r"""sw and \edtext{sw so \edtext{\edtext{sw}{\lemma{sw}\Bfoo
 flat_ldots_lemma = r"""sw and \edtext{sw so sw another thing}{\lemma{sw \ldots thing}\Afootnote{ critical note}} and a sw after."""
 flat_ldots_lemma_result = r"""\sameword{sw} and \edtext{\sameword[1]{sw} so \sameword[1]{sw} another thing}{\lemma{\sameword{sw} \ldots thing}\Afootnote{ critical note}} and a \sameword{sw} after."""
 
-multiword_lemma = r"""Quia tamen scire est \edtext{per causam}{\lemma{per causam}\Bfootnote{causam rei B}} cognoscere , et talis \edtext{cognitio de anima}{\lemma{cognitio de anima}\applabel{da-49-l1q1-app-gfllzy}\Bfootnote{\emph{om.} B}} procedit per effectus \edtext{et}{\lemma{et}\Bfootnote{\emph{om.} B}} non per causam."""
-multiword_lemma_result = r"""Quia tamen scire est \edtext{\sameword[1]{per causam}}{\lemma{\sameword{per causam}}\Bfootnote{causam rei B}} cognoscere , \sameword{et} talis \edtext{cognitio de anima}{\lemma{cognitio de anima}\applabel{da-49-l1q1-app-gfllzy}\Bfootnote{\emph{om.} B}} procedit per effectus \edtext{\sameword[1]{et}}{\lemma{\sameword{et}}\Bfootnote{\emph{om.} B}} non \sameword{per causam}."""
+multiword_lemma = r"""per causam tamen scire \edtext{causam}{\lemma{causam}\Bfootnote{fnote}} est \edtext{per causam}{\lemma{per causam}\Bfootnote{causam rei B}} cognoscere \edtext{causam}{\lemma{causam}\Bfootnote{fnote}}."""
+multiword_lemma_result = r"""\sameword{per \sameword{causam}} tamen scire \edtext{\sameword[1]{causam}}{\lemma{\sameword{causam}}\Bfootnote{fnote}} est \edtext{\sameword[1]{per \sameword{causam}}}{\lemma{\sameword{per causam}}\Bfootnote{causam rei B}} cognoscere \edtext{\sameword[1]{causam}}{\lemma{\sameword{causam}}\Bfootnote{fnote}}."""
 
 long_proximate_before_after = r"""List comprehensions provide a concise a way \sameword{to} create lists. \sameword{Common} applications are \sameword{to} make new lists where each element is the result of some operations applied \sameword{to} each member of another sequence or iterable, or \edtext{\sameword[1]{to}}{\lemma{\sameword{to}}\Bfootnote{note}} create a subsequence of those elements that satisfy a certain condition. List comprehensions provide a concise way \sameword{to} create lists. \edtext{\sameword[1]{Common}}{\lemma{\sameword{Common}}\Bfootnote{note}} applications are \sameword{to} make new lists where each element is the result of some operations applied \sameword{to} each member of another sequence or iterable, or \sameword{to} create \sameword{a} subsequence of those elements that satisfy \sameword{a} certain condition. Start \edtext{\sameword[1]{a}}{\lemma{\sameword{a}}\Bfootnote{lvl 1}} and another \sameword{a} List comprehensions provide \sameword{a} concise way to create lists. Common applications are to make new lists where each element is the result \sameword{of} some operations applied to each member \sameword{of} another sequence or iterable, or to create \sameword{a} subsequence \edtext{\sameword[1]{of}}{\lemma{\sameword{of}}\Bfootnote{note}} those elements that satisfy a certain condition."""
 long_proximate_before_after_result = r"""List comprehensions provide a concise a way \sameword{to} create lists. \sameword{Common} applications are \sameword{to} make new lists where each element is the result of some operations applied \sameword{to} each member of another sequence or iterable, or \edtext{\sameword[1]{to}}{\lemma{\sameword{to}}\Bfootnote{note}} create a subsequence of those elements that satisfy a certain condition. List comprehensions provide a concise way \sameword{to} create lists. \edtext{\sameword[1]{Common}}{\lemma{\sameword{Common}}\Bfootnote{note}} applications are \sameword{to} make new lists where each element is the result of some operations applied \sameword{to} each member of another sequence or iterable, or \sameword{to} create \sameword{a} subsequence of those elements that satisfy \sameword{a} certain condition. Start \edtext{\sameword[1]{a}}{\lemma{\sameword{a}}\Bfootnote{lvl 1}} and another \sameword{a} List comprehensions provide \sameword{a} concise way to create lists. Common applications are to make new lists where each element is the result \sameword{of} some operations applied to each member \sameword{of} another sequence or iterable, or to create \sameword{a} subsequence \edtext{\sameword[1]{of}}{\lemma{\sameword{of}}\Bfootnote{note}} those elements that satisfy a certain condition."""
@@ -69,16 +69,16 @@ class TestLatexExpressionCapturing:
 
 class TestSamewordWrapping:
     def test_wrap_unwrapped_sameword(self):
-        assert wrap_in_sameword('sw', 'so sw ', lemma_level=1) == r'so \sameword[1]{sw} '
+        assert wrap_single_word('sw', 'so sw ', lemma_level=1) == r'so \sameword[1]{sw} '
 
     def test_wrap_wrapped_sameword_without_argument(self):
-        assert wrap_in_sameword('so', '\sameword{so} sw ', lemma_level=2) == r"\sameword[2]{so} sw "
+        assert wrap_single_word('so', '\sameword{so} sw ', lemma_level=2) == r"\sameword[2]{so} sw "
 
     def test_wrap_wrapped_sameword_with_argument(self):
-        assert wrap_in_sameword('so', '\sameword[2]{so} sw ', lemma_level=1) == r'\sameword[1,2]{so} sw '
+        assert wrap_single_word('so', '\sameword[2]{so} sw ', lemma_level=1) == r'\sameword[1,2]{so} sw '
 
     def test_wrap_no_lemma(self):
-        assert wrap_in_sameword('so', 'so sw', lemma_level=0) ==  r"\sameword{so} sw"
+        assert wrap_single_word('so', 'so sw', lemma_level=0) == r"\sameword{so} sw"
 
     def test_no_proximity_match(self):
         assert critical_note_match_replace_samewords(no_proximity_match) == no_proximity_match
@@ -97,7 +97,61 @@ class TestProximityListing:
         assert iter_proximate_words(edtext_split(self.simple_string), side='right') == output_list
 
 
+class TestWrapWordPhrase:
+    def test_wrap_single_word(self):
+        single_word = 'input'
+        single_word_result = r'\sameword{input}'
+        assert wrap_phrase(single_word) == single_word_result
+
+    def test_wrap_wrapped_word(self):
+        single_word = r'\sameword{input}'
+        single_word_result = r'\sameword{input}'
+        assert wrap_phrase(single_word) == single_word_result
+
+
+    def test_wrap_w_level(self):
+        single_word = 'input'
+        single_word_result = r'\sameword[1]{input}'
+        assert wrap_phrase(single_word, lemma_level=1) == single_word_result
+
+    def test_wrap_wrapped_w_level(self):
+        single_word = r'\sameword{input}'
+        single_word_result = r'\sameword[1]{input}'
+        assert wrap_phrase(single_word, lemma_level=1) == single_word_result
+
+    def test_wrap_multiword(self):
+        multiword = 'input material'
+        multiword_result = r'\sameword{input material}'
+        assert wrap_phrase(multiword) == multiword_result
+
+    def test_wrap_multi_partially_wrapped(self):
+        multiword = r'input \sameword{material}'
+        multiword_result = r'\sameword{input \sameword{material}}'
+        assert wrap_phrase(multiword) == multiword_result
+
+    def test_wrap_multi_both_wrapped(self):
+        multiword = r'\sameword{input} \sameword{material}'
+        multiword_result = r'\sameword{\sameword{input} \sameword{material}}'
+        assert wrap_phrase(multiword) == multiword_result
+
 class TestMainReplaceFunction:
+
+    def test_nested_ldots_lemma(self):
+        assert critical_note_match_replace_samewords(nested_ldots_lemma) == nested_ldots_lemma_result
+
+    def test_two_multi_words(self):
+        double_multiword = r"\edtext{nobis apparentes}{\lemma{nobis apparentes}\Bfootnote{\emph{om.} B}} " \
+                           r"\edtext{nobis apparentes}{\lemma{nobis apparentes}\Bfootnote{\emph{om.} B}}"
+        double_multiword_result = r"\edtext{\sameword[1]{nobis apparentes}}{\lemma{\sameword{nobis " \
+                                  r"apparentes}}\Bfootnote{\emph{om.} B}} \edtext{\sameword[1]{nobis apparentes}}{" \
+                                  r"\lemma{\sameword{nobis apparentes}}\Bfootnote{\emph{om.} B}}"
+        assert critical_note_match_replace_samewords(double_multiword) == double_multiword_result
+
+    def test_multiword_lemma(self):
+        assert critical_note_match_replace_samewords(multiword_lemma) == multiword_lemma_result
+
+    def test_multiword_lemma_intervening_macro(self):
+        test_string = r'per \sidenote{1rb O} causam scire est \edtext{per causam}{\lemma{per causam}\Bfootnote{causam rei B}} cognoscere'
 
     def test_nested_ambiguity(self):
         assert critical_note_match_replace_samewords(nested_ambiguity) == nested_ambiguity_result
@@ -117,17 +171,12 @@ class TestMainReplaceFunction:
     def test_flat_proximity_match(self):
         assert critical_note_match_replace_samewords(flat_proximity_match) == flat_proximity_match_result
 
-    def test_nested_ldots_lemma(self):
-        assert critical_note_match_replace_samewords(nested_ldots_lemma) == nested_ldots_lemma_result
 
     def test_complex_real_example(self):
         assert critical_note_match_replace_samewords(nested_2) == nested_2_result
 
     def test_long_proximate_before_after(self):
         assert critical_note_match_replace_samewords(long_proximate_before_after) == long_proximate_before_after_result
-
-    def test_multiword_lemma(self):
-        assert critical_note_match_replace_samewords(multiword_lemma) == multiword_lemma_result
 
     def test_wrapping_of_already_wrapped(self):
         identical_wrap_result = r"""Praeterea intellectus intelligit se: \edtext{\sameword[1]{aut}}{\lemma{\sameword{aut}}\Bfootnote{aliter Aguin.}} ergo per suam essentiam, \edtext{\sameword[1]{aut}}{\lemma{\sameword{aut}}\Bfootnote{aliter Aguin.}} per speciem, \edtext{\sameword[1]{aut}}{\lemma{\sameword{aut}}\Bfootnote{aliter Aguin.}} per suum actum; sed \edtext{\sameword[1]{nec}}{\lemma{\sameword{nec}}\Bfootnote{non Aguin.}} per speciem |\ledsidenote{B 174vb} \sameword{nec} per suum actum;"""
