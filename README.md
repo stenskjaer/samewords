@@ -20,6 +20,12 @@ already provides facilities for disambiguating identical words, but it requires
 the creator of the critical text to manually mark all potential instances of
 ambiguous references manually. *Samewords* automates this step for the editor.
 
+## Note
+
+This current alpha version requires all `\edtext{}{}` elements to contain a
+`\lemma{}` element in their second argument. This should not be required, but
+currently is (see [issue #2](https://github.com/stenskjaer/samewords/issues/2)).
+
 # Installation
 
 Download the repository. 
@@ -236,8 +242,8 @@ note.
 This possibility of nesting the notes also means that for *reledmac* to annotate
 and count the disambiguations correctly, we must indicate at which level words
 that are contained in the first argument of an `\edtext{}` are referred to from
-a `\lemma{}` (for more on this, see § of the (reledmac
-documentation)[http://mirrors.ctan.org/macros/latex/contrib/reledmac/reledmac.pdf]).
+a `\lemma{}` (for more on this, see §6.3 of the [reledmac
+documentation](http://mirrors.ctan.org/macros/latex/contrib/reledmac/reledmac.pdf)).
 We therefore need to keep track of at which level the note that we process is,
 independently of at which level the identical word of a `\edtext{}` element is
 found. 
