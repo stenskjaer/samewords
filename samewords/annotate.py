@@ -438,7 +438,7 @@ def wrap_single_word(word, context_string, lemma_level=0):
             if wrap_search.group(2):
                 # Wrap contains level indication
                 existing_level = wrap_search.group(2)
-                if level_argument is None:
+                if level_argument is None or existing_level == level_argument:
                     # If lemma level of current annotation is None, don't change the existing annotation.
                     level_argument = wrap_search.group(2)
                 else:
