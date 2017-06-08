@@ -455,39 +455,6 @@ def wrap_phrase(phrase, lemma_level=0):
             return r'\sameword' + this_level + '{' + phrase + '}'
 
 
-def wrap_single_word(word, context_string, lemma_level=0):
-    position = context_string.find(word)
-    if lemma_level is not 0:
-        level_argument = '[' + str(lemma_level) + ']'
-    else:
-        level_argument = None
-
-    if position is not None:
-        wrap_search = re.search(r'(\\sameword)([^{]+)?{' + word + '}', context_string)
-        if wrap_search:
-            # Word already wrapped.
-            if wrap_search.group(2):
-                # Wrap contains level indication
-                existing_level = wrap_search.group(2)
-                if level_argument is None or existing_level == level_argument:
-                    # If lemma level of current annotation is None, don't change the existing annotation.
-                    level_argument = wrap_search.group(2)
-                else:
-                    level_argument = '[' + str(lemma_level) + ',' + existing_level[1:]
-
-        if level_argument:
-            if wrap_search:
-                return context_string.replace(wrap_search.group(0), r'\sameword' + level_argument + '{' + word + '}')
-            else:
-                return context_string.replace(word, r'\sameword' + level_argument + '{' + word + '}')
-        else:
-            if wrap_search:
-                # If the word is already wrapped, we don't do anything, just return the string as it is.
-                return context_string
-            else:
-                return context_string.replace(word, r'\sameword{' + word + '}')
-
-
 def replace_in_critical_note(search_string, replace_word, lemma_level=1, in_lemma=False, dots=list(), macro=r'\edtext', only=''):
     """
     Replace all instances of `replace_word` in a apparatus note (full `\edtext{}{}`) and return 

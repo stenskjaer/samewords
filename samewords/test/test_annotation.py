@@ -67,23 +67,6 @@ class TestLatexExpressionCapturing:
             macro_expression_content(self.unbalanced_string, capture_wrap=True)
 
 
-class TestSamewordWrapping:
-    def test_wrap_unwrapped_sameword(self):
-        assert wrap_single_word('sw', 'so sw ', lemma_level=1) == r'so \sameword[1]{sw} '
-
-    def test_wrap_wrapped_sameword_without_argument(self):
-        assert wrap_single_word('so', '\sameword{so} sw ', lemma_level=2) == r"\sameword[2]{so} sw "
-
-    def test_wrap_wrapped_sameword_with_argument(self):
-        assert wrap_single_word('so', '\sameword[2]{so} sw ', lemma_level=1) == r'\sameword[1,2]{so} sw '
-
-    def test_wrap_no_lemma(self):
-        assert wrap_single_word('so', 'so sw', lemma_level=0) == r"\sameword{so} sw"
-
-    def test_no_proximity_match(self):
-        assert critical_note_match_replace_samewords(no_proximity_match) == no_proximity_match
-
-
 class TestProximityListing:
     simple_string = "One major reason for \edtext{the}{\lemma{the}\Bfootnote{an}} interest \edtext{in}{\lemma{in}\Bfootnote{an}} intentionality in medieval philosophy is that it has been widely recognized that Franz Brentano was reviving a scholastic notion when he introduced intentionality as “the mark of the mental” (Brentano 1924). But Brentano never used \edtext{the}{\lemma{the}\Bfootnote{an}} terminology of representation to explicate intentionality. This was done much later, in post-Wittgensteinian philosophy of mind. In later medieval philosophy, it was, however, \edtext{standard}{\lemma{standard}\Bfootnote{cont}} to explain the content of a thought by referring to \edtext{the}{\lemma{the}\Bfootnote{or its}} representational nature."
 
@@ -95,6 +78,23 @@ class TestProximityListing:
     def test_proximity_listing_right(self):
         output_list = ['One major reason for ', '\\edtext{the}{\\lemma{the}\\Bfootnote{an}}', ' interest ', '\\edtext{in}{\\lemma{in}\\Bfootnote{an}}', ' intentionality in medieval philosophy is that it has been widely recognized that Franz Brentano was reviving a scholastic notion when he introduced intentionality as “the mark of the mental” (Brentano 1924). But Brentano never used ']
         assert iter_proximate_words(edtext_split(self.simple_string), side='right') == output_list
+
+
+class TestSamewordWrapping:
+    def test_wrap_unwrapped_sameword(self):
+        assert wrap_phrase('sw', lemma_level=1) == r'\sameword[1]{sw}'
+
+    def test_wrap_wrapped_sameword_without_argument(self):
+        assert wrap_phrase('\sameword{so}', lemma_level=2) == r"\sameword[2]{so}"
+
+    def test_wrap_wrapped_sameword_with_argument(self):
+        assert wrap_phrase('\sameword[2]{so}', lemma_level=1) == r'\sameword[1,2]{so}'
+
+    def test_wrap_no_lemma(self):
+        assert wrap_phrase('so', lemma_level=0) == r"\sameword{so}"
+
+    def test_no_proximity_match(self):
+        assert critical_note_match_replace_samewords(no_proximity_match) == no_proximity_match
 
 
 class TestWrapWordPhrase:
