@@ -14,11 +14,11 @@ We have a passage of regular text here, such a nice place for a critical note.
 
 It is very unclear which of three instances of "a" the note refers to.
 
-[Reledmac](https://www.ctan.org/pkg/reledmac) is a high quality package for
-LaTeX that facilitates typesetting of critical editions of prime quality. It
-already provides facilities for disambiguating identical words, but it requires
-the creator of the critical text to manually mark all potential instances of
-ambiguous references manually. *Samewords* automates this step for the editor.
+[Reledmac](https://www.ctan.org/pkg/reledmac) is a great LaTeX package that
+facilitates typesetting critical editions of prime quality. It already provides
+facilities for disambiguating identical words, but it requires the creator of
+the critical text to manually mark all potential instances of ambiguous
+references manually. *Samewords* automates this step for the editor.
 
 ## Note
 
@@ -161,112 +161,3 @@ content to that.
 This is alpha level software. Bugs are to be expected and I provide no
 guarantees for the integrity of your software or editions when you use the
 package.
-
-# Implementation details
-
-## Marking ambiguouities in *reledmac*
-
-The nature of LaTeX means that we cannot know before compilation how the
-paragraphs and lines will be built. This means that we cannot predict which
-words might end up on the same line. *Reledmac* adds numbers (or other symbols)
-to indicate the position of an ambiguous word in an apparatus note. But to be
-able to do that, we need to tell it which words have a risk of ending up on the
-same line. This is done with the `\sameword{}` macro.
-
-A critical apparatus note is created with the `\edtext{}{}` macro. The first
-argument is the text printed in the main text and the second argument contains
-information and content for the apparatus note. When the content of the first
-argument contains a word that is marked by the `\sameword{}` macro, it check how
-many instances of `\sameword{}` in the same line contain the identical word and
-number the content of the apparatus accordingly.
-
-The above example should thus be encoded like this:
-
-``` 
-We have \sameword{a} passage of regular text here, such
-\edtext{\sameword{a}}{\Afootnote{\emph{om.} M}} nice place for \sameword{a}
-critical note. 
-``` 
-
-Resulting in this apparatus note:
-```
-1 a²] om. M
-```
-
-## The general approach
-
-The goal of *samewords* is therefore to identify all situations where there is a
-risk of such collisions and mark the appropriate word in the `\edtext{}` and
-surrounding content with `\sameword{}`.
-
-At a very general level, this is done in the following way:
-- For each `\edtext{}{}` command read the content of the `\lemma{}` command in
-  the second argument (e.g. "maintext content" in `\edtext{maintext
-  content}{\lemma{maintext content}\Afootnote{note content}}`)
-  - If it only contains a single word, see if that word occurs in the immediate
-    context.
-  - If it contains a phrase with a variation of `\dots{}` (specifically the
-    regex pattern `\l?dots({})?`), see of the content on each side of the dots
-    is present in the immediate context.
-  - If it contains more than one word (but not any dots), see if that exact
-    phrase is present in the immediate context.
-- When one of these conditions match in the proximate context, mark the search
-  word in context and apparatus note with the `\sameword{}` macro.
-
-The immediate content is for now defined as at least 30 words before and after
-the current search word. This may be too much for many use cases, and could
-therefore produce way too many annotated `\sameword{}`s, so customizing this
-value is a planned feature.
-
-This approach also requires that all apparatus notes contain a `\lemma{}`
-command. Removing this requirement is also a planned feature.
-
-## The challenges
-
-At the face of it this seems simple. But any `\edtext{}{}` command can contain
-an arbitrary number of nested `\edtext` commands, and each level can in itself
-contain any amount of `\edtext{}{}` commands interspersed with regular text and
-other LaTeX commands. 
-
-The processing and annotation functions are therefore recursive. This means that
-every time *samewords* encounters a `\edtext` command, it checks whether that
-command contains any further `\edtext` commands, if that is the case, it
-registers the proximate context surrounding the nested note end processes that
-inner `\edtext` command, continuing like this until it finds the deepest
-`\edtext` command and works its way out from there. 
-
-This means that the context of level one apparatus note may be processed several
-times, as any apparatus note needs search the context for the content of *that*
-note.
-
-This possibility of nesting the notes also means that for *reledmac* to annotate
-and count the disambiguations correctly, we must indicate at which level words
-that are contained in the first argument of an `\edtext{}` are referred to from
-a `\lemma{}` (for more on this, see §6.3 of the [reledmac
-documentation](http://mirrors.ctan.org/macros/latex/contrib/reledmac/reledmac.pdf)).
-We therefore need to keep track of at which level the note that we process is,
-independently of at which level the identical word of a `\edtext{}` element is
-found. 
-
-If, for example, a level one critical note contains the word *my* but the note
-also contains a further note with that word, we need to mark both words with
-`\sameword{}`, but also tell *reledmac* which of the two is referenced by the
-`\lemma{}`. This could look like this:
-
-```latex
-I have found \edtext{\sameword[1]{my} keys in
-\edtext{\sameword[2]{my}}{\lemma{my}\Afootnote{a B}} pocket}{\lemma{\sameword{my} \ldots{}
-pocket}\Afootnote{the keys V}}.
-```
-
-Here the `[1]` in the first `\sameword{}` shows that *this* instance of “my” is
-referenced from a level one `\lemma{}` while the `[2]` of the second
-`\sameword{}` shows that *that* instance of “my” is referenced from a `\lemma{}`
-at level two. It can get a bit more complicated than that, but see the
-*reledmac* documentation for reference.
-
-This challenge is solved by keeping a tally of the level at which any processing
-takes it starting point. If we are below level one, these markers are added
-where appropriate.
-
- 
