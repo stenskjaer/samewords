@@ -336,8 +336,6 @@ def replace_in_string(search_word, replacement_string, lemma_level=0):
             if re.search(r'\b' + pattern_list[0] + r'\b', replace_list[0]):
                 return_list.append(replace_list[0])
                 return check_list_match(pattern_list[1:], replace_list[1:], return_list)
-            else:
-                return return_list
         except IndexError:
             return return_list
 
@@ -365,7 +363,7 @@ def replace_in_string(search_word, replacement_string, lemma_level=0):
                     updated_list.append(
                         wrap_phrase(' '.join(match_in_replace_list), lemma_level=lemma_level))
                 else:
-                    updated_list.append(wrap_single_word(' '.join(search_list), ' '.join(match_in_replace_list),
+                    updated_list.append(wrap_phrase(' '.join(match_in_replace_list),
                                                          lemma_level=lemma_level))
                 return make_replacements(search_list, replacement_list[len(match_in_replace_list):], updated_list)
             updated_list.append(replacement_list[0])
@@ -418,9 +416,9 @@ def wrap_phrase(phrase, lemma_level=0):
     """
     # Should we handle the lemma level?
     if lemma_level is not 0:
-        level_argument = '[' + str(lemma_level) + ']'
+        this_level = '[' + str(lemma_level) + ']'
     else:
-        level_argument = ''
+        this_level = ''
 
     # Is the phrase wrapped?
     sameword_pattern = re.compile(r'(\\sameword)([^{]+)?{')
@@ -429,7 +427,7 @@ def wrap_phrase(phrase, lemma_level=0):
     extended_wrap = False
     if pattern_match:
         sameword_match = pattern_match.group(0)
-        sameword_level = pattern_match.group(2)
+        existing_level = pattern_match.group(2)
         sameword_match_length = macro_expression_length(phrase, macro=sameword_match[:-1])
         if sameword_match_length == len(phrase):
             exact_wrap = True
@@ -437,21 +435,24 @@ def wrap_phrase(phrase, lemma_level=0):
             extended_wrap = True
 
     if exact_wrap:
-        if sameword_level:
+        if existing_level:
             # Wrap contains level indication
-            if level_argument is None:
-                # If lemma level of current annotation is None, don't change the existing annotation.
-                level_argument = sameword_level
+            if this_level is '':
+                # If lemma level of current annotation is None, keep the existing level argument.
+                this_level = existing_level
+            else:
+                # If we have a lemma level here, combine with existing level argument.
+                this_level = this_level[:-1] + ',' + existing_level[1:]
 
-        if level_argument:
-            return phrase.replace(sameword_match, r'\sameword' + level_argument + '{')
+        if this_level:
+            return phrase.replace(sameword_match, r'\sameword' + this_level + '{')
         else:
             return phrase
     else:
         if extended_wrap:
-            return phrase.replace(sameword_match, r'\sameword' + level_argument + '{')
+            return phrase.replace(sameword_match, r'\sameword' + this_level + '{')
         else:
-            return r'\sameword' + level_argument + '{' + phrase + '}'
+            return r'\sameword' + this_level + '{' + phrase + '}'
 
 
 def wrap_single_word(word, context_string, lemma_level=0):
@@ -487,26 +488,38 @@ def wrap_single_word(word, context_string, lemma_level=0):
                 return context_string.replace(word, r'\sameword{' + word + '}')
 
 
-def replace_in_critical_note(search_string, replace_word, lemma_level=1, in_lemma=False, dots=list()):
+def replace_in_critical_note(search_string, replace_word, lemma_level=1, in_lemma=False, dots=list(), macro=r'\edtext', only=''):
     """
-    Replace all instances of `replace_word` in a apparatus note (full `\edtext{}{}`) and return the updated string.
+    Replace all instances of `replace_word` in a apparatus note (full `\edtext{}{}`) and return 
+    the updated string. 
 
-    This is done by building a string and making replacements as we go along. The function recurses on nested edtext
-    elements.
+    This is done by building a string and making replacements as we go along. The function 
+    recurses on nested edtext elements. To be able to also make correct replacements inside the 
+    whole app note, the function can be called with the argument `macro` as empty. In this way 
+    the function does not try to isolate the content of a macro before processing. The different 
+    situations at different recursion levels add this complexity. But currently it seems the 
+    "simplest" solution. 
 
-    :param search_string: The string containing the critical note.
+    :param search_string: The string containing the string under processing.
     :param replace_word: The word to be replaced.
     :param lemma_level: The level from which the lemma refers to the word to be `replace_word`.
-    :param in_lemma: If true, it will replace the search word in lemma element, otherwise it will replace in edtext.
+    :param in_lemma: If true, it will replace the search word in lemma element, otherwise it will 
+        replace in edtext.
     :param dots: The search words in case we are in a lemma containing a version of `\dots`.
+    :param macro: Opening macro before content. If set, the function skips that macro name and gets 
+        its content. 
     :return: The updated string.
     """
 
-    position = len(r'\edtext')
+    position = len(macro)
 
     return_string = search_string[:position]
 
-    edtext_content_string = macro_expression_content(search_string, position, capture_wrap=True)
+    if macro:
+        # If we are starting from beginning of macro, get it's content
+        edtext_content_string = macro_expression_content(search_string, position, capture_wrap=False)
+    else:
+        edtext_content_string = search_string
     edtext_content_list = edtext_split(edtext_content_string)
 
     # Should we replace in edtext or lemma?
@@ -518,13 +531,16 @@ def replace_in_critical_note(search_string, replace_word, lemma_level=1, in_lemm
         if dots:
             # We have a ldots lemma, so we only replace a the beginning and end of the edtext element.
             if replace_word == dots[0]:
-                edtext_content_list[0] = replace_in_string(replace_word, edtext_content_list[0], lemma_level)
+                edtext_content_list[0] = replace_in_string(replace_word,
+                                                           edtext_content_list[0], lemma_level)
             elif replace_word == dots[1]:
                 edtext_content_list[len(edtext_content_list) - 2] \
-                    = replace_in_string(replace_word, edtext_content_list[len(edtext_content_list) - 2], lemma_level)
-            return_string += wrap_in_brackets(''.join(edtext_content_list))
+                    = replace_in_critical_note(edtext_content_list[len(edtext_content_list) - 2],
+                                               replace_word, lemma_level, macro='')
+            return_string += wrap_if_macro(''.join(edtext_content_list), macro=macro)
         else:
 
+            loop_string = ''
             for pivot_index, edtext_content in enumerate(edtext_content_list):
 
                 if r'\edtext' in edtext_content:
@@ -547,18 +563,19 @@ def replace_in_critical_note(search_string, replace_word, lemma_level=1, in_lemm
                     edtext_content_list[pivot_index] = sub_return_string
 
                 else:
-                    edtext_content_list[pivot_index] = wrap_in_brackets(
-                        replace_in_string(replace_word, edtext_content, lemma_level))
+                    edtext_content_list[pivot_index] = replace_in_string(replace_word, edtext_content, lemma_level)
 
-                return_string += edtext_content_list[pivot_index]
+                loop_string += edtext_content_list[pivot_index]
+
+            return_string += wrap_if_macro(loop_string, macro=macro)
 
         # Bump position to end of edtext_content
-        position += len(wrap_in_brackets(edtext_content_string))
+        position += len(wrap_if_macro(edtext_content_string, macro=macro))
 
     else:
         # In lemma: Add edtext content and bump position to after that.
-        return_string += wrap_in_brackets(edtext_content_string)
-        position += len(wrap_in_brackets(edtext_content_string))
+        return_string += wrap_if_macro(edtext_content_string, macro=macro)
+        position += len(wrap_if_macro(edtext_content_string, macro=macro))
 
         lemma_content = macro_expression_content(search_string[position:], position=len(r'{\lemma'))
 
@@ -574,9 +591,9 @@ def replace_in_critical_note(search_string, replace_word, lemma_level=1, in_lemm
     return return_string
 
 
-def wrap_in_brackets(target):
-    # if target is not '':
-    #     return '{' + target + '}'
+def wrap_if_macro(target, macro=None):
+    if target is not '' and macro:
+        return '{' + target + '}'
     return target
 
 
