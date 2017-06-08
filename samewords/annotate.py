@@ -291,19 +291,19 @@ def replace_in_proximity(context_before_list, context_after_list, search_word):
 
 def replace_in_string(search_word, replacement_string, lemma_level=0):
     """
-    Recursively replace the search word in the search string with a version that is wrapped in sameword. This only
-    replaces on words that do are not already wrapped in a sameword.
+    Recursively replace the search word in the search string with a version that is wrapped in 
+    sameword. This is designed to handle replacement of multiword phrases in the string too. The 
+    wrapping is done intelligently so that what is already wrapped is not double wrapped, 
+    and lemma levels are incorporated. 
 
-    - multiword lemma:
-    - split search_string into list.
-    - find first item with first word. Add to tmp. replacement string
-    - if next item contains next word, add to tmp. replacement string (until the replacement string matches search word)
-    - wrap the tmp string with sameword.
-    - how about nested multwords? (some \sameword{word here}, needing to be replaced. A problem?
-
+    :param search_word: the word that should be wrapped
+    :param replacement_string: The string in which the replacement should be done.
+    :param lemma_level: The lemma level, if applicable.
     :return: Updated or unchanged string.
     """
     def move_punctuation(input_list):
+        """Given a list of words, if the item ends in a punctuation character, move the character 
+        into new subsequent item """
         return_list = []
         for item in input_list:
             try:
@@ -317,6 +317,21 @@ def replace_in_string(search_word, replacement_string, lemma_level=0):
         return return_list
 
     def check_list_match(pattern_list, replace_list, return_list=list()):
+        """Check whether a word string in `pattern_list` (search phrase) is matched in 
+        `replace_list`. 
+        
+        Check whether first item of `pattern_list` is contained in first item of 
+        `replace_list`. If it does, move on to next item in `pattern_list` until it is exhausted. 
+        This way it matches whole string of words specified in `pattern_list` in `replace_list`.
+        
+        When the caller of this function iterates through the `replace_list`, it is incrementally 
+        checked in full. We want to keep the formatting of the search list, so items from that 
+        are returned in order as they are. 
+        
+        :param pattern_list: List of search words to be matched in `replace_list`.
+        :param replace_list: List of words to be matched.
+        :return List of items from `replace_list` that match items in `pattern_list`.
+        """
         try:
             if re.search(r'\b' + pattern_list[0] + r'\b', replace_list[0]):
                 return_list.append(replace_list[0])
@@ -327,6 +342,21 @@ def replace_in_string(search_word, replacement_string, lemma_level=0):
             return return_list
 
     def make_replacements(search_list, replacement_list, updated_list=list()):
+        """
+        Iterate the content of the `replacement_list` and wrap it in `\sameword{}` if necessary.
+          
+        This function iterates over each word in the `replacement_list` and checks whether it ( 
+        along with subsequent words, when applicable) match the content of the `search_list` with 
+        the `check_list_match` function. When that is the case, the item(s) are wrapped in 
+        `\sameword{}`. 
+        
+        When returning the updated list, a bit of whitespace cleanup is performed on it.
+         
+        :param search_list: List of words that should be matched in sequence. 
+        :param replacement_list: The string of words that should be checked for matches.
+        :param updated_list: The updated list. Empty by default. Argument in recursive calls. 
+        :return: The updated list in full.
+        """
         match_in_replace_list = check_list_match(search_list, replacement_list, return_list=[])
         try:
             if match_in_replace_list:
