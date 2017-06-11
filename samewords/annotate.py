@@ -11,11 +11,10 @@ def macro_expression_content(search_string, position=0, opener='{', closer='}', 
     """Get the content of a latex expression that has been opened with "{" to any
     level of macro nesting until closing "}".
 
-    This function expects the character at the starting position of the match string to be an
-    opening bracket and will complain if it is not. This means that it
-    initializes the stack with that opening bracket in the stack. When the
-    stack is empty, we have reached the end of the expression, and should
-    return the string capture thus far.
+    This function expects the character at the starting position of the match string to be an 
+    opening bracket and will complain if it is not. This means that it initializes the stack with 
+    that opening bracket in the stack. When the stack is empty, we have reached the end of the 
+    expression, and should return the string capture thus far. 
 
     :param search_string: The string to be processed.
     :param position: The starting position in the string [default: 0].
@@ -61,16 +60,16 @@ def macro_expression_content(search_string, position=0, opener='{', closer='}', 
 def macro_expression_length(search_string, position=0, opener='{', closer='}', macro=''):
     """Calculate length of macro expression.
 
-    This function expects the character at the starting position of the match string to be an
-    opening bracket and will complain if it is not. Actually it just finds the position where those two are balanced and
-    returns that.
+    This function expects the character at the starting position of the match string to be an 
+    opening bracket and will complain if it is not. Actually it just finds the position where 
+    those two are balanced and returns that. 
 
     :param search_string: The string to be processed.
     :param position: The starting position in the string [default: 0].
     :param opener: The character that opens a bracket to be matched.
     :param closer: The character that closes a bracket to be matched.
-    :param macro: Look for this as the macro name before the expression start. If none is given, it is assumed that it
-        starts directly with the expression.
+    :param macro: Look for this as the macro name before the expression start. If none is given, it 
+        is assumed that it starts directly with the expression.
     :return: Length of the expression as int.
     """
 
@@ -82,7 +81,8 @@ def macro_expression_length(search_string, position=0, opener='{', closer='}', m
             position += len(macro)
         else:
             raise ValueError("The indicated macro, %s, did not occur at position %i."
-                             "Context: %s" % (macro, position, search_string[position:position + 20]))
+                             "Context: %s"
+                             % (macro, position, search_string[position:position + 20]))
 
     if search_string[position] == opener:
         stack = [opener]
@@ -102,7 +102,8 @@ def macro_expression_length(search_string, position=0, opener='{', closer='}', m
                 position += 1
             position += 1
         except IndexError:
-            raise ValueError("Unbalanced brackets. The provided string terminated before all brackets were closed.")
+            raise ValueError("Unbalanced brackets. "
+                             "The provided string terminated before all brackets were closed.")
     return position - start_position
 
 
@@ -154,7 +155,8 @@ def list_maintext_words(search_string=''):
             else:
                 position += len(macro)
                 if search_string[position] == '[':
-                    position += macro_expression_length(search_string[position:], opener='[', closer=']')
+                    position += macro_expression_length(search_string[position:],
+                                                        opener='[', closer=']')
                 if search_string[position] == '{':
                     position += macro_expression_length(search_string[position:])
 
@@ -173,14 +175,17 @@ def iter_proximate_words(input_list, index=0, word_count_sum=0, side='', length=
     """
     Get a suitable amount of items from input_list to serve 30 proximity words for analysis.
 
-    When the `side` is `left`, it will return the list reversed thereby yielding the items closest to the search start.
+    When the `side` is `left`, it will return the list reversed thereby yielding the items 
+    closest to the search start. 
 
     :param input_list: The list to pull from
     :param index: The index from where the search should start.
     :param word_count_sum: Accumulative word counter for finding the right size chunk.
-    :param side: Indicate whether we are searching left of the pivot. In that case, we reverse the list too.
+    :param side: Indicate whether we are searching left of the pivot. In that case, we reverse the 
+        list too.
     :param length: Amount of words required for the chunk.
-    :return: List of at least 30 word on each side of the pivot word (less if we are at the end of the string).
+    :return: List of at least 30 word on each side of the pivot word (less if we are at the end of 
+        the string).
     """
 
     word_count_sum += len(list_maintext_words(input_list[index]))
@@ -196,7 +201,8 @@ def iter_proximate_words(input_list, index=0, word_count_sum=0, side='', length=
         else:
             return input_list[:index + 1]
     else:
-        raise ValueError("The value of the argumen 'side' must be either 'left' or 'right'. You gave: %s" % side)
+        raise ValueError("The value of the argumen 'side' must be either 'left' or 'right'. "
+                         "You gave: %s" % side)
 
 
 def flatten_list(input_list):
@@ -210,11 +216,12 @@ def flatten_list(input_list):
 
 def search_in_proximity(search_word, context_before, context_after):
     """
-    Check whether a search word is present in the one of two lists. The two input lists contain the context of the
-    search word.
+    Check whether a search word is present in the one of two lists. The two input lists contain 
+    the context of the search word. 
 
-    We need to search for a regex demarcating the string with boundaries to make sure we don't just match a partial
-    word ("so" matching "something"). We can't demarcate by whitespace, as that may not always be present.
+    We need to search for a regex demarcating the string with boundaries to make sure we don't 
+    just match a partial word ("so" matching "something"). We can't demarcate by whitespace, 
+    as that may not always be present. 
 
     :param search_word: The word we look for.
     :param context_before: List of preceding context to be searched.
@@ -224,7 +231,6 @@ def search_in_proximity(search_word, context_before, context_after):
     contexts = flatten_list(context_before + context_after)
 
     for context_chunk in contexts:
-        # We need to search the maintext cleaned string. But this seems to give a lot of subsequent problems...
         maintext_words = ' '.join(list_maintext_words(context_chunk))
         if re.search(r'\b' + search_word + r'\b', maintext_words):
             return True
@@ -241,11 +247,13 @@ def edtext_split(search_string):
 
     if r'\edtext' in search_string:
         appnote_start = search_string.find(r'\edtext')
-        edtext_length = macro_expression_length(search_string, position=appnote_start, macro=r'\edtext')
+        edtext_length = macro_expression_length(
+            search_string, position=appnote_start, macro=r'\edtext')
         appnote_length = macro_expression_length(search_string, appnote_start + edtext_length)
         appnote_end = appnote_start + edtext_length + appnote_length
 
-        return [search_string[:appnote_start]] + [search_string[appnote_start:appnote_end]] \
+        return [search_string[:appnote_start]] \
+               + [search_string[appnote_start:appnote_end]] \
                + edtext_split(search_string[appnote_end:])
     else:
         return [search_string]
@@ -255,8 +263,8 @@ def replace_in_proximity(context_before_list, context_after_list, search_word):
     """
     Replace a specified search word in two lists containing the text surrounding a chunk of text.
 
-    This is used for replacing a word that is present in an `\edtext{}`-element and that is confirmed to be in the
-    proximate context.
+    This is used for replacing a word that is present in an `\edtext{}`-element and that is 
+    confirmed to be in the proximate context. 
 
     The replacement is only done on the proximity of the pivot element.
 
@@ -271,8 +279,10 @@ def replace_in_proximity(context_before_list, context_after_list, search_word):
             if side == 'right':
                 chunk_list = iter_proximate_words(context_item, side=side)
             elif side == 'left':
-                # When left, we get proximate words from the end, as it is closest to the pivot element.
-                chunk_list = iter_proximate_words(context_item, side=side, index=len(context_item) - 1)
+                # When left, we get proximate words from the end, as it is closest to the pivot
+                # element.
+                chunk_list = iter_proximate_words(context_item, side=side,
+                                                  index=len(context_item) - 1)
 
             for index, chunk in enumerate(chunk_list):
                 if r'\edtext' in chunk:
@@ -330,6 +340,7 @@ def replace_in_string(search_word, replacement_string, lemma_level=0):
         
         :param pattern_list: List of search words to be matched in `replace_list`.
         :param replace_list: List of words to be matched.
+        :param return_list: The results to be returned, built successively in recursive calls. 
         :return List of items from `replace_list` that match items in `pattern_list`.
         """
         try:
@@ -358,14 +369,10 @@ def replace_in_string(search_word, replacement_string, lemma_level=0):
         match_in_replace_list = check_list_match(search_list, replacement_list, return_list=[])
         try:
             if match_in_replace_list:
-                if len(match_in_replace_list) > 1:
-                    # This doesn't work properly. Should I rewrite the sameword wrapping function?a
-                    updated_list.append(
-                        wrap_phrase(' '.join(match_in_replace_list), lemma_level=lemma_level))
-                else:
-                    updated_list.append(wrap_phrase(' '.join(match_in_replace_list),
-                                                         lemma_level=lemma_level))
-                return make_replacements(search_list, replacement_list[len(match_in_replace_list):], updated_list)
+                updated_list.append(
+                    wrap_phrase(' '.join(match_in_replace_list), lemma_level=lemma_level))
+                return make_replacements(
+                    search_list, replacement_list[len(match_in_replace_list):], updated_list)
             updated_list.append(replacement_list[0])
             return make_replacements(search_list, replacement_list[1:], updated_list)
         except IndexError:
@@ -389,26 +396,13 @@ def replace_in_string(search_word, replacement_string, lemma_level=0):
     return updated_replacement
 
 
-def sameword_wrapped(input_string):
-    """
-    Check if the provided string is already wrapped in a sameword macro
-
-    :param context_string: The immediate context of the word
-    :param word_position: The position of the word being checked in the context string.
-    :return: Boolean
-    """
-    if input_string[:len(r'\sameword{')] == r'\sameword{' and input_string[-1] == '}':
-        return True
-    return False
-
-
 def wrap_phrase(phrase, lemma_level=0):
     """
     Wrap the word or phrase in the appropriate \sameword{}-element.
     
-    This means that if the word or phrase is already wrapped in a \sameword{}, it cannot be wrapped in another. If 
-    one or more words of a phrase are wrapped, it should wrap the whole phrase. It also needs to handle the 
-    conditions of lemma level numbering. 
+    This means that if the word or phrase is already wrapped in a \sameword{}, it cannot be 
+    wrapped in another. If one or more words of a phrase are wrapped, it should wrap the whole 
+    phrase. It also needs to handle the conditions of lemma level numbering. 
     
     :param phrase: the word or phrase that should be wrapped. 
     :param lemma_level: the level of the lemma annotation. Default=0
@@ -425,13 +419,17 @@ def wrap_phrase(phrase, lemma_level=0):
     pattern_match = re.match(sameword_pattern, phrase)
     exact_wrap = False
     extended_wrap = False
+    existing_level = None
+    sameword_match = None
     if pattern_match:
         sameword_match = pattern_match.group(0)
         existing_level = pattern_match.group(2)
         sameword_match_length = macro_expression_length(phrase, macro=sameword_match[:-1])
         if sameword_match_length == len(phrase):
+            # The whole phrase is wrapped.
             exact_wrap = True
         elif re.match('}+', phrase[sameword_match_length:]):
+            # After the closing of the wrapped phrase, there are more closing (unbalanced) brackets.
             extended_wrap = True
 
     if exact_wrap:
@@ -455,7 +453,8 @@ def wrap_phrase(phrase, lemma_level=0):
             return r'\sameword' + this_level + '{' + phrase + '}'
 
 
-def replace_in_critical_note(search_string, replace_word, lemma_level=1, in_lemma=False, dots=list(), macro=r'\edtext', only=''):
+def replace_in_critical_note(search_string, replace_word, lemma_level=1, in_lemma=False,
+                             dots=list(), macro=r'\edtext'):
     """
     Replace all instances of `replace_word` in a apparatus note (full `\edtext{}{}`) and return 
     the updated string. 
@@ -484,7 +483,8 @@ def replace_in_critical_note(search_string, replace_word, lemma_level=1, in_lemm
 
     if macro:
         # If we are starting from beginning of macro, get it's content
-        edtext_content_string = macro_expression_content(search_string, position, capture_wrap=False)
+        edtext_content_string = macro_expression_content(search_string, position,
+                                                         capture_wrap=False)
     else:
         edtext_content_string = search_string
     edtext_content_list = edtext_split(edtext_content_string)
@@ -496,7 +496,7 @@ def replace_in_critical_note(search_string, replace_word, lemma_level=1, in_lemm
         # Is there a nested critical note?
 
         if dots:
-            # We have a ldots lemma, so we only replace a the beginning and end of the edtext element.
+            # We have a ldots lemma, so only replace at the beginning and end of the edtext element.
             if replace_word == dots[0]:
                 edtext_content_list[0] = replace_in_string(replace_word,
                                                            edtext_content_list[0], lemma_level)
@@ -514,23 +514,28 @@ def replace_in_critical_note(search_string, replace_word, lemma_level=1, in_lemm
 
                     # Replace up to sub critical note (using a temporary return_string
                     edtext_position = edtext_content.find(r'\edtext{')
-                    sub_return_string = replace_in_string(replace_word, edtext_content[:edtext_position], lemma_level)
+                    sub_return_string = replace_in_string(
+                        replace_word, edtext_content[:edtext_position], lemma_level)
 
-                    # Replace inside edtext, calling this function. First we need the location of the sub critical note.
-                    sub_edtext_length = macro_expression_length(edtext_content,
-                                                                position=edtext_position, macro=r'\edtext')
-                    sub_appnote_length = macro_expression_length(edtext_content,
-                                                                 position=edtext_position + sub_edtext_length)
+                    # Replace inside edtext, calling this function. First we need the location of
+                    #  the sub critical note.
+                    sub_edtext_length = macro_expression_length(
+                        edtext_content, position=edtext_position, macro=r'\edtext')
+                    sub_appnote_length = macro_expression_length(
+                        edtext_content, position=edtext_position + sub_edtext_length)
                     sub_critnote_end = edtext_position + sub_edtext_length + sub_appnote_length
-                    sub_return_string += replace_in_critical_note(edtext_content[edtext_position:sub_critnote_end],
-                                                                  replace_word, lemma_level=lemma_level)
+                    sub_return_string += replace_in_critical_note(
+                        edtext_content[edtext_position:sub_critnote_end],
+                        replace_word, lemma_level=lemma_level)
 
                     # Relace rest of current edtext from after sub critical note
-                    sub_return_string += replace_in_string(replace_word, edtext_content[sub_critnote_end:], lemma_level)
+                    sub_return_string += replace_in_string(
+                        replace_word, edtext_content[sub_critnote_end:], lemma_level)
                     edtext_content_list[pivot_index] = sub_return_string
 
                 else:
-                    edtext_content_list[pivot_index] = replace_in_string(replace_word, edtext_content, lemma_level)
+                    edtext_content_list[pivot_index] = replace_in_string(
+                        replace_word, edtext_content, lemma_level)
 
                 loop_string += edtext_content_list[pivot_index]
 
@@ -568,26 +573,30 @@ def critical_note_match_replace_samewords(input_string):
     """
     The main search and replace function.
 
-    The included function `sub_processing` is the one doing all the work, and this wrapper only splits the input
-    string into a list and joins the result of the sub-process for returning. We can't do that as one function as the
-    recursive processing works best with lists as input and return values.
+    The included function `sub_processing` is the one doing all the work, and this wrapper only 
+    splits the input string into a list and joins the result of the sub-process for returning. We 
+    can't do that as one function as the recursive processing works best with lists as input and 
+    return values. 
 
-    The basic idea is to split the string into a list of items that are either `\edtext{}`-elements or not (using the
-    `edtext_split` function). Then for each item that is an `\edtext{}`-element, check whether there are duplicates
-    of some of its content that would result in an ambiguous apparatus note. When potentially ambiguous apparatus
-    entries are identified, wrap the words in the context and the apparatus note in a `\sameword{}`.
+    The basic idea is to split the string into a list of items that are either `\edtext{
+    }`-elements or not (using the `edtext_split` function). Then for each item that is an 
+    `\edtext{}`-element, check whether there are duplicates of some of its content that would 
+    result in an ambiguous apparatus note. When potentially ambiguous apparatus entries are 
+    identified, wrap the words in the context and the apparatus note in a `\sameword{}`. 
 
-    This algorithm is based on the assumption that `\lemma{}` is always used on the apparatus notes.
+    This algorithm is based on the assumption that `\lemma{}` is always used on the apparatus 
+    notes. 
 
-    The function is recursive, so if an `\edtext{}`-element contains another `\edtext{}`-element, run the function on
-    that first. The algorithm starts from the inside out, thus processing the most deeply nested apparatus note(s)
-    first.
+    The function is recursive, so if an `\edtext{}`-element contains another `\edtext{}`-element, 
+    run the function on that first. The algorithm starts from the inside out, thus processing the 
+    most deeply nested apparatus note(s) first. 
 
-    Search and replace in proximity works like this: Receive a list of lists. Each list in the list represents a
-    lemma level. This means that it should iterate proximate words from the last item (which will be the innermost
-    context) until it reaches end of list or max word count. Replacement: The replacement uses the proximity word
-    building, so it would take the same approach, replacing the amount necessary. Replacement would then be a matter
-    of updating the context_before and context_after lists.
+    Search and replace in proximity works like this: Receive a list of lists. Each list in the 
+    list represents a lemma level. This means that it should iterate proximate words from the 
+    last item (which will be the innermost context) until it reaches end of list or max word 
+    count. Replacement: The replacement uses the proximity word building, so it would take the 
+    same approach, replacing the amount necessary. Replacement would then be a matter of updating 
+    the context_before and context_after lists. 
 
     TODO: Remove requirement of `\lemma{}` element.
 
@@ -601,11 +610,12 @@ def critical_note_match_replace_samewords(input_string):
 
             if r'\edtext' in edtext_element:
 
-                # Build the surrounding context. If is a list of lists. List 0 contains context on lvl 1,
-                # list 1 contains context on lvl 2 etc.
+                # Build the surrounding context. If is a list of lists. List 0 contains context
+                # on lvl 1, list 1 contains context on lvl 2 etc.
                 if lemma_level == 1:
                     context_before = [iter_proximate_words(input_list[:pivot_index], side='left')]
-                    context_after = [iter_proximate_words(input_list[pivot_index + 1:], side='right')]
+                    context_after = [iter_proximate_words(input_list[pivot_index + 1:],
+                                                          side='right')]
                 else:
                     inner_context_before = input_list[:pivot_index]
                     inner_context_after = input_list[pivot_index + 1:]
@@ -620,9 +630,12 @@ def critical_note_match_replace_samewords(input_string):
                     except IndexError:
                         context_after = context_after + [inner_context_after]
 
-                edtext_length = macro_expression_length(edtext_element, position=0, macro=r'\edtext')
-                appnote_content = macro_expression_content(edtext_element, edtext_length, capture_wrap=False)
-                edtext_content = macro_expression_content(edtext_element, position=len(r'\edtext'), capture_wrap=False)
+                edtext_length = macro_expression_length(edtext_element,
+                                                        position=0, macro=r'\edtext')
+                appnote_content = macro_expression_content(edtext_element, edtext_length,
+                                                           capture_wrap=False)
+                edtext_content = macro_expression_content(edtext_element, position=len(r'\edtext'),
+                                                          capture_wrap=False)
 
                 if r'\edtext' in edtext_content:
                     # We have a nested apparatus note here, so before moving on, we process that.
@@ -637,23 +650,26 @@ def critical_note_match_replace_samewords(input_string):
 
                 # Check that we have a lemma element.
                 if r'\lemma' in appnote_content:
-                    lemma_content = macro_expression_content(appnote_content, position=len(r'\lemma'))
+                    lemma_content = macro_expression_content(appnote_content,
+                                                             position=len(r'\lemma'))
                 else:
-                    raise ValueError('No lemma element found in the apparatus note %s' % appnote_content)
+                    raise ValueError('No lemma element found in the apparatus note %s'
+                                     % appnote_content)
 
                 # Determine lemma type. The `dots` variable is used for processing of ldots notes.
                 lemma_word_list = list_maintext_words(lemma_content)
                 dots = []
                 if re.search(r'\\l?dots({})?', lemma_content):
-                    # Covers ldots lemma. We use the dots variable to identify first and last word in dots lemmas.
+                    # Covers ldots lemma. We use the dots variable to identify first and last
+                    # word in dots lemmas.
                     search_words = [lemma_word_list[0]] + [lemma_word_list[-1]]
                     dots = search_words
                 elif len(lemma_word_list) == 1:
                     # Covers single word lemma
                     search_words = [lemma_content]
                 elif len(lemma_word_list) > 1:
-                    # Covers multiword lemma. We join them to one "search_word" as we look for that specific phrase
-                    # in proximity, not just any of its containing words.
+                    # Covers multiword lemma. We join them to one "search_word" as we look for
+                    # that specific phrase in proximity, not just any of its containing words.
                     search_words = [' '.join(lemma_word_list)]
                 else:
                     search_words = []
@@ -662,16 +678,15 @@ def critical_note_match_replace_samewords(input_string):
 
                     if search_in_proximity(search_word, context_before, context_after):
                         # Update the proximate content.
-                        context_before, context_after = replace_in_proximity(context_before, context_after, search_word)
+                        context_before, context_after = replace_in_proximity(
+                            context_before, context_after, search_word)
 
                         edtext_element = replace_in_critical_note(
                             edtext_element, search_word, lemma_level=lemma_level, dots=dots)
                         edtext_element = replace_in_critical_note(
                             edtext_element, search_word, lemma_level=lemma_level, in_lemma=True)
 
-                # We build the return list as a separate variable as we need to pull material from the input list. As
-                #  the proximate replacements may not cover whole text, we wrap it all with all preceding and
-                # following content, if any.
+                #  We update the pivot and surrounding material
                 proximate_before = context_before.pop()
                 proximate_after = context_after.pop()
                 input_list[pivot_index - len(proximate_before):pivot_index] = proximate_before
@@ -681,6 +696,7 @@ def critical_note_match_replace_samewords(input_string):
         return input_list, context_before, context_after
 
     # Remember, `sub_processing` returns three values, we only need the first here.
-    result = sub_processing(edtext_split(input_string), context_before=list(), context_after=list(), lemma_level=1)[0]
+    result = sub_processing(edtext_split(input_string), context_before=list(),
+                            context_after=list(), lemma_level=1)[0]
 
     return ''.join(result)
