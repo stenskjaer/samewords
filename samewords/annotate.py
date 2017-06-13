@@ -7,7 +7,131 @@ Collection of functions for identifying and annotating potentially ambiguous wor
 import re
 
 
-def macro_expression_content(search_string, position=0, opener='{', closer='}', capture_wrap=False):
+class TextSegment(list):
+    """
+    A chunk of text. Can be anything from a whole paragraph to a short expression. Contains 
+    list of normal string and Edtext objects. 
+    """
+
+    def __init__(self, input_string):
+        list.__init__(self, self.content_split(input_string))
+        self.raw = input_string
+        self.has_edtext = True if Edtext in self else False
+
+    def content_split(self, search_string, return_list=list(), first=True):
+        """
+        Split the input `search_string` into list demarcated by `\edtext{}`-items.
+
+        :param search_string: The input string.
+        :param return_list: The list of text objects that should be returned.
+        :return: List.
+        """
+        if first:
+            return_list = []
+
+        if r'\edtext' in search_string:
+            appnote_start = search_string.find(r'\edtext')
+            edtext_length = macro_expression_length(
+                search_string, position=appnote_start, macro=r'\edtext')
+            appnote_length = macro_expression_length(search_string, appnote_start + edtext_length)
+            appnote_end = appnote_start + edtext_length + appnote_length
+
+            if appnote_start > 0:
+                return_list.append(search_string[:appnote_start])
+            return_list.append(Edtext(search_string[appnote_start:appnote_end]))
+            return self.content_split(search_string[appnote_end:], return_list, first=False)
+
+        else:
+            return_list.append(search_string)
+            return return_list
+
+    def to_string(self):
+        return ''.join(self)
+
+
+class Edtext(str):
+    """
+    A critical apparatus note.
+    """
+
+    def __init__(self, input_string):
+        super().__init__()
+        self.content = input_string
+        self.maintext_note = macro_expression_content(self.content, macro=r'\edtext')
+        self.critical_note = macro_expression_content(
+            self.content, position=macro_expression_length(self.content, macro=r'\edtext'))
+        self.lemma_content = self.get_lemma_content()
+        self.dotted_lemma = False
+        self.search_words = self.define_search_words()
+        self.lemma_level = 1
+        self.context_before = list()
+        self.context_after = list()
+
+
+    def define_search_words(self):
+        """
+        From the lemma content, define which type of lemma we have and return appropriate list.
+        :return: List of search words.
+        """
+        # Determine lemma type. The `dots` variable is used for processing of ldots notes.
+        lemma_word_list = list_maintext_words(self.lemma_content)
+        if re.search(r'\\l?dots({})?', self.lemma_content):
+            # Covers ldots lemma. We use the dots variable to identify first and last
+            # word in dots lemmas.
+            search_words = [lemma_word_list[0]] + [lemma_word_list[-1]]
+            self.dots = True
+        elif len(lemma_word_list) == 1:
+            # Covers single word lemma
+            search_words = [self.lemma_content]
+        elif len(lemma_word_list) > 1:
+            # Covers multiword lemma. We join them to one "search_word" as we look for
+            # that specific phrase in proximity, not just any of its containing words.
+            search_words = [' '.join(lemma_word_list)]
+        else:
+            search_words = []
+        return search_words
+
+    def get_lemma_content(self):
+        """Isolate the content of the `\lemma{}` macro in the critical note."""
+        try:
+            return macro_expression_content(self.critical_note,
+                                            position=len(r'\lemma'))
+        except ValueError:
+            raise ValueError('No lemma element found in the apparatus note %s' % self.critical_note)
+
+    def assemble(self):
+        """Wrap maintext_note and critical_note in `\edtext{}{}` macro. 
+        """
+        return r'\edtext{' + self.maintext_note + '}{' + self.critical_note + '}'
+
+
+class Context:
+    """The context of a text segment in list of lists reflecting nesting level."""
+
+    def __init__(self):
+        self.before = []
+        self.after = []
+
+    def update(self, raw_before, raw_after, lemma_level=1):
+        """
+        Build the surrounding context. If is a list of lists, list 0 contains context on lvl 1, 
+        list 1 contains context on lvl 2 etc. 
+        """
+        prox_context_before = iter_proximate_words(raw_before, side='left')
+        prox_context_after = iter_proximate_words(raw_after, side='right')
+
+        try:
+            self.before[lemma_level - 1] = prox_context_before
+        except IndexError:
+            self.before = self.before + [prox_context_before]
+        try:
+            self.after[lemma_level - 1] = prox_context_after
+        except IndexError:
+            self.after = self.after + [prox_context_after]
+
+
+def macro_expression_content(search_string, position=0, opener='{', closer='}', capture_wrap=False,
+                             macro=''):
     """Get the content of a latex expression that has been opened with "{" to any
     level of macro nesting until closing "}".
 
@@ -26,6 +150,9 @@ def macro_expression_content(search_string, position=0, opener='{', closer='}', 
 
     special_chars = r'\&%$#_{}~^'
     capture = ''
+
+    if macro:
+        position = len(macro)
 
     if search_string[position] == opener:
         stack = [opener]
@@ -188,7 +315,10 @@ def iter_proximate_words(input_list, index=0, word_count_sum=0, side='', length=
         the string).
     """
 
-    word_count_sum += len(list_maintext_words(input_list[index]))
+    try:
+        word_count_sum += len(list_maintext_words(input_list[index]))
+    except IndexError:
+        pass
 
     if side == 'left':
         if word_count_sum < length and index > 0:
@@ -569,7 +699,7 @@ def wrap_if_macro(target, macro=None):
     return target
 
 
-def critical_note_match_replace_samewords(input_string):
+def critical_note_match_replace_samewords(text):
     """
     The main search and replace function.
 
@@ -600,103 +730,52 @@ def critical_note_match_replace_samewords(input_string):
 
     TODO: Remove requirement of `\lemma{}` element.
 
-    :param input_string: The string that should be processed.
+    :param text: The string that should be processed.
     :return: The processed string with encoding of disambiguation.
     """
 
-    def sub_processing(input_list, context_before=list(), context_after=list(), lemma_level=1):
+    def sub_processing(text_object, context=Context(), lemma_level=1):
 
-        for pivot_index, edtext_element in enumerate(input_list):
+        for pivot_index, segment in enumerate(text_object):
 
-            if r'\edtext' in edtext_element:
+            if isinstance(segment, Edtext):
 
                 # Build the surrounding context. If is a list of lists. List 0 contains context
                 # on lvl 1, list 1 contains context on lvl 2 etc.
-                if lemma_level == 1:
-                    context_before = [iter_proximate_words(input_list[:pivot_index], side='left')]
-                    context_after = [iter_proximate_words(input_list[pivot_index + 1:],
-                                                          side='right')]
-                else:
-                    inner_context_before = input_list[:pivot_index]
-                    inner_context_after = input_list[pivot_index + 1:]
+                context.update(text_object[:pivot_index], text_object[pivot_index + 1:], lemma_level)
 
-                    # We use lemma level as the number in the list reflects the nest depth.
-                    try:
-                        context_before[lemma_level - 1] = inner_context_before
-                    except IndexError:
-                        context_before = context_before + [inner_context_before]
-                    try:
-                        context_after[lemma_level - 1] = inner_context_after
-                    except IndexError:
-                        context_after = context_after + [inner_context_after]
 
-                edtext_length = macro_expression_length(edtext_element,
-                                                        position=0, macro=r'\edtext')
-                appnote_content = macro_expression_content(edtext_element, edtext_length,
-                                                           capture_wrap=False)
-                edtext_content = macro_expression_content(edtext_element, position=len(r'\edtext'),
-                                                          capture_wrap=False)
-
-                if r'\edtext' in edtext_content:
+                if r'\edtext' in segment.maintext_note:
                     # We have a nested apparatus note here, so before moving on, we process that.
                     lemma_level += 1
-                    edtext_content, context_before, context_after = sub_processing(
-                        edtext_split(edtext_content), context_before=context_before,
-                        context_after=context_after, lemma_level=lemma_level
-                    )
-                    edtext_content = ''.join(edtext_content)
-                    edtext_element = r'\edtext{' + edtext_content + '}{' + appnote_content + '}'
+                    output = sub_processing(TextSegment(segment.maintext_note),
+                                            context, lemma_level=lemma_level)
+                    segment.maintext_note = output.to_string() # update the maintext note parameter.
+                    segment.content = segment.assemble() # update the content paramter.
                     lemma_level -= 1
 
-                # Check that we have a lemma element.
-                if r'\lemma' in appnote_content:
-                    lemma_content = macro_expression_content(appnote_content,
-                                                             position=len(r'\lemma'))
-                else:
-                    raise ValueError('No lemma element found in the apparatus note %s'
-                                     % appnote_content)
+                for search_word in segment.search_words:
 
-                # Determine lemma type. The `dots` variable is used for processing of ldots notes.
-                lemma_word_list = list_maintext_words(lemma_content)
-                dots = []
-                if re.search(r'\\l?dots({})?', lemma_content):
-                    # Covers ldots lemma. We use the dots variable to identify first and last
-                    # word in dots lemmas.
-                    search_words = [lemma_word_list[0]] + [lemma_word_list[-1]]
-                    dots = search_words
-                elif len(lemma_word_list) == 1:
-                    # Covers single word lemma
-                    search_words = [lemma_content]
-                elif len(lemma_word_list) > 1:
-                    # Covers multiword lemma. We join them to one "search_word" as we look for
-                    # that specific phrase in proximity, not just any of its containing words.
-                    search_words = [' '.join(lemma_word_list)]
-                else:
-                    search_words = []
-
-                for search_word in search_words:
-
-                    if search_in_proximity(search_word, context_before, context_after):
+                    if search_in_proximity(search_word, context.before, context.after):
                         # Update the proximate content.
-                        context_before, context_after = replace_in_proximity(
-                            context_before, context_after, search_word)
+                        context.before, context.after = replace_in_proximity(
+                            context.before, context.after, search_word)
 
-                        edtext_element = replace_in_critical_note(
-                            edtext_element, search_word, lemma_level=lemma_level, dots=dots)
-                        edtext_element = replace_in_critical_note(
-                            edtext_element, search_word, lemma_level=lemma_level, in_lemma=True)
+                        segment.content = replace_in_critical_note(
+                            segment.content, search_word, lemma_level=lemma_level)
+                        segment.content = replace_in_critical_note(
+                            segment.content, search_word,
+                            lemma_level=lemma_level, in_lemma=True)
 
                 #  We update the pivot and surrounding material
-                proximate_before = context_before.pop()
-                proximate_after = context_after.pop()
-                input_list[pivot_index - len(proximate_before):pivot_index] = proximate_before
-                input_list[pivot_index] = edtext_element
-                input_list[pivot_index + 1:len(proximate_after) + pivot_index + 1] = proximate_after
+                proximate_before = context.before.pop()
+                proximate_after = context.after.pop()
+                text_object[pivot_index - len(proximate_before):pivot_index] = proximate_before
+                text_object[pivot_index] = segment.content
+                text_object[pivot_index + 1:len(proximate_after) + pivot_index + 1] = proximate_after
 
-        return input_list, context_before, context_after
+        return text_object
 
-    # Remember, `sub_processing` returns three values, we only need the first here.
-    result = sub_processing(edtext_split(input_string), context_before=list(),
-                            context_after=list(), lemma_level=1)[0]
+    result = sub_processing(TextSegment(text))
 
-    return ''.join(result)
+    return result.to_string()
