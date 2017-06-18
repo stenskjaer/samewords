@@ -241,8 +241,8 @@ class Context:
         Build the surrounding context. If is a list of lists, list 0 contains context on lvl 1, 
         list 1 contains context on lvl 2 etc. 
         """
-        prox_context_before = iter_proximate_words(raw_before, side='left')
-        prox_context_after = iter_proximate_words(raw_after, side='right')
+        prox_context_before = self.iter_proximate_words(raw_before, side='left')
+        prox_context_after = self.iter_proximate_words(raw_after, side='right')
 
         try:
             self.before[lemma_level - 1] = prox_context_before
@@ -252,6 +252,39 @@ class Context:
             self.after[lemma_level - 1] = prox_context_after
         except IndexError:
             self.after = self.after + [prox_context_after]
+
+    def iter_proximate_words(self, input_list, index=0, word_count_sum=0, side='', length=30):
+        """
+        Get a suitable amount of items from input_list to serve 30 proximity words for analysis.
+
+        When the `side` is `left`, it will return the list reversed thereby yielding the items 
+        closest to the search start. 
+
+        :param input_list: The list to pull from
+        :param index: The index from where the search should start.
+        :param word_count_sum: Accumulative word counter for finding the right size chunk.
+        :param side: Indicate whether we are searching left of the pivot. In that case, we reverse the 
+            list too.
+        :param length: Amount of words required for the chunk.
+        :return: List of at least 30 word on each side of the pivot word (less if we are at the end of 
+            the string).
+        """
+
+        try:
+            word_count_sum += len(list_maintext_words(input_list[index]))
+        except IndexError:
+            pass
+
+        if side == 'left':
+            if word_count_sum < length and index > 0:
+                return self.iter_proximate_words(input_list, index - 1, word_count_sum, side)
+            else:
+                return input_list[index:]
+        elif side == 'right':
+            if word_count_sum < length and index + 1 < len(input_list):
+                return self.iter_proximate_words(input_list, index + 1, word_count_sum, side)
+            else:
+                return input_list[:index + 1]
 
 
 def macro_expression_content(search_string, position=0, opener='{', closer='}', capture_wrap=False,
@@ -420,43 +453,6 @@ def list_maintext_words(search_string=''):
         word = add_word_to_list(word, word_list)
 
     return word_list
-
-
-def iter_proximate_words(input_list, index=0, word_count_sum=0, side='', length=30):
-    """
-    Get a suitable amount of items from input_list to serve 30 proximity words for analysis.
-
-    When the `side` is `left`, it will return the list reversed thereby yielding the items 
-    closest to the search start. 
-
-    :param input_list: The list to pull from
-    :param index: The index from where the search should start.
-    :param word_count_sum: Accumulative word counter for finding the right size chunk.
-    :param side: Indicate whether we are searching left of the pivot. In that case, we reverse the 
-        list too.
-    :param length: Amount of words required for the chunk.
-    :return: List of at least 30 word on each side of the pivot word (less if we are at the end of 
-        the string).
-    """
-
-    try:
-        word_count_sum += len(list_maintext_words(input_list[index]))
-    except IndexError:
-        pass
-
-    if side == 'left':
-        if word_count_sum < length and index > 0:
-            return iter_proximate_words(input_list, index - 1, word_count_sum, side)
-        else:
-            return input_list[index:]
-    elif side == 'right':
-        if word_count_sum < length and index + 1 < len(input_list):
-            return iter_proximate_words(input_list, index + 1, word_count_sum, side)
-        else:
-            return input_list[:index + 1]
-    else:
-        raise ValueError("The value of the argumen 'side' must be either 'left' or 'right'. "
-                         "You gave: %s" % side)
 
 
 def flatten_list(input_list):
