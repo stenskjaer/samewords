@@ -79,6 +79,13 @@ class TestProximityListing:
         output_list = ['One major reason for ', '\\edtext{the}{\\lemma{the}\\Bfootnote{an}}', ' interest ', '\\edtext{in}{\\lemma{in}\\Bfootnote{an}}', ' intentionality in medieval philosophy is that it has been widely recognized that Franz Brentano was reviving a scholastic notion when he introduced intentionality as “the mark of the mental” (Brentano 1924). But Brentano never used ']
         assert iter_proximate_words(edtext_split(self.simple_string), side='right') == output_list
 
+#
+# class TestTextObjects:
+#     def test_base_class(self):
+#         segment = TextSegment(nested_1)
+#         sub = segment
+
+
 
 class TestSamewordWrapping:
     def test_wrap_unwrapped_sameword(self):
@@ -134,10 +141,15 @@ class TestWrapWordPhrase:
         multiword_result = r'\sameword{\sameword{input} \sameword{material}}'
         assert wrap_phrase(multiword) == multiword_result
 
-class TestMainReplaceFunction:
+    @pytest.mark.skip("Not implemented yet...")
+    def test_wrap_text_with_macro(self):
+        # This test is in the wrong place. It is not a wrap test but a annotation tes
+        macro_wrap = r'\emph{non apparentium} quia \edtext{non}{\lemma{non}\Bfootnote{sed SV}}'
+        macro_wrap_result = r'\emph{\sameword{non} apparentium} quia ' \
+                            r'\edtext{\sameword[1]{non}}{\lemma{\sameword{non}}\Bfootnote{sed SV}}'
+        assert wrap_phrase(macro_wrap) == macro_wrap_result
 
-    def test_nested_ldots_lemma(self):
-        assert critical_note_match_replace_samewords(nested_ldots_lemma) == nested_ldots_lemma_result
+class TestMainReplaceFunction:
 
     def test_two_multi_words(self):
         double_multiword = r"\edtext{nobis apparentes}{\lemma{nobis apparentes}\Bfootnote{\emph{om.} B}} " \
@@ -171,6 +183,8 @@ class TestMainReplaceFunction:
     def test_flat_proximity_match(self):
         assert critical_note_match_replace_samewords(flat_proximity_match) == flat_proximity_match_result
 
+    def test_nested_ldots_lemma(self):
+        assert critical_note_match_replace_samewords(nested_ldots_lemma) == nested_ldots_lemma_result
 
     def test_complex_real_example(self):
         assert critical_note_match_replace_samewords(nested_2) == nested_2_result
@@ -203,15 +217,10 @@ class TestMainReplaceFunction:
 
 
 class TestReplaceInEdtext:
-    edtext_unnested = r"\edtext{sw so sw another thing}{\lemma{sw \ldots thing}\Afootnote{ critical note}}"
-    edtext_unnested_result = r"\edtext{\sameword[1]{sw} so \sameword[1]{sw} another thing}{\lemma{sw \ldots thing}\Afootnote{ critical note}}"
-
-    edtext_nested = r"\edtext{sw so \edtext{\edtext{sw}{\lemma{sw}\Bfootnote{B note here}} another thing}{\lemma{sw another thing}\Bfootnote{B footnote her}}}{\lemma{sw \ldots thing}\Afootnote{ critical note}} "
-    edtext_nested_result = r'\edtext{\sameword[1]{sw} so \edtext{\edtext{\sameword[1]{sw}}{\lemma{sw}\Bfootnote{B note here}} another thing}{\lemma{sw another thing}\Bfootnote{B footnote her}}}{\lemma{sw \ldots thing}\Afootnote{ critical note}} '
+    edtext_unnested = CritText(r"\edtext{sw so sw another thing}{\lemma{sw \ldots thing"
+                               r"}\Afootnote{critical note}} ")
+    edtext_unnested_result = r"\edtext{\sameword[1]{sw} so \sameword[1]{sw} another thing}{\lemma{sw \ldots thing}\Afootnote{critical note}}"
 
     def test_replace_in_edtext(self):
-        assert replace_in_critical_note(self.edtext_unnested, replace_word='sw') == self.edtext_unnested_result
-
-    def test_replace_in_nested_edtext(self):
-        assert replace_in_critical_note(self.edtext_nested, replace_word='sw') == self.edtext_nested_result
-
+        assert self.edtext_unnested.replace_in_maintext_note(replace_word='sw') == \
+               self.edtext_unnested_result

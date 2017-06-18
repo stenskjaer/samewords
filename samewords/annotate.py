@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Collection of functions for identifying and annotating potentially ambiguous words in a string.
+Identify and annotate potentially ambiguous words in a string.
 """
 
 import re
@@ -16,7 +16,7 @@ class TextSegment(list):
     def __init__(self, input_string):
         list.__init__(self, self.content_split(input_string))
         self.raw = input_string
-        self.has_edtext = True if Edtext in self else False
+        self.has_edtext = True if CritText in self else False
 
     def content_split(self, search_string, return_list=list(), first=True):
         """
@@ -38,24 +38,25 @@ class TextSegment(list):
 
             if appnote_start > 0:
                 return_list.append(search_string[:appnote_start])
-            return_list.append(Edtext(search_string[appnote_start:appnote_end]))
+            return_list.append(CritText(search_string[appnote_start:appnote_end]))
             return self.content_split(search_string[appnote_end:], return_list, first=False)
 
         else:
-            return_list.append(search_string)
+            if search_string is not '':
+                return_list.append(search_string)
             return return_list
 
     def to_string(self):
         return ''.join(self)
 
 
-class Edtext(str):
+class CritText(str):
     """
     A critical apparatus note.
     """
 
     def __init__(self, input_string):
-        super().__init__()
+        str.__init__(input_string)
         self.content = input_string
         self.maintext_note = macro_expression_content(self.content, macro=r'\edtext')
         self.critical_note = macro_expression_content(
@@ -66,7 +67,6 @@ class Edtext(str):
         self.lemma_level = 1
         self.context_before = list()
         self.context_after = list()
-
 
     def define_search_words(self):
         """
@@ -79,7 +79,7 @@ class Edtext(str):
             # Covers ldots lemma. We use the dots variable to identify first and last
             # word in dots lemmas.
             search_words = [lemma_word_list[0]] + [lemma_word_list[-1]]
-            self.dots = True
+            self.dotted_lemma = True
         elif len(lemma_word_list) == 1:
             # Covers single word lemma
             search_words = [self.lemma_content]
@@ -99,10 +99,134 @@ class Edtext(str):
         except ValueError:
             raise ValueError('No lemma element found in the apparatus note %s' % self.critical_note)
 
-    def assemble(self):
+    def assemble(self, maintext=None, critical=None):
         """Wrap maintext_note and critical_note in `\edtext{}{}` macro. 
         """
-        return r'\edtext{' + self.maintext_note + '}{' + self.critical_note + '}'
+        if not maintext:
+            maintext = self.maintext_note
+        if not critical:
+            critical = self.critical_note
+        self.content = r'\edtext{' + maintext + '}{' + critical + '}'
+        return CritText(self.content)
+
+    def replace_in_maintext_note(self, replace_word, replace_string=None, lemma_level=1):
+        """
+        Replace all instances of `replace_word` in a apparatus note (full `\edtext{}{}`) and return 
+        the updated string. 
+
+        We instantiate self.maintext_note or `replace_string` (if given) as TextSegment, 
+        thus splitting it into segments of critical notes and regular text. That list is 
+        iterated, wrapping any match of `replace_word` as we go along.
+        
+        Updates self.maintext_note and return the updated self.content or returns the updated 
+        `replace_string` if given.
+        
+        The possibility of passing `replace_string` is required for recursive calls in nested 
+        edtext elements.
+
+        :param replace_word: The word to be replaced.
+        :param replace_string: A string to wrap replacement words (optional).
+        :param lemma_level: The level from which the lemma refers to the word to be `replace_word`.
+        :param macro: Opening macro before content. If set, the function skips that macro name and 
+            gets its content. 
+        :return Updated replace_string or content of self.
+        """
+
+        return_string = ''
+        if replace_string:
+            edtext_content_list = TextSegment(replace_string)
+        else:
+            edtext_content_list = TextSegment(self.maintext_note)
+
+        if self.dotted_lemma:
+            # We have a ldots lemma, so only replace at the beginning and end of the edtext element.
+            if replace_word == self.search_words[0]:
+                edtext_content_list[0] = replace_in_string(replace_word,
+                                                           edtext_content_list[0], lemma_level)
+            elif replace_word == self.search_words[1]:
+                edtext_content_list[-1] = self.replace_last_maintext_word(
+                    replace_word=replace_word,
+                    replace_string=edtext_content_list[-1],
+                    lemma_level=lemma_level)
+            return_string = wrap_if_macro(''.join(edtext_content_list))
+
+        else:
+            loop_string = ''
+            for pivot_index, edtext_content in enumerate(edtext_content_list):
+
+                if isinstance(edtext_content, CritText):
+                    # If the item is a critical note, replace inside it.
+                    maintext = self.replace_in_maintext_note(
+                        replace_word, lemma_level=lemma_level,
+                        replace_string=edtext_content.maintext_note)
+                    edtext_content_list[pivot_index] = self.assemble(
+                        maintext=maintext, critical=edtext_content.critical_note)
+
+                else:
+                    edtext_content_list[pivot_index] = replace_in_string(
+                        replace_word, edtext_content, lemma_level)
+
+                loop_string += edtext_content_list[pivot_index]
+
+            return_string += loop_string
+
+        if replace_string:
+            return return_string
+        else:
+            # Update the maintext parameter and update self.content with assemble()
+            self.maintext_note = return_string
+            return self.assemble()
+
+    def replace_last_maintext_word(self, replace_string, replace_word, lemma_level=1):
+        """
+        Replace only on the very last maintext word of `replace_string` (if it matches).
+        
+        :return: The updated `replace_string`. 
+        """
+        segments = TextSegment(replace_string)
+        self.dotted_lemma = False
+        for index, segment in enumerate(segments):
+            if index + 1 == len(segments):
+                if isinstance(segment, CritText):
+                    maintext = self.replace_last_maintext_word(segment.maintext_note, replace_word,
+                                                               lemma_level)
+                    segments[index] = segment.assemble(maintext=maintext)
+                else:
+                    previous = ' '.join(segment.split(' ')[:-1])
+                    last = segment.split(' ')[-1]
+                    updated_last = self.replace_in_maintext_note(replace_word, last, lemma_level)
+                    segments[index] = previous + ' ' + updated_last
+
+        return segments.to_string()
+
+
+    def replace_in_critical_note(self, replace_word, replace_string=None):
+        """
+        Update content of critical note by wrapping possible match words.
+        """
+
+        if replace_string:
+            lemma_content = macro_expression_content(replace_string, position=len(r'\lemma'))
+        else:
+            lemma_content = macro_expression_content(self.critical_note, position=len(r'\lemma'))
+
+        return_string = r'\lemma{'
+        position = len(r'\lemma{')
+        return_string += replace_in_string(replace_word, lemma_content, lemma_level=0)
+
+        position += len(lemma_content)
+
+        # Add the following app note, where nothing should be changed, and return it
+        return_string += self.critical_note[position:]
+
+        # Update the maintext parameter and update self.content with assemble()
+        self.critical_note = return_string
+        return self.assemble()
+
+    def replace_in_edtext_args(self, replace_word, replace_string=None, lemma_level=1):
+        self.replace_in_maintext_note(replace_word, lemma_level=lemma_level)
+        self.replace_in_critical_note(replace_word)
+        return self.content
 
 
 class Context:
@@ -112,7 +236,7 @@ class Context:
         self.before = []
         self.after = []
 
-    def update(self, raw_before, raw_after, lemma_level=1):
+    def update(self, raw_before: TextSegment, raw_after: TextSegment, lemma_level=1):
         """
         Build the surrounding context. If is a list of lists, list 0 contains context on lvl 1, 
         list 1 contains context on lvl 2 etc. 
@@ -406,21 +530,13 @@ def replace_in_proximity(context_before_list, context_after_list, search_word):
 
     def replace_in_context_list(context_list, word, side=''):
         for item_index, context_item in enumerate(context_list):
-            if side == 'right':
-                chunk_list = iter_proximate_words(context_item, side=side)
-            elif side == 'left':
-                # When left, we get proximate words from the end, as it is closest to the pivot
-                # element.
-                chunk_list = iter_proximate_words(context_item, side=side,
-                                                  index=len(context_item) - 1)
-
-            for index, chunk in enumerate(chunk_list):
-                if r'\edtext' in chunk:
-                    chunk = replace_in_critical_note(chunk, word, lemma_level=0)
+            for index, chunk in enumerate(context_item):
+                if isinstance(chunk, CritText):
+                    chunk = chunk.replace_in_maintext_note(word, lemma_level=0)
                 else:
                     chunk = replace_in_string(word, chunk)
-                chunk_list[index] = chunk
-            context_list[item_index] = chunk_list
+                context_item[index] = chunk
+            context_list[item_index] = context_item
         return context_list
 
     left = replace_in_context_list(context_before_list, search_word, side='left')
@@ -429,15 +545,15 @@ def replace_in_proximity(context_before_list, context_after_list, search_word):
     return left, right
 
 
-def replace_in_string(search_word, replacement_string, lemma_level=0):
+def replace_in_string(replace_word, replace_string, lemma_level=0):
     """
     Recursively replace the search word in the search string with a version that is wrapped in 
     sameword. This is designed to handle replacement of multiword phrases in the string too. The 
     wrapping is done intelligently so that what is already wrapped is not double wrapped, 
     and lemma levels are incorporated. 
 
-    :param search_word: the word that should be wrapped
-    :param replacement_string: The string in which the replacement should be done.
+    :param replace_word: the word that should be wrapped
+    :param replace_string: The string in which the replacement should be done.
     :param lemma_level: The lemma level, if applicable.
     :return: Updated or unchanged string.
     """
@@ -510,15 +626,15 @@ def replace_in_string(search_word, replacement_string, lemma_level=0):
 
     unwrapped = False
     try:
-        if replacement_string[0] is '{' and replacement_string[-1] is '}':
-            replacement_string = replacement_string[1:-1]
+        if replace_string[0] is '{' and replace_string[-1] is '}':
+            replace_string = replace_string[1:-1]
             unwrapped = True
     except IndexError:
         # The input replacement string is empty, so just return with processing.
-        return replacement_string
+        return replace_string
 
-    replacement_string_listed = move_punctuation(replacement_string.split(' '))
-    search_word_listed = search_word.split(' ')
+    replacement_string_listed = move_punctuation(replace_string.split(' '))
+    search_word_listed = replace_word.split(' ')
     updated_replacement = make_replacements(search_word_listed, replacement_string_listed)
 
     if unwrapped:
@@ -583,116 +699,6 @@ def wrap_phrase(phrase, lemma_level=0):
             return r'\sameword' + this_level + '{' + phrase + '}'
 
 
-def replace_in_critical_note(search_string, replace_word, lemma_level=1, in_lemma=False,
-                             dots=list(), macro=r'\edtext'):
-    """
-    Replace all instances of `replace_word` in a apparatus note (full `\edtext{}{}`) and return 
-    the updated string. 
-
-    This is done by building a string and making replacements as we go along. The function 
-    recurses on nested edtext elements. To be able to also make correct replacements inside the 
-    whole app note, the function can be called with the argument `macro` as empty. In this way 
-    the function does not try to isolate the content of a macro before processing. The different 
-    situations at different recursion levels add this complexity. But currently it seems the 
-    "simplest" solution. 
-
-    :param search_string: The string containing the string under processing.
-    :param replace_word: The word to be replaced.
-    :param lemma_level: The level from which the lemma refers to the word to be `replace_word`.
-    :param in_lemma: If true, it will replace the search word in lemma element, otherwise it will 
-        replace in edtext.
-    :param dots: The search words in case we are in a lemma containing a version of `\dots`.
-    :param macro: Opening macro before content. If set, the function skips that macro name and gets 
-        its content. 
-    :return: The updated string.
-    """
-
-    position = len(macro)
-
-    return_string = search_string[:position]
-
-    if macro:
-        # If we are starting from beginning of macro, get it's content
-        edtext_content_string = macro_expression_content(search_string, position,
-                                                         capture_wrap=False)
-    else:
-        edtext_content_string = search_string
-    edtext_content_list = edtext_split(edtext_content_string)
-
-    # Should we replace in edtext or lemma?
-    if in_lemma is False:
-
-        # We are in the edtext
-        # Is there a nested critical note?
-
-        if dots:
-            # We have a ldots lemma, so only replace at the beginning and end of the edtext element.
-            if replace_word == dots[0]:
-                edtext_content_list[0] = replace_in_string(replace_word,
-                                                           edtext_content_list[0], lemma_level)
-            elif replace_word == dots[1]:
-                edtext_content_list[len(edtext_content_list) - 2] \
-                    = replace_in_critical_note(edtext_content_list[len(edtext_content_list) - 2],
-                                               replace_word, lemma_level, macro='')
-            return_string += wrap_if_macro(''.join(edtext_content_list), macro=macro)
-        else:
-
-            loop_string = ''
-            for pivot_index, edtext_content in enumerate(edtext_content_list):
-
-                if r'\edtext' in edtext_content:
-
-                    # Replace up to sub critical note (using a temporary return_string
-                    edtext_position = edtext_content.find(r'\edtext{')
-                    sub_return_string = replace_in_string(
-                        replace_word, edtext_content[:edtext_position], lemma_level)
-
-                    # Replace inside edtext, calling this function. First we need the location of
-                    #  the sub critical note.
-                    sub_edtext_length = macro_expression_length(
-                        edtext_content, position=edtext_position, macro=r'\edtext')
-                    sub_appnote_length = macro_expression_length(
-                        edtext_content, position=edtext_position + sub_edtext_length)
-                    sub_critnote_end = edtext_position + sub_edtext_length + sub_appnote_length
-                    sub_return_string += replace_in_critical_note(
-                        edtext_content[edtext_position:sub_critnote_end],
-                        replace_word, lemma_level=lemma_level)
-
-                    # Relace rest of current edtext from after sub critical note
-                    sub_return_string += replace_in_string(
-                        replace_word, edtext_content[sub_critnote_end:], lemma_level)
-                    edtext_content_list[pivot_index] = sub_return_string
-
-                else:
-                    edtext_content_list[pivot_index] = replace_in_string(
-                        replace_word, edtext_content, lemma_level)
-
-                loop_string += edtext_content_list[pivot_index]
-
-            return_string += wrap_if_macro(loop_string, macro=macro)
-
-        # Bump position to end of edtext_content
-        position += len(wrap_if_macro(edtext_content_string, macro=macro))
-
-    else:
-        # In lemma: Add edtext content and bump position to after that.
-        return_string += wrap_if_macro(edtext_content_string, macro=macro)
-        position += len(wrap_if_macro(edtext_content_string, macro=macro))
-
-        lemma_content = macro_expression_content(search_string[position:], position=len(r'{\lemma'))
-
-        return_string += r'{\lemma{'
-        position += len(r'{\lemma{')
-        return_string += replace_in_string(replace_word, lemma_content, lemma_level=0)
-
-        position += len(lemma_content)
-
-    # Add the following app note, where nothing should be changed, and return it
-    return_string += search_string[position:]
-
-    return return_string
-
-
 def wrap_if_macro(target, macro=None):
     if target is not '' and macro:
         return '{' + target + '}'
@@ -738,12 +744,12 @@ def critical_note_match_replace_samewords(text):
 
         for pivot_index, segment in enumerate(text_object):
 
-            if isinstance(segment, Edtext):
+            if isinstance(segment, CritText):
 
                 # Build the surrounding context. If is a list of lists. List 0 contains context
                 # on lvl 1, list 1 contains context on lvl 2 etc.
-                context.update(text_object[:pivot_index], text_object[pivot_index + 1:], lemma_level)
-
+                context.update(text_object[:pivot_index], text_object[pivot_index + 1:],
+                               lemma_level)
 
                 if r'\edtext' in segment.maintext_note:
                     # We have a nested apparatus note here, so before moving on, we process that.
@@ -751,7 +757,7 @@ def critical_note_match_replace_samewords(text):
                     output = sub_processing(TextSegment(segment.maintext_note),
                                             context, lemma_level=lemma_level)
                     segment.maintext_note = output.to_string() # update the maintext note parameter.
-                    segment.content = segment.assemble() # update the content paramter.
+                    segment.content = segment.assemble() # update the content parameter.
                     lemma_level -= 1
 
                 for search_word in segment.search_words:
@@ -761,18 +767,14 @@ def critical_note_match_replace_samewords(text):
                         context.before, context.after = replace_in_proximity(
                             context.before, context.after, search_word)
 
-                        segment.content = replace_in_critical_note(
-                            segment.content, search_word, lemma_level=lemma_level)
-                        segment.content = replace_in_critical_note(
-                            segment.content, search_word,
-                            lemma_level=lemma_level, in_lemma=True)
+                        segment.replace_in_edtext_args(search_word, lemma_level=lemma_level)
 
                 #  We update the pivot and surrounding material
                 proximate_before = context.before.pop()
                 proximate_after = context.after.pop()
                 text_object[pivot_index - len(proximate_before):pivot_index] = proximate_before
-                text_object[pivot_index] = segment.content
-                text_object[pivot_index + 1:len(proximate_after) + pivot_index + 1] = proximate_after
+                text_object[pivot_index] = CritText(segment.content)
+                text_object[pivot_index+1:len(proximate_after) + pivot_index+1] = proximate_after
 
         return text_object
 
