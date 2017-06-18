@@ -10,7 +10,7 @@ import re
 class TextSegment(list):
     """
     A chunk of text. Can be anything from a whole paragraph to a short expression. Contains 
-    list of normal string and Edtext objects. 
+    list of normal string and CritText objects. 
     """
 
     def __init__(self, input_string):
@@ -24,6 +24,7 @@ class TextSegment(list):
 
         :param search_string: The input string.
         :param return_list: The list of text objects that should be returned.
+        :param first: Indicate whether this is the first iteration, used in recursive processing.
         :return: List.
         """
         if first:
@@ -127,8 +128,6 @@ class CritText(str):
         :param replace_word: The word to be replaced.
         :param replace_string: A string to wrap replacement words (optional).
         :param lemma_level: The level from which the lemma refers to the word to be `replace_word`.
-        :param macro: Opening macro before content. If set, the function skips that macro name and 
-            gets its content. 
         :return Updated replace_string or content of self.
         """
 
@@ -199,7 +198,6 @@ class CritText(str):
 
         return segments.to_string()
 
-
     def replace_in_critical_note(self, replace_word, replace_string=None):
         """
         Update content of critical note by wrapping possible match words.
@@ -223,7 +221,7 @@ class CritText(str):
         self.critical_note = return_string
         return self.assemble()
 
-    def replace_in_edtext_args(self, replace_word, replace_string=None, lemma_level=1):
+    def replace_in_edtext_args(self, replace_word, lemma_level=1):
         self.replace_in_maintext_note(replace_word, lemma_level=lemma_level)
         self.replace_in_critical_note(replace_word)
         return self.content
@@ -263,11 +261,11 @@ class Context:
         :param input_list: The list to pull from
         :param index: The index from where the search should start.
         :param word_count_sum: Accumulative word counter for finding the right size chunk.
-        :param side: Indicate whether we are searching left of the pivot. In that case, we reverse the 
-            list too.
+        :param side: Indicate whether we are searching left of the pivot. In that case, we reverse 
+            the list too.
         :param length: Amount of words required for the chunk.
-        :return: List of at least 30 word on each side of the pivot word (less if we are at the end of 
-            the string).
+        :return: List of at least 30 word on each side of the pivot word (less if we are at the end 
+            of the string).
         """
 
         try:
@@ -302,6 +300,7 @@ def macro_expression_content(search_string, position=0, opener='{', closer='}', 
     :param opener: Symbol that opens bracket set [default='{'].
     :param closer: Symbol that closes bracket set [default='}'].
     :param capture_wrap: Capture the wrapping (outermost) brackets [default=False].
+    :param macro: If this is given, the processing will skip that as first initial macro.
     :return: The string captured.
     """
 
@@ -399,16 +398,16 @@ def list_maintext_words(search_string=''):
     :return: List of words
     """
 
-    def add_word_to_list(word, word_list):
+    def add_word_to_list(w, wlist):
         """
         If `word` is not empty, add it to the `word_list` and return the list.
 
-        :param word: Word value to be checked.
-        :param word_list: The list it should be added to.
+        :param w: Word value to be checked.
+        :param wlist: The list it should be added to.
         :return: The (possibly opdated) wordlist.
         """
-        if word is not '':
-            word_list.append(word)
+        if w is not '':
+            wlist.append(w)
         return ''
 
     word_list = []
@@ -449,8 +448,8 @@ def list_maintext_words(search_string=''):
         elif re.match('\W', symbol):
             word = add_word_to_list(word, word_list)
             position += 1
-    else:
-        word = add_word_to_list(word, word_list)
+    # Add the final word to the list.
+    add_word_to_list(word, word_list)
 
     return word_list
 
@@ -501,7 +500,7 @@ def replace_in_proximity(context_before_list, context_after_list, search_word):
     :return: The two updated lists where samewords of the search word are marked.
     """
 
-    def replace_in_context_list(context_list, word, side=''):
+    def replace_in_context_list(context_list, word):
         for item_index, context_item in enumerate(context_list):
             for index, chunk in enumerate(context_item):
                 if isinstance(chunk, CritText):
@@ -512,8 +511,8 @@ def replace_in_proximity(context_before_list, context_after_list, search_word):
             context_list[item_index] = context_item
         return context_list
 
-    left = replace_in_context_list(context_before_list, search_word, side='left')
-    right = replace_in_context_list(context_after_list, search_word, side='right')
+    left = replace_in_context_list(context_before_list, search_word)
+    right = replace_in_context_list(context_after_list, search_word)
 
     return left, right
 
@@ -723,8 +722,8 @@ def critical_note_match_replace_samewords(text):
                     lemma_level += 1
                     output = sub_processing(TextSegment(segment.maintext_note),
                                             context, lemma_level=lemma_level)
-                    segment.maintext_note = output.to_string() # update the maintext note parameter.
-                    segment.content = segment.assemble() # update the content parameter.
+                    segment.maintext_note = output.to_string()
+                    segment.content = segment.assemble()
                     lemma_level -= 1
 
                 for search_word in segment.search_words:
