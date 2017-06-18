@@ -148,7 +148,7 @@ class CritText(str):
                     replace_word=replace_word,
                     replace_string=edtext_content_list[-1],
                     lemma_level=lemma_level)
-            return_string = wrap_if_macro(''.join(edtext_content_list))
+            return_string = ''.join(edtext_content_list)
 
         else:
             loop_string = ''
@@ -675,12 +675,6 @@ def wrap_phrase(phrase, lemma_level=0):
             return phrase.replace(sameword_match, r'\sameword' + this_level + '{')
         else:
             return r'\sameword' + this_level + '{' + phrase + '}'
-
-
-def wrap_if_macro(target, macro=None):
-    if target is not '' and macro:
-        return '{' + target + '}'
-    return target
 
 
 def critical_note_match_replace_samewords(text):
