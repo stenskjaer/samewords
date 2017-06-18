@@ -455,15 +455,6 @@ def list_maintext_words(search_string=''):
     return word_list
 
 
-def flatten_list(input_list):
-    """Return a flat list from an arbitrarily nested list."""
-    for item in input_list:
-        if type(item) == list:
-            yield from flatten_list(item)
-        else:
-            yield item
-
-
 def search_in_proximity(search_word, context_before, context_after):
     """
     Check whether a search word is present in the one of two lists. The two input lists contain 
@@ -478,6 +469,14 @@ def search_in_proximity(search_word, context_before, context_after):
     :param context_after: List of following context to be searched.
     :return: Boolean.
     """
+    def flatten_list(input_list):
+        """Return a flat list from an arbitrarily nested list."""
+        for item in input_list:
+            if type(item) == list:
+                yield from flatten_list(item)
+            else:
+                yield item
+
     contexts = flatten_list(context_before + context_after)
 
     for context_chunk in contexts:
