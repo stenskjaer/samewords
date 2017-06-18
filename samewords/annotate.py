@@ -491,28 +491,6 @@ def search_in_proximity(search_word, context_before, context_after):
     return False
 
 
-def edtext_split(search_string):
-    """
-    Split the input `search_string` into list demarcated by `\edtext{}`-items.
-
-    :param search_string: The input string.
-    :return: List.
-    """
-
-    if r'\edtext' in search_string:
-        appnote_start = search_string.find(r'\edtext')
-        edtext_length = macro_expression_length(
-            search_string, position=appnote_start, macro=r'\edtext')
-        appnote_length = macro_expression_length(search_string, appnote_start + edtext_length)
-        appnote_end = appnote_start + edtext_length + appnote_length
-
-        return [search_string[:appnote_start]] \
-               + [search_string[appnote_start:appnote_end]] \
-               + edtext_split(search_string[appnote_end:])
-    else:
-        return [search_string]
-
-
 def replace_in_proximity(context_before_list, context_after_list, search_word):
     """
     Replace a specified search word in two lists containing the text surrounding a chunk of text.
