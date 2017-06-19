@@ -15,8 +15,6 @@ class TextSegment(list):
 
     def __init__(self, input_string):
         list.__init__(self, self.content_split(input_string))
-        self.raw = input_string
-        self.has_edtext = True if CritText in self else False
 
     def content_split(self, search_string, return_list=list(), first=True):
         """
