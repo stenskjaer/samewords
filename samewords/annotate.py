@@ -13,10 +13,11 @@ class TextSegment(list):
     list of normal string and CritText objects. 
     """
 
-    def __init__(self, input_string):
+    def __init__(self, input_string: str) -> None:
         list.__init__(self, self.content_split(input_string))
 
-    def content_split(self, search_string, return_list=list(), first=True):
+    def content_split(self, search_string: str, return_list: list = list(),
+                      first: bool = True) -> list:
         """
         Split the input `search_string` into list demarcated by `\edtext{}`-items.
 
@@ -26,7 +27,7 @@ class TextSegment(list):
         :return: List.
         """
         if first:
-            return_list = []
+            return_list: list = []
 
         if r'\edtext' in search_string:
             appnote_start = search_string.find(r'\edtext')
@@ -45,7 +46,7 @@ class TextSegment(list):
                 return_list.append(search_string)
             return return_list
 
-    def to_string(self):
+    def to_string(self) -> str:
         return ''.join(self)
 
 
@@ -70,6 +71,7 @@ class CritText(str):
     def define_search_words(self):
         """
         From the lemma content, define which type of lemma we have and return appropriate list.
+
         :return: List of search words.
         """
         # Determine lemma type. The `dots` variable is used for processing of ldots notes.
