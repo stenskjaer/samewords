@@ -251,7 +251,7 @@ class Context:
         except IndexError:
             self.after = self.after + [prox_context_after]
 
-    def iter_proximate_words(self, input_list, index=0, word_count_sum=0, side='', length=30):
+    def iter_proximate_words(self, input_list, index=0, word_count_sum=0, side='', length=15):
         """
         Get a suitable amount of items from input_list to serve 30 proximity words for analysis.
 
