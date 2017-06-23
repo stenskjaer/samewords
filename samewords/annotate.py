@@ -140,8 +140,10 @@ class CritText(str):
         if self.dotted_lemma:
             # We have a ldots lemma, so only replace at the beginning and end of the edtext element.
             if replace_word == self.search_words[0]:
-                edtext_content_list[0] = replace_in_string(replace_word,
-                                                           edtext_content_list[0], lemma_level)
+                edtext_content_list[0] = self.replace_first_maintext_word(
+                    replace_word=replace_word,
+                    replace_string=edtext_content_list[0],
+                    lemma_level=lemma_level)
             elif replace_word == self.search_words[1]:
                 edtext_content_list[-1] = self.replace_last_maintext_word(
                     replace_word=replace_word,
@@ -197,6 +199,28 @@ class CritText(str):
                     segments[index] = previous + ' ' + updated_last
 
         return segments.to_string()
+
+    def replace_first_maintext_word(self, replace_string: str, replace_word: str,
+                                    lemma_level: int =1) -> str:
+        """
+        Replace only the very first maintext word of `replace_string` (if it matches).
+        """
+        segments = TextSegment(replace_string)
+        self.dotted_lemma = False
+        for index, segment in enumerate(segments):
+            if index == 0:
+                if isinstance(segment, CritText):
+                    maintext = self.replace_first_maintext_word(segment.maintext_note, replace_word,
+                                                                lemma_level)
+                    segments[0] = segment.assemble(maintext=maintext)
+                else:
+                    first = segment.split(' ')[0]
+                    rest = ' '.join(segment.split(' ')[1:])
+                    updated_first = self.replace_in_maintext_note(replace_word, first, lemma_level)
+                    segments[0] = updated_first + ' ' + rest
+
+        return segments.to_string()
+
 
     def replace_in_critical_note(self, replace_word, replace_string=None):
         """

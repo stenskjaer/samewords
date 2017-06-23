@@ -24,7 +24,7 @@ nested_ldots_lemma_result = r"""\sameword{sw} and \edtext{\sameword[1]{sw} so \e
 nested_dots_lemma = r"""sw and \edtext{sw so \edtext{\edtext{sw}{\lemma{sw}\Bfootnote{B note here}} another thing}{\lemma{sw another thing}\Bfootnote{B footnote her}}}{\lemma{sw \dots thing}\Afootnote{ critical note}} and a sw after."""
 
 flat_ldots_lemma = r"""sw and \edtext{sw so sw another thing}{\lemma{sw \ldots thing}\Afootnote{ critical note}} and a sw after."""
-flat_ldots_lemma_result = r"""\sameword{sw} and \edtext{\sameword[1]{sw} so \sameword[1]{sw} another thing}{\lemma{\sameword{sw} \ldots thing}\Afootnote{ critical note}} and a \sameword{sw} after."""
+flat_ldots_lemma_result = r"""\sameword{sw} and \edtext{\sameword[1]{sw} so sw another thing}{\lemma{\sameword{sw} \ldots thing}\Afootnote{ critical note}} and a \sameword{sw} after."""
 
 multiword_lemma = r"""per multa per causam tamen scire \edtext{causam}{\lemma{causam}\Bfootnote{fnote}} est \edtext{per causam}{\lemma{per causam}\Bfootnote{causam rei B}} cognoscere \edtext{causam}{\lemma{causam}\Bfootnote{fnote}}."""
 multiword_lemma_result = r"""per multa \sameword{per \sameword{causam}} tamen scire \edtext{\sameword[1]{causam}}{\lemma{\sameword{causam}}\Bfootnote{fnote}} est \edtext{\sameword[1]{per \sameword{causam}}}{\lemma{\sameword{per causam}}\Bfootnote{causam rei B}} cognoscere \edtext{\sameword[1]{causam}}{\lemma{\sameword{causam}}\Bfootnote{fnote}}."""
@@ -225,7 +225,7 @@ class TestMainReplaceFunction:
 class TestReplaceInEdtext:
     edtext_unnested = CritText(r"\edtext{sw so sw another thing}{\lemma{sw \ldots thing"
                                r"}\Afootnote{critical note}} ")
-    edtext_unnested_result = r"\edtext{\sameword[1]{sw} so \sameword[1]{sw} another thing}{\lemma{sw \ldots thing}\Afootnote{critical note}}"
+    edtext_unnested_result = r"\edtext{\sameword[1]{sw} so sw another thing}{\lemma{sw \ldots thing}\Afootnote{critical note}}"
 
     def test_replace_in_edtext(self):
         assert self.edtext_unnested.replace_in_maintext_note(replace_word='sw') == \
