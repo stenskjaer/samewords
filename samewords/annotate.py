@@ -650,6 +650,12 @@ def wrap_phrase(phrase, lemma_level=0):
     :param lemma_level: the level of the lemma annotation. Default=0
     :return: The wrapped input phrase
     """
+    macro_match = re.match(r'\\([^{\[]+)([^{]+)?{', phrase)  # match initial macro
+    prefix_macro = ''
+    if macro_match and 'sameword' not in macro_match.group(1):
+        prefix_macro = macro_match.group(0)
+        phrase = phrase[len(prefix_macro):]
+
     # Should we handle the lemma level?
     if lemma_level is not 0:
         this_level = '[' + str(lemma_level) + ']'
@@ -685,15 +691,15 @@ def wrap_phrase(phrase, lemma_level=0):
                 this_level = this_level[:-1] + ',' + existing_level[1:]
 
         if this_level:
-            return phrase.replace(sameword_match, r'\sameword' + this_level + '{')
+            updated_phrase = phrase.replace(sameword_match, r'\sameword' + this_level + '{')
         else:
-            return phrase
+            updated_phrase = phrase
     else:
         if extended_wrap:
-            return phrase.replace(sameword_match, r'\sameword' + this_level + '{')
+            updated_phrase = phrase.replace(sameword_match, r'\sameword' + this_level + '{')
         else:
-            return r'\sameword' + this_level + '{' + phrase + '}'
-
+            updated_phrase = r'\sameword' + this_level + '{' + phrase + '}'
+    return prefix_macro + updated_phrase
 
 def critical_note_match_replace_samewords(text):
     """

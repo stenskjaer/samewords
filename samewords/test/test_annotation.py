@@ -147,15 +147,24 @@ class TestWrapWordPhrase:
         multiword_result = r'\sameword{\sameword{input} \sameword{material}}'
         assert wrap_phrase(multiword) == multiword_result
 
-    @pytest.mark.skip("Not implemented yet...")
+
+class TestMainReplaceFunction:
+
     def test_wrap_text_with_macro(self):
-        # This test is in the wrong place. It is not a wrap test but a annotation tes
         macro_wrap = r'\emph{non apparentium} quia \edtext{non}{\lemma{non}\Bfootnote{sed SV}}'
         macro_wrap_result = r'\emph{\sameword{non} apparentium} quia ' \
                             r'\edtext{\sameword[1]{non}}{\lemma{\sameword{non}}\Bfootnote{sed SV}}'
-        assert wrap_phrase(macro_wrap) == macro_wrap_result
+        assert critical_note_match_replace_samewords(macro_wrap) == macro_wrap_result
 
-class TestMainReplaceFunction:
+    def test_wrap_text_with_macro_with_optional_argument(self):
+        macro_wrap = r'\macro[optional]{non apparentium} quia \edtext{non}{\lemma{non}\Bfootnote{sed SV}}'
+        macro_wrap_result = r'\macro[optional]{\sameword{non} apparentium} quia ' \
+                            r'\edtext{\sameword[1]{non}}{\lemma{\sameword{non}}\Bfootnote{sed SV}}'
+        assert critical_note_match_replace_samewords(macro_wrap) == macro_wrap_result
+
+    def test_wrap_multiword_with_macro(self):
+        macro_wrap = r'sed \macro[optional]{non} \edtext{sed non}{\lemma{non}\Bfootnote{sed SV}}'
+
 
     def test_two_multi_words(self):
         double_multiword = r"\edtext{nobis apparentes}{\lemma{nobis apparentes}\Bfootnote{\emph{om.} B}} " \
