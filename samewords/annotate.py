@@ -437,6 +437,9 @@ def list_maintext_words(search_string=''):
             wlist.append(w)
         return ''
 
+    if isinstance(search_string, CritText):
+        search_string = search_string.maintext_note
+
     word_list = []
 
     ignored_macros = [
@@ -459,7 +462,7 @@ def list_maintext_words(search_string=''):
             position += 1
         elif symbol == '\\':
             position += 1
-            macro = re.match(r'[^ {[]+', search_string[position:]).group(0)
+            macro = re.match(r'[^ {]+', search_string[position:]).group(0)
             if macro not in ignored_macros:
                 position += len(macro) + 1
             else:
