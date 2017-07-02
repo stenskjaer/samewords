@@ -156,7 +156,6 @@ class CritText(str):
             return_string = ''.join(edtext_content_list)
 
         else:
-            loop_string = ''
             for pivot_index, edtext_content in enumerate(edtext_content_list):
 
                 if isinstance(edtext_content, CritText):
@@ -171,9 +170,7 @@ class CritText(str):
                     edtext_content_list[pivot_index] = replace_in_string(
                         replace_word, edtext_content, lemma_level)
 
-                loop_string += edtext_content_list[pivot_index]
-
-            return_string += loop_string
+                return_string += edtext_content_list[pivot_index]
 
         if replace_string:
             return return_string
@@ -190,6 +187,7 @@ class CritText(str):
         """
         segments = TextSegment(replace_string)
         self.dotted_lemma = False
+        segment = segments[-1]
         for index, segment in enumerate(segments):
             if index + 1 == len(segments):
                 if isinstance(segment, CritText):
