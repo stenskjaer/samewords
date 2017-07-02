@@ -150,6 +150,11 @@ class TestWrapWordPhrase:
 
 class TestMainReplaceFunction:
 
+    def test_wrap_without_lemma(self):
+        no_lemma = r'non videtur sed \edtext{non}{\Bfootnote{sic B}}'
+        no_lemma_result = r'\sameword{non} videtur sed \edtext{\sameword[1]{non}}{\Bfootnote{sic B}}'
+        assert critical_note_match_replace_samewords(no_lemma) == no_lemma_result
+
     def test_wrap_text_with_macro(self):
         macro_wrap = r'\emph{non apparentium} quia \edtext{non}{\lemma{non}\Bfootnote{sed SV}}'
         macro_wrap_result = r'\emph{\sameword{non} apparentium} quia ' \

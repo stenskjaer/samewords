@@ -20,12 +20,6 @@ facilities for disambiguating identical words, but it requires the creator of
 the critical text to manually mark all potential instances of ambiguous
 references manually. *Samewords* automates this step for the editor.
 
-## Note
-
-This current alpha version requires all `\edtext{}{}` elements to contain a
-`\lemma{}` element in their second argument. This should not be required, but
-currently is (see [issue #2](https://github.com/stenskjaer/samewords/issues/2)).
-
 # Installation
 
 Download the repository. 

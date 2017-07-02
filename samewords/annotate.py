@@ -61,6 +61,7 @@ class CritText(str):
         self.maintext_note = macro_expression_content(self.content, macro=r'\edtext')
         self.critical_note = macro_expression_content(
             self.content, position=macro_expression_length(self.content, macro=r'\edtext'))
+        self.has_lemma = True if self.critical_note.find(r'\lemma') is not -1 else False
         self.lemma_content = self.get_lemma_content()
         self.dotted_lemma = False
         self.search_words = self.define_search_words()
@@ -75,30 +76,33 @@ class CritText(str):
         :return: List of search words.
         """
         # Determine lemma type. The `dots` variable is used for processing of ldots notes.
-        lemma_word_list = list_maintext_words(self.lemma_content)
-        if re.search(r'\\l?dots({})?', self.lemma_content):
-            # Covers ldots lemma. We use the dots variable to identify first and last
-            # word in dots lemmas.
-            search_words = [lemma_word_list[0]] + [lemma_word_list[-1]]
-            self.dotted_lemma = True
-        elif len(lemma_word_list) == 1:
-            # Covers single word lemma
-            search_words = [self.lemma_content]
-        elif len(lemma_word_list) > 1:
-            # Covers multiword lemma. We join them to one "search_word" as we look for
-            # that specific phrase in proximity, not just any of its containing words.
-            search_words = [' '.join(lemma_word_list)]
+        if self.has_lemma:
+            lemma_word_list = list_maintext_words(self.lemma_content)
+            if re.search(r'\\l?dots({})?', self.lemma_content):
+                # Covers ldots lemma. We use the dots variable to identify first and last
+                # word in dots lemmas.
+                search_words = [lemma_word_list[0]] + [lemma_word_list[-1]]
+                self.dotted_lemma = True
+            elif len(lemma_word_list) == 1:
+                # Covers single word lemma
+                search_words = [self.lemma_content]
+            elif len(lemma_word_list) > 1:
+                # Covers multiword lemma. We join them to one "search_word" as we look for
+                # that specific phrase in proximity, not just any of its containing words.
+                search_words = [' '.join(lemma_word_list)]
+            else:
+                search_words = []
         else:
-            search_words = []
+            return [self.maintext_note]
         return search_words
 
     def get_lemma_content(self):
         """Isolate the content of the `\lemma{}` macro in the critical note."""
-        try:
+        if self.has_lemma:
             return macro_expression_content(self.critical_note,
                                             position=len(r'\lemma'))
-        except ValueError:
-            raise ValueError('No lemma element found in the apparatus note %s' % self.critical_note)
+        else:
+            return None
 
     def assemble(self, maintext=None, critical=None):
         """Wrap maintext_note and critical_note in `\edtext{}{}` macro. 
@@ -247,7 +251,8 @@ class CritText(str):
 
     def replace_in_edtext_args(self, replace_word, lemma_level=1):
         self.replace_in_maintext_note(replace_word, lemma_level=lemma_level)
-        self.replace_in_critical_note(replace_word)
+        if self.has_lemma:
+            self.replace_in_critical_note(replace_word)
         return self.content
 
 
