@@ -280,34 +280,35 @@ class Context:
 
     def iter_proximate_words(self, input_list, index=0, word_count_sum=0, side='', length=15):
         """
-        Get a suitable amount of items from input_list to serve 30 proximity words for analysis.
+        Get a suitable amount of items from input_list to serve the amount of proximity words
+        defined by length.
 
-        When the `side` is `left`, it will return the list reversed thereby yielding the items 
-        closest to the search start. 
+        When the `side` is `left`, it is reversed before and after processing to start the
+        counting from the end.
 
         :param input_list: The list to pull from
         :param index: The index from where the search should start.
         :param word_count_sum: Accumulative word counter for finding the right size chunk.
-        :param side: Indicate whether we are searching left of the pivot. In that case, we reverse 
+        :param side: Indicate whether we are searching left of the pivot. In that case, we reverse
             the list too.
         :param length: Amount of words required for the chunk.
-        :return: List of at least 30 word on each side of the pivot word (less if we are at the end 
-            of the string).
+        :return: List of at least length equal to the word count defined by `length` on each side
+            of the pivot word (unless we are at the fringe of a string).
         """
+        if side == 'left' and index == 0:
+            # If we are on first iteration of left, reverse the input list.
+            input_list = list(reversed(input_list))
 
         try:
             word_count_sum += len(list_maintext_words(input_list[index]))
         except IndexError:
             pass
 
-        if side == 'left':
-            if word_count_sum < length and index > 0:
-                return self.iter_proximate_words(input_list, index - 1, word_count_sum, side)
-            else:
-                return input_list[index:]
-        elif side == 'right':
-            if word_count_sum < length and index + 1 < len(input_list):
-                return self.iter_proximate_words(input_list, index + 1, word_count_sum, side)
+        if word_count_sum < length and index + 1 < len(input_list):
+            return self.iter_proximate_words(input_list, index + 1, word_count_sum, side)
+        else:
+            if side == 'left':
+                return list(reversed(input_list[:index + 1]))
             else:
                 return input_list[:index + 1]
 
