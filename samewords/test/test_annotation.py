@@ -162,8 +162,11 @@ class TestMainReplaceFunction:
                             r'\edtext{\sameword[1]{non}}{\lemma{\sameword{non}}\Bfootnote{sed SV}}'
         assert critical_note_match_replace_samewords(macro_wrap) == macro_wrap_result
 
+    @pytest.mark.skip('Not implemented yet. Issue filed to make reledmac eat this (https://github.com/maieul/ledmac/issues/661)')
     def test_wrap_multiword_with_macro(self):
-        macro_wrap = r'sed \macro[optional]{non} \edtext{sed non}{\lemma{non}\Bfootnote{sed SV}}'
+        macro_wrap = r'sed \emph{non} \edtext{sed non}{\lemma{non}\Bfootnote{sed SV}}'
+        macro_wrap_result = r'\sameword{sed \emph{non}} \edtext{\sameword[1]{sed non}}{\lemma{\sameword{sed non}}\Bfootnote{sed SV}}'
+        assert critical_note_match_replace_samewords(macro_wrap) == macro_wrap_result
 
 
     def test_two_multi_words(self):
