@@ -151,6 +151,6 @@ content to that.
 
 # Be advised
 
-This is alpha level software. Bugs are to be expected and I provide no
+This is beta level software. Bugs are to be expected and I provide no
 guarantees for the integrity of your software or editions when you use the
 package.
