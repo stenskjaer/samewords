@@ -136,9 +136,8 @@ Options:
 
 ```
 
-For now the package only has one option aside from the `--help/-h` and
-`--version/-v`. Use `--output` to indicate in which folder of to which file you
-want save the result.
+One option (aside from the regulars): Use `--output` to indicate in which folder
+or to which file you want save the result.
 
 For example:
 ```bash
