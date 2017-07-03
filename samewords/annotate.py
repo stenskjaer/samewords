@@ -426,22 +426,8 @@ def list_maintext_words(search_string=''):
     :return: List of words
     """
 
-    def add_word_to_list(w, wlist):
-        """
-        If `word` is not empty, add it to the `word_list` and return the list.
-
-        :param w: Word value to be checked.
-        :param wlist: The list it should be added to.
-        :return: The (possibly opdated) wordlist.
-        """
-        if w is not '':
-            wlist.append(w)
-        return ''
-
     if isinstance(search_string, CritText):
         search_string = search_string.maintext_note
-
-    word_list = []
 
     ignored_macros = [
         'Afootnote',
@@ -453,15 +439,12 @@ def list_maintext_words(search_string=''):
         'index'
     ]
 
+    word_list = []
     position = 0
-    word = ''
-    unicode_words = re.compile('\w')
     while position < len(search_string):
         symbol = search_string[position]
-        if re.match(unicode_words, symbol):
-            word += symbol
-            position += 1
-        elif symbol == '\\':
+        word_match = re.match('\w+', search_string[position:])
+        if symbol == '\\':
             position += 1
             macro = re.match(r'[^ {]+', search_string[position:]).group(0)
             if macro not in ignored_macros:
@@ -473,15 +456,12 @@ def list_maintext_words(search_string=''):
                                                         opener='[', closer=']')
                 if search_string[position] == '{':
                     position += macro_expression_length(search_string[position:])
-
-            word = add_word_to_list(word, word_list)
-
-        elif re.match('\W', symbol):
-            word = add_word_to_list(word, word_list)
+        elif word_match:
+            word = word_match.group(0)
+            word_list.append(word)
+            position += len(word)
+        else:
             position += 1
-    # Add the final word to the list.
-    add_word_to_list(word, word_list)
-
     return word_list
 
 
