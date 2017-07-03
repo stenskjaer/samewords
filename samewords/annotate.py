@@ -194,17 +194,15 @@ class CritText(str):
         segments = TextSegment(replace_string)
         self.dotted_lemma = False
         segment = segments[-1]
-        for index, segment in enumerate(segments):
-            if index + 1 == len(segments):
-                if isinstance(segment, CritText):
-                    maintext = self.replace_last_maintext_word(segment.maintext_note, replace_word,
-                                                               lemma_level)
-                    segments[index] = segment.assemble(maintext=maintext)
-                else:
-                    previous = ' '.join(segment.split(' ')[:-1])
-                    last = segment.split(' ')[-1]
-                    updated_last = self.replace_in_maintext_note(replace_word, last, lemma_level)
-                    segments[index] = previous + ' ' + updated_last
+        if isinstance(segment, CritText):
+            maintext = self.replace_last_maintext_word(segment.maintext_note, replace_word,
+                                                       lemma_level)
+            segments[-1] = segment.assemble(maintext=maintext)
+        else:
+            previous = ' '.join(segment.split(' ')[:-1])
+            last = segment.split(' ')[-1]
+            updated_last = self.replace_in_maintext_note(replace_word, last, lemma_level)
+            segments[-1] = previous + ' ' + updated_last
 
         return segments.to_string()
 
@@ -215,17 +213,16 @@ class CritText(str):
         """
         segments = TextSegment(replace_string)
         self.dotted_lemma = False
-        for index, segment in enumerate(segments):
-            if index == 0:
-                if isinstance(segment, CritText):
-                    maintext = self.replace_first_maintext_word(segment.maintext_note, replace_word,
-                                                                lemma_level)
-                    segments[0] = segment.assemble(maintext=maintext)
-                else:
-                    first = segment.split(' ')[0]
-                    rest = ' '.join(segment.split(' ')[1:])
-                    updated_first = self.replace_in_maintext_note(replace_word, first, lemma_level)
-                    segments[0] = updated_first + ' ' + rest
+        segment = segments[0]
+        if isinstance(segment, CritText):
+            maintext = self.replace_first_maintext_word(segment.maintext_note, replace_word,
+                                                        lemma_level)
+            segments[0] = segment.assemble(maintext=maintext)
+        else:
+            first = segment.split(' ')[0]
+            rest = ' '.join(segment.split(' ')[1:])
+            updated_first = self.replace_in_maintext_note(replace_word, first, lemma_level)
+            segments[0] = updated_first + ' ' + rest
 
         return segments.to_string()
 

@@ -11,7 +11,7 @@ setup(name='samewords',
           'docopt==0.6.2',
       ],
       classifiers=[
-          'Development Status :: 3 - Alpha',
+          'Development Status :: 4 - Beta',
           'Programming Language :: Python :: 3',
           'Programming Language :: Python :: 3.6',
           'Topic :: Text Processing :: Markup :: LaTeX',
