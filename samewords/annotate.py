@@ -5,6 +5,10 @@ Identify and annotate potentially ambiguous words in a string.
 """
 
 import re
+from typing import Iterable, List, Union, Tuple
+
+# Type aliases
+ContextList = List[List[str]]
 
 
 class TextSegment(list):
@@ -16,8 +20,8 @@ class TextSegment(list):
     def __init__(self, input_string: str) -> None:
         list.__init__(self, self.content_split(input_string))
 
-    def content_split(self, search_string: str, return_list: list = list(),
-                      first: bool = True) -> list:
+    def content_split(self, search_string: str, return_list: List[str] = [],
+                      first: bool = True) -> List[str]:
         """
         Split the input `search_string` into list demarcated by `\edtext{}`-items.
 
@@ -27,7 +31,7 @@ class TextSegment(list):
         :return: List.
         """
         if first:
-            return_list: list = []
+            return_list = []
 
         if r'\edtext' in search_string:
             appnote_start = search_string.find(r'\edtext')
@@ -56,7 +60,7 @@ class CritText(str):
     A critical apparatus note.
     """
 
-    def __init__(self, input_string):
+    def __init__(self, input_string: str) -> None:
         str.__init__(input_string)
         self.content = input_string
         self.maintext_note = Macro(self.content, macro=r'\edtext').content
@@ -67,10 +71,10 @@ class CritText(str):
         self.dotted_lemma = False
         self.search_words = self.define_search_words()
         self.lemma_level = 1
-        self.context_before = list()
-        self.context_after = list()
+        self.context_before: List[List[str]]
+        self.context_after: List[List[str]]
 
-    def define_search_words(self):
+    def define_search_words(self) -> List[str]:
         """
         From the lemma content, define which type of lemma we have and return appropriate list.
 
@@ -114,7 +118,8 @@ class CritText(str):
         self.content = r'\edtext{' + maintext + '}{' + critical + '}'
         return CritText(self.content)
 
-    def replace_in_maintext_note(self, replace_word, replace_string=None, lemma_level=1):
+    def replace_in_maintext_note(self, replace_word: str, replace_string: str = None,
+                                 lemma_level: int = 1) -> str:
         """
         Replace all instances of `replace_word` in a apparatus note (full `\edtext{}{}`) and return 
         the updated string. 
@@ -179,7 +184,8 @@ class CritText(str):
             self.maintext_note = return_string
             return self.assemble()
 
-    def replace_last_maintext_word(self, replace_string, replace_word, lemma_level=1):
+    def replace_last_maintext_word(self, replace_string: str, replace_word: str,
+                                   lemma_level: int = 1) -> str:
         """
         Replace only on the very last maintext word of `replace_string` (if it matches).
         
@@ -223,8 +229,7 @@ class CritText(str):
 
         return segments.to_string()
 
-
-    def replace_in_critical_note(self, replace_word, replace_string=None):
+    def replace_in_critical_note(self, replace_word: str, replace_string: str = None) -> str:
         """
         Update content of critical note by wrapping possible match words.
         """
@@ -247,7 +252,7 @@ class CritText(str):
         self.critical_note = return_string
         return self.assemble()
 
-    def replace_in_edtext_args(self, replace_word, lemma_level=1):
+    def replace_in_edtext_args(self, replace_word: str, lemma_level: int = 1) -> str:
         self.replace_in_maintext_note(replace_word, lemma_level=lemma_level)
         if self.has_lemma:
             self.replace_in_critical_note(replace_word)
@@ -261,7 +266,8 @@ class Context:
         self.before = []
         self.after = []
 
-    def update(self, raw_before: TextSegment, raw_after: TextSegment, lemma_level=1):
+    def update(self, raw_before: TextSegment, raw_after: TextSegment,
+               lemma_level: int = 1):
         """
         Build the surrounding context. If is a list of lists, list 0 contains context on lvl 1, 
         list 1 contains context on lvl 2 etc. 
@@ -357,7 +363,6 @@ class Macro:
                 "The first symbol of the match string must be an opening bracket ({). \n"
                 "Context: %s" % search_string[position:position + 50])
 
-
         while stack > 0:
             try:
                 symbol = search_string[position]
@@ -377,7 +382,7 @@ class Macro:
         return capture[:-1]
 
 
-def list_maintext_words(search_string=''):
+def list_maintext_words(search_string: str) -> List[str]:
     """
     Create a list of all the words that will end up in the main text.
 
@@ -423,7 +428,8 @@ def list_maintext_words(search_string=''):
     return word_list
 
 
-def search_in_proximity(search_word, context_before, context_after):
+def search_in_proximity(search_word: str, context_before: List[List[str]],
+                        context_after: List[List[str]]) -> bool:
     """
     Check whether a search word is present in the one of two lists. The two input lists contain 
     the context of the search word. 
@@ -437,7 +443,7 @@ def search_in_proximity(search_word, context_before, context_after):
     :param context_after: List of following context to be searched.
     :return: Boolean.
     """
-    def flatten_list(input_list):
+    def flatten_list(input_list: Union[str, list]) -> Iterable[str]:
         """Return a flat list from an arbitrarily nested list."""
         for item in input_list:
             if type(item) == list:
@@ -454,7 +460,8 @@ def search_in_proximity(search_word, context_before, context_after):
     return False
 
 
-def replace_in_proximity(context_before_list, context_after_list, search_word):
+def replace_in_proximity(context_before_list: ContextList, context_after_list: ContextList,
+                         search_word: str) -> Tuple[ContextList, ContextList]:
     """
     Replace a specified search word in two lists containing the text surrounding a chunk of text.
 
@@ -469,7 +476,7 @@ def replace_in_proximity(context_before_list, context_after_list, search_word):
     :return: The two updated lists where samewords of the search word are marked.
     """
 
-    def replace_in_context_list(context_list, word):
+    def replace_in_context_list(context_list: ContextList, word: str) -> ContextList:
         for item_index, context_item in enumerate(context_list):
             for index, chunk in enumerate(context_item):
                 if isinstance(chunk, CritText):
@@ -486,7 +493,7 @@ def replace_in_proximity(context_before_list, context_after_list, search_word):
     return left, right
 
 
-def replace_in_string(replace_word, replace_string, lemma_level=0):
+def replace_in_string(replace_word: str, replace_string: str, lemma_level: int = 0) -> str:
     """
     Recursively replace the search word in the search string with a version that is wrapped in 
     sameword. This is designed to handle replacement of multiword phrases in the string too. The 
@@ -498,7 +505,7 @@ def replace_in_string(replace_word, replace_string, lemma_level=0):
     :param lemma_level: The lemma level, if applicable.
     :return: Updated or unchanged string.
     """
-    def move_punctuation(input_list):
+    def move_punctuation(input_list: List[str]) -> List[str]:
         """Given a list of words, if the item ends in a punctuation character, move the character 
         into new subsequent item """
         return_list = []
@@ -513,7 +520,8 @@ def replace_in_string(replace_word, replace_string, lemma_level=0):
                 return_list.append(item)
         return return_list
 
-    def check_list_match(pattern_list, replace_list, return_list=list()):
+    def check_list_match(pattern_list: List[str], replace_list: List[str],
+                         return_list: List[str] = []):
         """Check whether a word string in `pattern_list` (search phrase) is matched in 
         `replace_list`. 
         
@@ -537,7 +545,8 @@ def replace_in_string(replace_word, replace_string, lemma_level=0):
         except IndexError:
             return return_list
 
-    def make_replacements(search_list, replacement_list, updated_list=list()):
+    def make_replacements(search_list: List[str], replace_list: List[str],
+                          updated_list: List[str] = []) -> str:
         """
         Iterate the content of the `replacement_list` and wrap it in `\sameword{}` if necessary.
           
@@ -549,19 +558,19 @@ def replace_in_string(replace_word, replace_string, lemma_level=0):
         When returning the updated list, a bit of whitespace cleanup is performed on it.
          
         :param search_list: List of words that should be matched in sequence. 
-        :param replacement_list: The string of words that should be checked for matches.
+        :param replace_list: The string of words that should be checked for matches.
         :param updated_list: The updated list. Empty by default. Argument in recursive calls. 
         :return: The updated list in full.
         """
-        match_in_replace_list = check_list_match(search_list, replacement_list, return_list=[])
+        match_in_replace_list = check_list_match(search_list, replace_list, return_list=[])
         try:
             if match_in_replace_list:
                 updated_list.append(
                     wrap_phrase(' '.join(match_in_replace_list), lemma_level=lemma_level))
                 return make_replacements(
-                    search_list, replacement_list[len(match_in_replace_list):], updated_list)
-            updated_list.append(replacement_list[0])
-            return make_replacements(search_list, replacement_list[1:], updated_list)
+                    search_list, replace_list[len(match_in_replace_list):], updated_list)
+            updated_list.append(replace_list[0])
+            return make_replacements(search_list, replace_list[1:], updated_list)
         except IndexError:
             return re.sub(' ([.,;:?])', r'\1', ' '.join(updated_list))
 
@@ -583,7 +592,7 @@ def replace_in_string(replace_word, replace_string, lemma_level=0):
     return updated_replacement
 
 
-def wrap_phrase(phrase, lemma_level=0):
+def wrap_phrase(phrase: str, lemma_level: int=0) -> str:
     """
     Wrap the word or phrase in the appropriate \sameword{}-element.
     
@@ -646,7 +655,8 @@ def wrap_phrase(phrase, lemma_level=0):
             updated_phrase = r'\sameword' + this_level + '{' + phrase + '}'
     return prefix_macro + updated_phrase
 
-def critical_note_match_replace_samewords(text):
+
+def critical_note_match_replace_samewords(text: str) -> str:
     """
     The main search and replace function.
 
