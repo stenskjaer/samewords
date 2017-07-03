@@ -50,21 +50,14 @@ class TestLatexExpressionCapturing:
     escaped_latex_string = '{\\ \& \% \$ \# \_ \{ \} \~ \^}'
 
     def test_capture_balanced(self):
-        assert macro_expression_content(self.balanced_string) == self.balanced_string[1:-1]
-
-    def test_capture_balanced_with_wrap(self):
-        assert macro_expression_content(self.balanced_string, capture_wrap=True) == self.balanced_string
+        assert Macro(self.balanced_string).content == self.balanced_string[1:-1]
 
     def test_capture_escaped(self):
-        assert macro_expression_content(self.escaped_latex_string) == self.escaped_latex_string[1:-1]
+        assert Macro(self.escaped_latex_string).content == self.escaped_latex_string[1:-1]
 
     def test_capture_unbalanced(self):
         with pytest.raises(ValueError):
-            macro_expression_content(self.unbalanced_string)
-
-    def test_capture_unbalanced_with_wrap(self):
-        with pytest.raises(ValueError):
-            macro_expression_content(self.unbalanced_string, capture_wrap=True)
+            Macro(self.unbalanced_string).content
 
 
 class TestProximityListing:

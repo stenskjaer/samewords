@@ -31,10 +31,11 @@ class TextSegment(list):
 
         if r'\edtext' in search_string:
             appnote_start = search_string.find(r'\edtext')
-            edtext_length = macro_expression_length(
-                search_string, position=appnote_start, macro=r'\edtext')
-            appnote_length = macro_expression_length(search_string, appnote_start + edtext_length)
-            appnote_end = appnote_start + edtext_length + appnote_length
+            maintext_note_length = Macro(
+                search_string, position=appnote_start, macro=r'\edtext').length
+            crit_note_length = Macro(
+                search_string, position=appnote_start + maintext_note_length).length
+            appnote_end = appnote_start + maintext_note_length + crit_note_length
 
             if appnote_start > 0:
                 return_list.append(search_string[:appnote_start])
@@ -58,9 +59,9 @@ class CritText(str):
     def __init__(self, input_string):
         str.__init__(input_string)
         self.content = input_string
-        self.maintext_note = macro_expression_content(self.content, macro=r'\edtext')
-        self.critical_note = macro_expression_content(
-            self.content, position=macro_expression_length(self.content, macro=r'\edtext'))
+        self.maintext_note = Macro(self.content, macro=r'\edtext').content
+        self.critical_note = Macro(
+            self.content, position=Macro(self.content, macro=r'\edtext').length).content
         self.has_lemma = True if self.critical_note.find(r'\lemma') is not -1 else False
         self.lemma_content = self.get_lemma_content()
         self.dotted_lemma = False
@@ -99,8 +100,7 @@ class CritText(str):
     def get_lemma_content(self):
         """Isolate the content of the `\lemma{}` macro in the critical note."""
         if self.has_lemma:
-            return macro_expression_content(self.critical_note,
-                                            position=len(r'\lemma'))
+            return Macro(self.critical_note, position=len(r'\lemma')).content
         else:
             return None
 
@@ -230,9 +230,9 @@ class CritText(str):
         """
 
         if replace_string:
-            lemma_content = macro_expression_content(replace_string, position=len(r'\lemma'))
+            lemma_content = Macro(replace_string, position=len(r'\lemma')).content
         else:
-            lemma_content = macro_expression_content(self.critical_note, position=len(r'\lemma'))
+            lemma_content = Macro(self.critical_note, position=len(r'\lemma')).content
 
         return_string = r'\lemma{'
         position = len(r'\lemma{')
@@ -313,109 +313,68 @@ class Context:
                 return input_list[:index + 1]
 
 
-def macro_expression_content(search_string, position=0, opener='{', closer='}', capture_wrap=False,
-                             macro=''):
-    """Get the content of a latex expression that has been opened with "{" to any
-    level of macro nesting until closing "}".
-
-    This function expects the character at the starting position of the match string to be an 
-    opening bracket and will complain if it is not. This means that it initializes the stack with 
-    that opening bracket in the stack. When the stack is empty, we have reached the end of the 
-    expression, and should return the string capture thus far. 
-
-    :param search_string: The string to be processed.
-    :param position: The starting position in the string [default: 0].
-    :param opener: Symbol that opens bracket set [default='{'].
-    :param closer: Symbol that closes bracket set [default='}'].
-    :param capture_wrap: Capture the wrapping (outermost) brackets [default=False].
-    :param macro: If this is given, the processing will skip that as first initial macro.
-    :return: The string captured.
+class Macro:
+    """Object describing the content and length of a LaTeX macro.
     """
 
-    special_chars = r'\&%$#_{}~^'
-    capture = ''
+    def __init__(self, search_string, position: int = 0,
+                 opener: str = '{', closer: str = '}', macro: str = '') -> None:
+        str.__init__(search_string)
+        self.content = self.get_content(search_string, position, opener, closer, macro)
+        self.length = self.get_length(position, macro)
 
-    if macro:
-        position = len(macro)
-
-    if search_string[position] == opener:
-        stack = [opener]
-        if capture_wrap:
-            capture += search_string[position]
-        position += 1
-    else:
-        raise ValueError("The first symbol of the match string must be an opening bracket ({). \n"
-                         "Context: %s" % search_string[position:position + 50])
-
-    while len(stack) > 0:
-        try:
-            symbol = search_string[position]
-            if symbol == opener:
-                stack.append(symbol)
-            elif symbol == closer:
-                stack.pop()
-            elif symbol == '\\' and search_string[position + 1] in special_chars:
-                capture += symbol
-                symbol = search_string[position + 1]
-                position += 1
-            capture += symbol
-            position += 1
-        except IndexError:
-            raise ValueError("Unbalanced brackets. The provided string terminated before all "
-                             "brackets were closed.")
-    if not capture_wrap:
-        capture = capture[:-1]
-    return capture
-
-
-def macro_expression_length(search_string, position=0, opener='{', closer='}', macro=''):
-    """Calculate length of macro expression.
-
-    This function expects the character at the starting position of the match string to be an 
-    opening bracket and will complain if it is not. Actually it just finds the position where 
-    those two are balanced and returns that. 
-
-    :param search_string: The string to be processed.
-    :param position: The starting position in the string [default: 0].
-    :param opener: The character that opens a bracket to be matched.
-    :param closer: The character that closes a bracket to be matched.
-    :param macro: Look for this as the macro name before the expression start. If none is given, it 
-        is assumed that it starts directly with the expression.
-    :return: Length of the expression as int.
-    """
-
-    start_position = position
-    special_chars = r'\&%$#_{}~^'
-
-    if macro:
-        if search_string[position:position + len(macro)] == macro:
+    def get_length(self, position: int = 0, macro: str = '') -> int:
+        """Calculate the length of the macro command.
+        """
+        start_position = position
+        bracket_offset = 2
+        if macro:
             position += len(macro)
-        else:
-            raise ValueError("The indicated macro, %s, did not occur at position %i."
-                             "Context: %s"
-                             % (macro, position, search_string[position:position + 20]))
+        position += len(self.content)
+        position += bracket_offset
+        return position - start_position
 
-    if search_string[position] == opener:
-        stack = [opener]
-        position += 1
-    else:
-        raise ValueError("The first symbol of the match string must be an opening bracket ({). \n"
-                         "Context: %s" % search_string[position:position + 50])
+    def get_content(self, search_string: str, position: int,
+                    opener: str, closer: str, macro: str) -> str:
+        """Get the content of the macro and return it.
+        """
+        special_chars = r'\&%$#_{}~^'
+        capture = ''
 
-    while len(stack) > 0:
-        try:
-            symbol = search_string[position]
-            if symbol == opener:
-                stack.append(symbol)
-            elif symbol == closer:
-                stack.pop()
-            elif symbol == '\\' and search_string[position + 1] in special_chars:
-                position += 1
+        if macro:
+            if search_string[position:position + len(macro)] == macro:
+                position += len(macro)
+            else:
+                raise ValueError("The indicated macro, %s, did not occur at position %i."
+                                 "Context: %s"
+                                 % (macro, position, search_string[position:position + 20]))
+
+        if search_string[position] == opener:
+            stack = 1
             position += 1
-        except IndexError:
-            raise ValueError("Unbalanced brackets. "
-                             "The provided string terminated before all brackets were closed.")
-    return position - start_position
+        else:
+            raise ValueError(
+                "The first symbol of the match string must be an opening bracket ({). \n"
+                "Context: %s" % search_string[position:position + 50])
+
+
+        while stack > 0:
+            try:
+                symbol = search_string[position]
+                if symbol == opener:
+                    stack += 1
+                elif symbol == closer:
+                    stack -= 1
+                elif symbol == '\\' and search_string[position + 1] in special_chars:
+                    capture += symbol
+                    symbol = search_string[position + 1]
+                    position += 1
+                capture += symbol
+                position += 1
+            except IndexError:
+                raise ValueError("Unbalanced brackets. The provided string terminated before all "
+                                 "brackets were closed.")
+        return capture[:-1]
 
 
 def list_maintext_words(search_string=''):
@@ -452,10 +411,9 @@ def list_maintext_words(search_string=''):
             else:
                 position += len(macro)
                 if search_string[position] == '[':
-                    position += macro_expression_length(search_string[position:],
-                                                        opener='[', closer=']')
+                    position += Macro(search_string[position:], opener='[', closer=']').length
                 if search_string[position] == '{':
-                    position += macro_expression_length(search_string[position:])
+                    position += Macro(search_string[position:]).length
         elif word_match:
             word = word_match.group(0)
             word_list.append(word)
@@ -659,7 +617,7 @@ def wrap_phrase(phrase, lemma_level=0):
     if pattern_match:
         sameword_match = pattern_match.group(0)
         existing_level = pattern_match.group(2)
-        sameword_match_length = macro_expression_length(phrase, macro=sameword_match[:-1])
+        sameword_match_length = Macro(phrase, macro=sameword_match[:-1]).length
         if sameword_match_length == len(phrase):
             # The whole phrase is wrapped.
             exact_wrap = True
