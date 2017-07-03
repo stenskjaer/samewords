@@ -650,32 +650,17 @@ def critical_note_match_replace_samewords(text):
     """
     The main search and replace function.
 
-    The included function `sub_processing` is the one doing all the work, and this wrapper only 
-    splits the input string into a list and joins the result of the sub-process for returning. We 
-    can't do that as one function as the recursive processing works best with lists as input and 
-    return values. 
+    The included function `sub_processing` orchestrates the main process. The wrapper function
+    passes a TextSegment object to the processing function. The TextSegment class segments the
+    string into chunks of `\edtext{}`-elements (stored as CritText objects) and regular text. All
+    CritText objects are processed by identifying whether any search words of the content in the
+    critical note is present in the proximate context. When that is the case, we process the
+    context along with the critical note itself. If the critical note contains any nested
+    `\edtext{}` elements, we recurse to the innermost element and start from there.
 
-    The basic idea is to split the string into a list of items that are either `\edtext{
-    }`-elements or not (using the `edtext_split` function). Then for each item that is an 
-    `\edtext{}`-element, check whether there are duplicates of some of its content that would 
-    result in an ambiguous apparatus note. When potentially ambiguous apparatus entries are 
-    identified, wrap the words in the context and the apparatus note in a `\sameword{}`. 
-
-    This algorithm is based on the assumption that `\lemma{}` is always used on the apparatus 
-    notes. 
-
-    The function is recursive, so if an `\edtext{}`-element contains another `\edtext{}`-element, 
-    run the function on that first. The algorithm starts from the inside out, thus processing the 
-    most deeply nested apparatus note(s) first. 
-
-    Search and replace in proximity works like this: Receive a list of lists. Each list in the 
-    list represents a lemma level. This means that it should iterate proximate words from the 
-    last item (which will be the innermost context) until it reaches end of list or max word 
-    count. Replacement: The replacement uses the proximity word building, so it would take the 
-    same approach, replacing the amount necessary. Replacement would then be a matter of updating 
-    the context_before and context_after lists. 
-
-    TODO: Remove requirement of `\lemma{}` element.
+    Search and replace in proximity works like this: Receive a list of lists. Each list in the
+    list represents a lemma level: List 1 is the context of first edtext element, list 2 is the
+    context of the contained edtext element etc.
 
     :param text: The string that should be processed.
     :return: The processed string with encoding of disambiguation.
