@@ -22,15 +22,16 @@ references manually. *Samewords* automates this step for the editor.
 
 # Installation
 
-Download the repository. 
+Download the repository, either with the git command:
 ```
 git clone https://github.com/stenskjaer/samewords.git
 ```
+or download a zip file containing the source.
 
 *Samewords* requires Python 3.6 installed in your system. If you are on a Mac
 OSX machine, and you use [Homebrew](https://brew.sh/), you can run `brew install
 python3`. If you do not use Homebrew (or run a Windows machine), download the
-(latest official python distribution)[https://www.python.org/downloads/] and
+[latest official python distribution](https://www.python.org/downloads/) and
 follow the instructions.
 
 ## Testing
@@ -106,7 +107,7 @@ Where <filename> is the name of a file that you want to convert.
 ## Development and contribution
 
 Before you start making any changes, run the test suite and make sure everything
-passes. From the root, run:
+passes. From the root directory of the package, run:
 
 ```bash
 pytest
@@ -115,7 +116,7 @@ pytest
 If you make changes, don't forget to implement tests and make sure everything
 passes. Otherwise, things will break.
 
-# Usage
+## Usage ##
 
 `samewords --help` produces this output:
 ```
@@ -148,6 +149,13 @@ directory, it will put the file inside that directory (with the original name).
 If it is a file, it will ask you whether you want to overwrite it. If it is
 neither a directory nor a file, it will create the file `output` and write the
 content to that.
+
+Alternatively regular unix redirecting will work just as well in a Unix context.
+For example:
+
+```bash
+samewords my-beautiful-edition.tex > ~/Desktop/test/output.tex
+```
 
 # Be advised
 
