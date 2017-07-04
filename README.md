@@ -107,12 +107,12 @@ will send the annotated version to `stdout`. To see that it actually contains
 some `\sameword{}` macros, you can try running it through `grep`:
 
 ```bash
-samewords ./samewords/test/assets/da-49-l1q1.tex | grep sameword
+samewords my-awesome-edition.tex | grep sameword
 ```
 
 You can define a output location with the `--output` option:
 ```bash
-samewords --output ~/Desktop/test/output my-beautiful-edition.tex
+samewords --output ~/Desktop/test/output my-awesome-edition.tex
 ```
 will check whether `~/Desktop/test/output` is a directory or a file. If it is a
 directory, it will put the file inside that directory (with the original name).
