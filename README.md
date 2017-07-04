@@ -130,3 +130,6 @@ samewords my-beautiful-edition.tex > ~/Desktop/test/output.tex
 This is beta level software. Bugs are to be expected and I provide no
 guarantees for the integrity of your software or editions when you use the
 package.
+
+This also means: Let me know when and how it breaks by filing
+an [issue report](https://github.com/stenskjaer/samewords/issues). 
