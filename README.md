@@ -18,15 +18,10 @@ It is very unclear which of three instances of "a" the note refers to.
 facilitates typesetting critical editions of prime quality. It already provides
 facilities for disambiguating identical words, but it requires the creator of
 the critical text to manually mark all potential instances of ambiguous
-references manually. *Samewords* automates this step for the editor.
+references manually (see the *reledmac* handbook for the details on that).
+*Samewords* automates this step for the editor.
 
 # Installation
-
-Download the repository, either with the git command:
-```
-git clone https://github.com/stenskjaer/samewords.git
-```
-or download a zip file containing the source.
 
 *Samewords* requires Python 3.6 installed in your system. If you are on a Mac
 OSX machine, and you use [Homebrew](https://brew.sh/), you can run `brew install
@@ -34,15 +29,20 @@ python3`. If you do not use Homebrew (or run a Windows machine), download the
 [latest official python distribution](https://www.python.org/downloads/) and
 follow the instructions.
 
-## Testing
+## Easy installation
 
-This solution is good for testing, development and if you would like to try out
-the script without installing anything permanently on your system. 
+```bash
+pip3 install samewords
+```
 
-You should create
-a [virtual environment](http://docs.python-guide.org/en/latest/dev/virtualenvs/)
-to avoid installing anything on your whole system. All the help you need should
-be in the linked guide.
+That's it!
+
+## Optional: Virtual environment
+
+Before installation you may want to create a virtual environment
+([see more here](http://docs.python-guide.org/en/latest/dev/virtualenvs/)) for
+the installation, if you don't want to install the script globally. This is also
+particularly useful if you want to hack on the script.
 
 To create a virtual environment for the project, run:
 ```bash
@@ -51,15 +51,23 @@ $ mkvirtualenv -p python3 <name>
 
 Where `<name>` is the name you want to give the venv.
 
-After activating the virtual environment (`workon` or `source`), install
-the package. From the root directory of the package (where `setup.py` is) run:
+After activating the virtual environment (`workon` or `source`, see the guide
+linked above or search the interwebs), install the package.
 
+## For development
+
+Download the repository:
+```
+git clone https://github.com/stenskjaer/samewords.git
+```
+
+From the downloaded directory, run: 
 ```bash 
 $ pip install -e .
 ```
 
 Now you should be able to run the script (while the virtual environment is
-activated) by running `samewords`. 
+activated, if you used that) by running `samewords`. 
 
 To see if it works, run:
 
@@ -68,43 +76,13 @@ samewords --help
 ```
 Your should get an overview of the commands available. 
 
-To try converting a file, run the script with a *valid* reledmac encoded file.
-If you don't have one lying around, try the one provided in the test suite by
-running this command:
-
-```bash
-samewords ./samewords/test/assets/da-49-l1q1.tex
-```
-
-It should spit out an updated text. To see that it actually contains some
-`\sameword{}` macros, you can try running it through `grep`:
-
-```bash
-samewords ./samewords/test/assets/da-49-l1q1.tex | grep sameword
-```
-
 When you are done, you can reset your system to the state before testing,
 deactivate the virtual environment. If you never want to use the script again,
 remove the directory of the environment (possibly with `rmvirtualenv` if you
 have installed `virtualenvwrapper`) and remove the directory created by the `git
 clone` command.
 
-## System install
-
-If you would like to install the script for general usage on you system, you
-should run the command 
-```bash
-python3 setup.py install
-```
-
-Now try:
-```bash
-$ samewords <filename>
-```
-Where <filename> is the name of a file that you want to convert. 
-
-
-## Development and contribution
+### Remember the tests
 
 Before you start making any changes, run the test suite and make sure everything
 passes. From the root directory of the package, run:
@@ -118,29 +96,21 @@ passes. Otherwise, things will break.
 
 ## Usage ##
 
-`samewords --help` produces this output:
-```
-Samewords annotates potentially ambiguous words in critical text editions
-made with LaTeX and reledmac.
+Simple: Call the script with the file you want annotated as the only argument to
+get the annotated version back in the terminal. 
 
-Usage: samewords [options] <file>
-
-Arguments:
-  <file>                Location of local file to be processed.
-
-Options:
-  --output <location>   Location of output. You can specify a filename as part of
-                        the address. If you don't do that, the name of the input
-                        file will be used.
-  -v, --version         Show version and exit.
-  -h, --help            Show this help message and exit.
-
+```bash
+samewords my-awesome-edition.tex
 ```
 
-One option (aside from the regulars): Use `--output` to indicate in which folder
-or to which file you want save the result.
+will send the annotated version to `stdout`. To see that it actually contains
+some `\sameword{}` macros, you can try running it through `grep`:
 
-For example:
+```bash
+samewords ./samewords/test/assets/da-49-l1q1.tex | grep sameword
+```
+
+You can define a output location with the `--output` option:
 ```bash
 samewords --output ~/Desktop/test/output my-beautiful-edition.tex
 ```
@@ -150,9 +120,7 @@ If it is a file, it will ask you whether you want to overwrite it. If it is
 neither a directory nor a file, it will create the file `output` and write the
 content to that.
 
-Alternatively regular unix redirecting will work just as well in a Unix context.
-For example:
-
+Alternatively regular unix redirecting will work just as well in a Unix context:
 ```bash
 samewords my-beautiful-edition.tex > ~/Desktop/test/output.tex
 ```
