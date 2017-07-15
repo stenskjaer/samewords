@@ -50,14 +50,22 @@ class TestLatexExpressionCapturing:
     escaped_latex_string = '{\\ \& \% \$ \# \_ \{ \} \~ \^}'
 
     def test_capture_balanced(self):
-        assert Macro(self.balanced_string).content == self.balanced_string[1:-1]
+        assert Brackets(self.balanced_string).content == self.balanced_string[1:-1]
 
     def test_capture_escaped(self):
-        assert Macro(self.escaped_latex_string).content == self.escaped_latex_string[1:-1]
+        assert Brackets(self.escaped_latex_string).content == self.escaped_latex_string[1:-1]
 
     def test_capture_unbalanced(self):
         with pytest.raises(ValueError):
-            Macro(self.unbalanced_string).content
+            Brackets(self.unbalanced_string).content
+
+
+class TestLatexListMaintextWords:
+
+    def test_clean_nested_edtext_macros(self):
+        edtext_string = r"""et \edtext{hic \edtext{et}{\Afootnote{÷ A}} hoc}{\Afootnote{ille et illud B}} et cetera """
+        edtext_string_result = ['et', 'hic', 'et', 'hoc', 'et', 'cetera']
+        assert as_list(clean(edtext_string)) == edtext_string_result
 
 
 class TestProximityListing:
@@ -145,6 +153,28 @@ class TestWrapWordPhrase:
 
 
 class TestMainReplaceFunction:
+
+    def test_text_match_with_index_command(self):
+        text_w_index = r"\edtext{Sortes\index[persons]{Sortes}}{\Afootnote{Socrates B}} dicit: Sortes\index[persons]{Sortes} probus"
+        text_w_index_result = r"\edtext{\sameword[1]{Sortes\index[persons]{Sortes}}}{\Afootnote{Socrates B}} dicit: \sameword{Sortes\index[persons]{Sortes}} probus"
+        assert critical_note_match_replace_samewords(text_w_index) == text_w_index_result
+
+    def test_text_no_match_with_index_command(self):
+        text_w_index = r"\edtext{Sortes\index[persons]{Socrates}}{\Afootnote{Socrates B}} dicit: Sortes\index[persons]{Sortes} probus"
+        text_w_index_result = r"\edtext{Sortes\index[persons]{Socrates}}{\Afootnote{Socrates B}} dicit: Sortes\index[persons]{Sortes} probus"
+        assert critical_note_match_replace_samewords(text_w_index) == text_w_index_result
+
+    def test_ignoring_emph_macro(self):
+        emph_conflict = r'\edtext{So\emph{cra}tes}{\Afootnote{Socrates B}} dicit: Socrates probus'
+        emph_conflict_result = r'\edtext{\sameword[1]{So\emph{cra}tes}}{\Afootnote{Socrates B}} dicit: \sameword{Socrates} probus'
+        assert critical_note_match_replace_samewords(emph_conflict) == emph_conflict_result
+
+    def test_nested_no_lemma(self):
+        nested_no_lemma = r"""et \edtext{hic \edtext{et}{\Afootnote{÷ A}} hoc}{\Afootnote{ille et 
+            illud B}} et cetera """
+        nested_no_lemma_result = r"""\sameword{et} \edtext{hic \edtext{\sameword[2]{et}}{\Afootnote{÷ A}} hoc}{\Afootnote{ille et 
+            illud B}} \sameword{et} cetera """
+        assert critical_note_match_replace_samewords(nested_no_lemma) == nested_no_lemma_result
 
     def test_wrap_without_lemma(self):
         no_lemma = r'non videtur sed \edtext{non}{\Bfootnote{sic B}}'

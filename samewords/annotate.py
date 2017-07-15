@@ -7,6 +7,8 @@ Identify and annotate potentially ambiguous words in a string.
 import re
 from typing import Iterable, List, Union, Tuple
 
+from samewords.cli import ARGS
+
 # Type aliases
 ContextList = List[List[str]]
 
@@ -35,10 +37,8 @@ class TextSegment(list):
 
         if r'\edtext' in search_string:
             appnote_start = search_string.find(r'\edtext')
-            maintext_note_length = Macro(
-                search_string, position=appnote_start, macro=r'\edtext').length
-            crit_note_length = Macro(
-                search_string, position=appnote_start + maintext_note_length).length
+            maintext_note_length = len(Macro(search_string[appnote_start:]).complete_macro())
+            crit_note_length = Brackets(search_string, start=appnote_start + maintext_note_length).length
             appnote_end = appnote_start + maintext_note_length + crit_note_length
 
             if appnote_start > 0:
@@ -63,9 +63,9 @@ class CritText(str):
     def __init__(self, input_string: str) -> None:
         str.__init__(input_string)
         self.content = input_string
-        self.maintext_note = Macro(self.content, macro=r'\edtext').content
-        self.critical_note = Macro(
-            self.content, position=Macro(self.content, macro=r'\edtext').length).content
+        self.maintext_note = Brackets(self.content, macro=r'\edtext').content
+        self.critical_note = Brackets(
+            self.content, start=Brackets(self.content, macro=r'\edtext').length).content
         self.has_lemma = True if self.critical_note.find(r'\lemma') is not -1 else False
         self.lemma_content = self.get_lemma_content()
         self.dotted_lemma = False
@@ -82,7 +82,7 @@ class CritText(str):
         """
         # Determine lemma type. The `dots` variable is used for processing of ldots notes.
         if self.has_lemma:
-            lemma_word_list = list_maintext_words(self.lemma_content)
+            lemma_word_list = as_list(clean(self.lemma_content))
             if re.search(r'\\l?dots({})?', self.lemma_content):
                 # Covers ldots lemma. We use the dots variable to identify first and last
                 # word in dots lemmas.
@@ -104,7 +104,7 @@ class CritText(str):
     def get_lemma_content(self):
         """Isolate the content of the `\lemma{}` macro in the critical note."""
         if self.has_lemma:
-            return Macro(self.critical_note, position=len(r'\lemma')).content
+            return Brackets(self.critical_note, start=len(r'\lemma')).content
         else:
             return None
 
@@ -232,9 +232,9 @@ class CritText(str):
         """
 
         if replace_string:
-            lemma_content = Macro(replace_string, position=len(r'\lemma')).content
+            lemma_content = Brackets(replace_string, start=len(r'\lemma')).content
         else:
-            lemma_content = Macro(self.critical_note, position=len(r'\lemma')).content
+            lemma_content = Brackets(self.critical_note, start=len(r'\lemma')).content
 
         return_string = r'\lemma{'
         position = len(r'\lemma{')
@@ -303,7 +303,7 @@ class Context:
             input_list = list(reversed(input_list))
 
         try:
-            word_count_sum += len(list_maintext_words(input_list[index]))
+            word_count_sum += len(as_list(clean(input_list[index])))
         except IndexError:
             pass
 
@@ -316,17 +316,16 @@ class Context:
                 return input_list[:index + 1]
 
 
-class Macro:
-    """Object describing the content and length of a LaTeX macro.
+class Brackets:
+    """Object describing the content and length of a LaTeX macro brackets.
     """
 
-    def __init__(self, search_string, position: int = 0,
-                 opener: str = '{', closer: str = '}', macro: str = '') -> None:
+    def __init__(self, search_string, start: int = 0, macro: str = '') -> None:
         str.__init__(search_string)
-        self.content = self.get_content(search_string, position, opener, closer, macro)
-        self.length = self.get_length(position, macro)
+        self.content = self.content(search_string, start, macro)
+        self.length = self.length(start, macro)
 
-    def get_length(self, position: int = 0, macro: str = '') -> int:
+    def length(self, position: int = 0, macro: str = '') -> int:
         """Calculate the length of the macro command.
         """
         start_position = position
@@ -337,8 +336,7 @@ class Macro:
         position += bracket_offset
         return position - start_position
 
-    def get_content(self, search_string: str, position: int,
-                    opener: str, closer: str, macro: str) -> str:
+    def content(self, search_string: str, position: int, macro: str) -> str:
         """Get the content of the macro and return it.
         """
         special_chars = r'\&%$#_{}~^'
@@ -352,7 +350,7 @@ class Macro:
                                  "Context: %s"
                                  % (macro, position, search_string[position:position + 20]))
 
-        if search_string[position] == opener:
+        if search_string[position] == '{':
             stack = 1
             position += 1
         else:
@@ -363,9 +361,9 @@ class Macro:
         while stack > 0:
             try:
                 symbol = search_string[position]
-                if symbol == opener:
+                if symbol == '{':
                     stack += 1
-                elif symbol == closer:
+                elif symbol == '}':
                     stack -= 1
                 elif symbol == '\\' and search_string[position + 1] in special_chars:
                     capture += symbol
@@ -379,51 +377,110 @@ class Macro:
         return capture[:-1]
 
 
-def list_maintext_words(search_string: str) -> List[str]:
+class Macro:
+    """A full latex macro, identified from `start` to where the macro is completed.
     """
-    Create a list of all the words that will end up in the main text.
+
+    def __init__(self, input_string: str, start: int = 0) -> None:
+        self.input_string = input_string
+        self.start = start
+        self.has_opening = False
+        self.name = self.identify_name()
+        self.before_opening = self.before_opening()
+
+    def __repr__(self) -> str:
+        return self.before_opening
+
+    def identify_name(self) -> str:
+        return re.match(r'[^ [{]+', self.input_string[self.start:]).group(0)
+
+    def before_opening(self) -> str:
+        opening = re.match(r'[^ ]+?{', self.input_string)
+        if opening:
+            self.has_opening = True
+            return opening.group(0)[:-1]
+        else:
+            return self.input_string[self.start:self.input_string[self.start:].find(' ')]
+
+    def complete_macro(self) -> str:
+        if self.has_opening:
+            position = self.start + self.input_string[self.start:].find('{')
+            return self.before_opening \
+                   + '{' + Brackets(self.input_string, start=position).content + '}'
+        else:
+            return self.before_opening
+
+    def content(self) -> str:
+        if self.has_opening:
+            position = self.start + self.input_string[self.start:].find('{')
+            return Brackets(self.input_string, start=position).content
+        else:
+            return ''
+
+
+def as_list(input_string):
+    if len(input_string) > 0:
+        return re.sub('\s+', ' ', input_string).strip().split(' ')
+    else:
+        return []
+
+
+def clean(search_string):
+    """
+    Return a string of only containing the text that goes into the main text.
 
     :param search_string: The string to create list of.
     :return: List of words
     """
 
+    def custom_include_macros() -> List[str]:
+        if ARGS['--include-macros']:
+            with open(ARGS['--include-macros']) as f:
+                lines = []
+                for line in f:
+                    lines.append(line.replace('\n', ''))
+                return lines
+        else:
+            return []
+
     if isinstance(search_string, CritText):
         search_string = search_string.maintext_note
 
     ignored_macros = [
-        'Afootnote',
-        'Bfootnote',
-        'Cfootnote',
-        'Dfootnote',
-        'Efootnote',
-        'lemma',
-        'index'
+        '\\Afootnote',
+        '\\Bfootnote',
+        '\\Cfootnote',
+        '\\Dfootnote',
+        '\\Efootnote',
+        '\\lemma',
+        '\\applabel',
     ]
 
-    word_list = []
+    keep_macros = [
+        '\\index',
+    ] + custom_include_macros()
+
     position = 0
+    words = ''
     while position < len(search_string):
         symbol = search_string[position]
-        word_match = re.match('\w+', search_string[position:])
-        if symbol == '\\':
-            position += 1
-            macro = re.match(r'[^ {]+', search_string[position:]).group(0)
-            if macro not in ignored_macros:
-                position += len(macro) + 1
+        if re.match('[\w\s]', symbol):
+            chunk = re.match('[\w\s]+', search_string[position:]).group(0)
+            words += chunk
+            position += len(chunk)
+        elif symbol == '\\':
+            macro = Macro(search_string[position:])
+            if macro.name in ignored_macros:
+                position += len(macro.complete_macro())
+            elif macro.name in keep_macros:
+                full_macro = macro.complete_macro()
+                words += full_macro
+                position += len(full_macro)
             else:
-                position += len(macro)
-                if search_string[position] == '[':
-                    position += Macro(search_string[position:], opener='[', closer=']').length
-                if search_string[position] == '{':
-                    position += Macro(search_string[position:]).length
-        elif word_match:
-            word = word_match.group(0)
-            word_list.append(word)
-            position += len(word)
+                position += len(macro.before_opening)
         else:
             position += 1
-    return word_list
-
+    return words
 
 def search_in_proximity(search_word: str, context_before: List[List[str]],
                         context_after: List[List[str]]) -> bool:
@@ -451,8 +508,9 @@ def search_in_proximity(search_word: str, context_before: List[List[str]],
     contexts = flatten_list(context_before + context_after)
 
     for context_chunk in contexts:
-        maintext_words = ' '.join(list_maintext_words(context_chunk))
-        if re.search(r'\b' + search_word + r'\b', maintext_words):
+        maintext_words = clean(context_chunk)
+        search_word = clean(search_word)
+        if re.search(r'(?<!\w)' + re.escape(search_word) + '(?!\w)', maintext_words):
             return True
     return False
 
@@ -536,7 +594,7 @@ def replace_in_string(replace_word: str, replace_string: str, lemma_level: int =
         :return List of items from `replace_list` that match items in `pattern_list`.
         """
         try:
-            if re.search(r'\b' + pattern_list[0] + r'\b', replace_list[0]):
+            if re.search(r'(?<!\w)' + re.escape(clean(pattern_list[0])) + '(?!\w)', clean(replace_list[0])):
                 return_list.append(replace_list[0])
                 return check_list_match(pattern_list[1:], replace_list[1:], return_list)
         except IndexError:
@@ -623,7 +681,7 @@ def wrap_phrase(phrase: str, lemma_level: int=0) -> str:
     if pattern_match:
         sameword_match = pattern_match.group(0)
         existing_level = pattern_match.group(2)
-        sameword_match_length = Macro(phrase, macro=sameword_match[:-1]).length
+        sameword_match_length = Brackets(phrase, macro=sameword_match[:-1]).length
         if sameword_match_length == len(phrase):
             # The whole phrase is wrapped.
             exact_wrap = True

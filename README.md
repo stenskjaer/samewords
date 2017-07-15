@@ -125,6 +125,44 @@ Alternatively regular unix redirecting will work just as well in a Unix context:
 samewords my-beautiful-edition.tex > ~/Desktop/test/output.tex
 ```
 
+### Include macros in disambiguations (`--include-macros`) ###
+
+The script searches for words or phrases identical to those in the `\edtext{}{}`
+macros to identify possible conflicts. Per default the content of practically
+all macros are included in this comparison.
+
+Take this passage:
+```latex
+\edtext{Sortes\test{1}}{\Afootnote{Socrates B}} dicit: Sortes\test{2} probus
+```
+
+Will result in a search for "Sortes1" in the string "dicit Sortes2 probus",
+which will not succeed.
+
+On the other hand, this passage:
+```latex
+\edtext{Sortes\test{1}}{\Afootnote{Socrates B}} dicit: Sortes\test{1} probus
+```
+
+Will result in a search for "Sortes 1" in the string "dicit Sortes 1 probus",
+which will succeed and therefore annotate the instances.
+
+You might want to distinguish some phrases based on their contained macros. For
+instance you might want to let `Hákon\emph{ar}` and `Hákonar` be two different
+strings. In that case you use the `--include-macros` argument.
+
+`--include-macros` must point to a text file where each line contains a macro
+that you want to keep in the comparison algorithm. So to distinguish
+`Hákon\emph{ar}` from `Hákonar`, I would write the following text-file:
+
+```txt
+\emph
+```
+
+And then pass the location of that file in the argument `--include-macros`.
+
+To see the details of this, see the `clean` function in the `annotate` module.
+
 # Be advised
 
 This is beta level software. Bugs are to be expected and I provide no
