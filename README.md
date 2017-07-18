@@ -179,7 +179,7 @@ the comparison of the phrase `I know` (`\edtext` content) with `I23v know that`
 
 If we pass a file to the `--exclude-macros` argument which contains a line with
 the command `\pagebreak`, that will be ignored in processing, and we will get a
-comparison between `I know` (`\edtext` content) with `I23v know that`
+comparison between `I know` (`\edtext` content) with `I know that`
 (context). This will match and hence correctly annotate the phrase.
 
 To see the details of this, see the `clean` function in the `annotate` module.
