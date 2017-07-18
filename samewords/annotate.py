@@ -586,17 +586,26 @@ def replace_in_string(replace_word: str, replace_string: str, lemma_level: int =
         
         When the caller of this function iterates through the `replace_list`, it is incrementally 
         checked in full. We want to keep the formatting of the search list, so items from that 
-        are returned in order as they are. 
-        
+        are returned in order as they are.
+
+        During matching we need to maintain whitespace in the list being matched (`replace_list`).
+        So when there is any content in the return_list (a match has started), and a match fails
+        because the replace_list content is whitespace, add that to the return_list.
+
         :param pattern_list: List of search words to be matched in `replace_list`.
         :param replace_list: List of words to be matched.
         :param return_list: The results to be returned, built successively in recursive calls. 
         :return List of items from `replace_list` that match items in `pattern_list`.
+
         """
         try:
-            if re.search(r'(?<!\w)' + re.escape(clean(pattern_list[0])) + '(?!\w)', clean(replace_list[0])):
+            if re.search(r'(?<!\w)' + re.escape(clean(pattern_list[0])) + '(?!\w)',
+                         clean(replace_list[0])):
                 return_list.append(replace_list[0])
                 return check_list_match(pattern_list[1:], replace_list[1:], return_list)
+            elif re.match('\s', replace_list[0]) and return_list:
+                return_list.append(replace_list[0])
+                return check_list_match(pattern_list, replace_list[1:], return_list)
         except IndexError:
             return return_list
 
@@ -621,13 +630,13 @@ def replace_in_string(replace_word: str, replace_string: str, lemma_level: int =
         try:
             if match_in_replace_list:
                 updated_list.append(
-                    wrap_phrase(' '.join(match_in_replace_list), lemma_level=lemma_level))
+                    wrap_phrase(''.join(match_in_replace_list), lemma_level=lemma_level))
                 return make_replacements(
                     search_list, replace_list[len(match_in_replace_list):], updated_list)
             updated_list.append(replace_list[0])
             return make_replacements(search_list, replace_list[1:], updated_list)
         except IndexError:
-            return re.sub(' ([.,;:?])', r'\1', ' '.join(updated_list))
+            return re.sub(' ([.,;:?])', r'\1', ''.join(updated_list))
 
     unwrapped = False
     try:
@@ -638,8 +647,8 @@ def replace_in_string(replace_word: str, replace_string: str, lemma_level: int =
         # The input replacement string is empty, so just return with processing.
         return replace_string
 
-    replacement_string_listed = move_punctuation(replace_string.split(' '))
-    search_word_listed = replace_word.split(' ')
+    replacement_string_listed = move_punctuation(re.split('(\s+)', replace_string))
+    search_word_listed = re.split('\s+', replace_word)
     updated_replacement = make_replacements(search_word_listed, replacement_string_listed)
 
     if unwrapped:

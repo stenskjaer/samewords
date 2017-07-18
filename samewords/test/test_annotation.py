@@ -154,6 +154,43 @@ class TestWrapWordPhrase:
 
 class TestMainReplaceFunction:
 
+    def test_wrap_with_linebreak(self):
+        linebreak_text = r"""Leo aut ursus aut oryx aut ricinus aut equus aut
+lupus \edtext{aut}{\Afootnote{et}\Bfootnote{monotone\ldots}} canis aut felix aut asinus \edtext{aut}{\Bfootnote{et}} burricus."""
+        linebreak_text_result = r"""Leo \sameword{aut} ursus \sameword{aut} oryx \sameword{aut} ricinus \sameword{aut} equus \sameword{aut}
+lupus \edtext{\sameword[1]{aut}}{\Afootnote{et}\Bfootnote{monotone\ldots}} canis \sameword{aut} felix \sameword{aut} asinus \edtext{\sameword[1]{aut}}{\Bfootnote{et}} burricus."""
+        assert critical_note_match_replace_samewords(linebreak_text) == linebreak_text_result
+
+    def test_wrap_with_tabs(self):
+        tabs = """
+Leo aut ursus aut oryx
+	aut ricinus aut
+	equus
+	aut lupus aut
+	canis aut felix aut asinus \edtext{aut}{\Bfootnote{et}} burricus.
+"""
+        tabs_result = """
+Leo \sameword{aut} ursus \sameword{aut} oryx
+	\sameword{aut} ricinus \sameword{aut}
+	equus
+	\sameword{aut} lupus \sameword{aut}
+	canis \sameword{aut} felix \sameword{aut} asinus \edtext{\sameword[1]{aut}}{\Bfootnote{et}} burricus.
+"""
+        assert critical_note_match_replace_samewords(tabs) == tabs_result
+
+    def test_linebreak_first_word(self):
+        linebreak_first = """
+\pstart
+et cetera \edtext{et}{\Afootnote{÷}} cetera et cetera
+\pend
+"""
+        linebreak_first_result = """
+\pstart
+\sameword{et} cetera \edtext{\sameword[1]{et}}{\Afootnote{÷}} cetera \sameword{et} cetera
+\pend
+"""
+        assert critical_note_match_replace_samewords(linebreak_first) == linebreak_first_result
+
     def test_text_match_with_index_command(self):
         text_w_index = r"\edtext{Sortes\index[persons]{Sortes}}{\Afootnote{Socrates B}} dicit: Sortes\index[persons]{Sortes} probus"
         text_w_index_result = r"\edtext{\sameword[1]{Sortes\index[persons]{Sortes}}}{\Afootnote{Socrates B}} dicit: \sameword{Sortes\index[persons]{Sortes}} probus"
