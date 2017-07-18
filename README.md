@@ -184,11 +184,45 @@ comparison between `I know` (`\edtext` content) with `I23v know that`
 
 To see the details of this, see the `clean` function in the `annotate` module.
 
-# Be advised
+# Issue reporting and testing
 
-This is beta level software. Bugs are to be expected and I provide no
-guarantees for the integrity of your software or editions when you use the
-package.
+If you like the idea of this software, please help improving it by
+filing [issue report](https://github.com/stenskjaer/samewords/issues) when you
+find bugs.
 
-This also means: Let me know when and how it breaks by filing
-an [issue report](https://github.com/stenskjaer/samewords/issues). 
+To file a bug:
+- Create a *minimal working example* (MWE) TeX document that contains absolutely
+  nothing aside from the material necessary for reproducing the bug. The
+  document should (if possible) be able to compile on a fresh installation of
+  LateX without any custom packages.
+- Open an [issue report](https://github.com/stenskjaer/samewords/issues) and
+  describe the conditions under which you experience the bug. It should be
+  possible for me to reproduce the bug by following your directions.
+- If the script returns an error, copy and paste the error traceback into the
+  report.
+- If the script returns you document, include that, and describe the result you
+  expected, and how that differs from what you get.
+  
+Once I (think I) have a solution, I will ask you to test a branch. To do that:
+- Navigate to that branch in Github (the “Branch: ” dropdown).
+- Clone or download that branch to your computer.
+- Navigate to the downloaded folder.
+- Create a *virtual environment* for testing by running `python3 -m venv .env`,
+  and then activate it with `source .env/bin/activate` (this is based on a Unix
+  environment, if you run Windows, check
+  out
+  [the Python documentation](https://docs.python.org/3.6/library/venv.html)).
+- While in the *virtual environment*, run your supplied MWE (or other material
+  provided by me in the issue report) and inspect whether the problem is solved
+  and report back in the issue report.
+- When you are done testing, deactivate the virtual environment by running
+  `deactivate` (Bash on Unix) or `deactivate.bat` (Windows).
+- You can now delete the downloaded branch folder.
+  
+
+# Disclaimer and license
+
+This is beta level software. Bugs are to be expected and I provide no guarantees
+for the integrity of your software or editions when you use the package.
+
+Copyright (c) 2017 Michael Stenskjær Christensen, MIT License.
