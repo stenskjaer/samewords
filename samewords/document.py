@@ -14,8 +14,8 @@ import re
 
 def document_content(filename):
     """Return the content of file."""
-    with open(filename, 'rb') as f:
-        return f.read().decode('utf-8')
+    with open(filename, 'r') as f:
+        return f.read()
 
 
 def chunk_document(content):
