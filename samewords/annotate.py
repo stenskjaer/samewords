@@ -433,12 +433,12 @@ def clean(search_string):
     :return: List of words
     """
 
-    def custom_include_macros() -> List[str]:
-        if ARGS['--include-macros']:
-            with open(ARGS['--include-macros']) as f:
+    def custom_macros(argument) -> List[str]:
+        if ARGS[argument]:
+            with open(ARGS[argument]) as f:
                 lines = []
                 for line in f:
-                    lines.append(line.replace('\n', ''))
+                    lines.append(line.strip().replace('\n', ''))
                 return lines
         else:
             return []
@@ -454,11 +454,11 @@ def clean(search_string):
         '\\Efootnote',
         '\\lemma',
         '\\applabel',
-    ]
+    ] + custom_macros('--exclude-macros')
 
     keep_macros = [
         '\\index',
-    ] + custom_include_macros()
+    ] + custom_macros('--include-macros')
 
     position = 0
     words = ''

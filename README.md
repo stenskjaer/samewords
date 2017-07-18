@@ -161,6 +161,27 @@ that you want to keep in the comparison algorithm. So to distinguish
 
 And then pass the location of that file in the argument `--include-macros`.
 
+### Exclude macros in disambiguations (`--exclude-macros`) ###
+
+This is the inverse feature of the above. You might want to define some macros
+which are entirely ignored in the comparison of text segments. 
+
+For example, you might use a custom macro called `\pagebreak{}` to indicate a
+pagebreak in your edition. Take this example phrase:
+
+```latex
+I\pagebreak{23v} know that \edtext{I know}{\Afootnote{I don't know B}} nothing.
+```
+
+Since the content of (almost) all macros is included by default, this would give
+the comparison of the phrase `I know` (`\edtext` content) with `I23v know that`
+(context). It will not match, and hence not annotate the phrase.
+
+If we pass a file to the `--exclude-macros` argument which contains a line with
+the command `\pagebreak`, that will be ignored in processing, and we will get a
+comparison between `I know` (`\edtext` content) with `I23v know that`
+(context). This will match and hence correctly annotate the phrase.
+
 To see the details of this, see the `clean` function in the `annotate` module.
 
 # Be advised

@@ -12,7 +12,9 @@ Options:
   --output <location>      Location of output. You can specify a filename as
                            part of the address. If you don't do that, the name
                            of the input file will be used.
-  --include-macros <file>  File listing the macros that should be ignored when
+  --include-macros <file>  File listing the macros that should be included when
+                           comparing text segments.
+  --exclude-macros <file>  File listing the macros that should be ignored when
                            comparing text segments.
   -v, --version            Show version and exit.
   -h, --help               Show this help message and exit.
