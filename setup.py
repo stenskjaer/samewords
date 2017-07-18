@@ -8,7 +8,6 @@ setup(name='samewords',
       packages=find_packages(),
       install_requires=[
           'pytest==3.0.7',
-          'docopt==0.6.2',
       ],
       classifiers=[
           'Development Status :: 4 - Beta',

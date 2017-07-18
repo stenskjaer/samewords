@@ -1,31 +1,36 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Samewords annotates potentially ambiguous words in critical text editions
-made with LaTeX and reledmac.
-
-Usage: samewords [options] <file>
-
-Arguments:
-  <file>                Location of local file to be processed.
-
-Options:
-  --output <location>   Location of output. You can specify a filename as part of
-                        the address. If you don't do that, the name of the input
-                        file will be used.
-  -v, --version         Show version and exit.
-  -h, --help            Show this help message and exit.
+"""Command line interface director for the samewords script.
 """
 
 import samewords
-from docopt import docopt
+import argparse
 import os
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(
+        prog='samewords',
+        usage='%(prog)s [options] FILE',
+        description='Annotate potentially ambiguous words in critical text editions '
+                    'made with LaTeX and reledmac.')
+    parser.add_argument('file', metavar='FILE', type=str, nargs=1,
+                        help='Location of local file to be processed.')
+    parser.add_argument('--output', dest='location', action='store',
+                        help="Location of the output. You can specify a filename as part of the "
+                             "address. If you don't do that, the name of the input file will be "
+                             "put in the directory specified. (default: '%(default)s')")
+    parser.add_argument('-v', '--version', action='version',
+                        version='%(prog)s {}'.format(samewords.__version__),
+                        help="Show version and exit.")
+
+    return vars(parser.parse_args())
 
 def main():
     # Read command line arguments
-    args = docopt(__doc__, version=samewords.__version__)
+    args = parse_arguments()
 
-    filename = args['<file>']
-    output = args['--output']
+    filename = args['file'][0]
+    output = args['location']
 
     if not output:
         print(samewords.core.process_document(filename))
