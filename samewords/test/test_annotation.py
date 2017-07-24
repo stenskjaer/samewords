@@ -146,6 +146,11 @@ class TestWrapWordPhrase:
 
 class TestMainReplaceFunction:
 
+    def test_recursion_on_nested_empty_edtext(self):
+        recursing = r"secundum \edtext{secundum}{\lemma{secundum}\Bfootnote{\emph{om.} P}} \edtext{\edtext{}{\lemma{philosophum}\Bfootnote{}} octavo Metaphysicae}{\lemma{}\Bfootnote{content B}}"
+        recursing_result = r"\sameword{secundum} \edtext{\sameword[1]{secundum}}{\lemma{\sameword{secundum}}\Bfootnote{\emph{om.} P}} \edtext{\edtext{}{\lemma{philosophum}\Bfootnote{}} octavo Metaphysicae}{\lemma{}\Bfootnote{content B}}"
+        assert critical_note_match_replace_samewords(recursing) == recursing_result
+
     def test_wrap_without_lemma(self):
         no_lemma = r'non videtur sed \edtext{non}{\Bfootnote{sic B}}'
         no_lemma_result = r'\sameword{non} videtur sed \edtext{\sameword[1]{non}}{\Bfootnote{sic B}}'

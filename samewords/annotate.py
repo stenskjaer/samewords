@@ -111,9 +111,9 @@ class CritText(str):
     def assemble(self, maintext=None, critical=None):
         """Wrap maintext_note and critical_note in `\edtext{}{}` macro. 
         """
-        if not maintext:
+        if maintext is None:
             maintext = self.maintext_note
-        if not critical:
+        if critical is None:
             critical = self.critical_note
         self.content = r'\edtext{' + maintext + '}{' + critical + '}'
         return CritText(self.content)
@@ -141,7 +141,7 @@ class CritText(str):
         """
 
         return_string = ''
-        if replace_string:
+        if replace_string is not None:
             edtext_content_list = TextSegment(replace_string)
         else:
             edtext_content_list = TextSegment(self.maintext_note)
@@ -177,7 +177,7 @@ class CritText(str):
 
                 return_string += edtext_content_list[pivot_index]
 
-        if replace_string:
+        if replace_string is not None:
             return return_string
         else:
             # Update the maintext parameter and update self.content with assemble()
