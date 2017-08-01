@@ -146,6 +146,11 @@ class TestWrapWordPhrase:
 
 class TestMainReplaceFunction:
 
+    def test_compare_strings_lowercased(self):
+        case_insensitive_match = r"per \edtext{Per}{\Bfootnote{secundum O}}"
+        case_insensitive_match_result = r"\sameword{per} \edtext{\sameword[1]{Per}}{\Bfootnote{secundum O}}"
+        assert critical_note_match_replace_samewords(case_insensitive_match) == case_insensitive_match_result
+
     def test_recursion_on_nested_empty_edtext(self):
         recursing = r"secundum \edtext{secundum}{\lemma{secundum}\Bfootnote{\emph{om.} P}} \edtext{\edtext{}{\lemma{philosophum}\Bfootnote{}} octavo Metaphysicae}{\lemma{}\Bfootnote{content B}}"
         recursing_result = r"\sameword{secundum} \edtext{\sameword[1]{secundum}}{\lemma{\sameword{secundum}}\Bfootnote{\emph{om.} P}} \edtext{\edtext{}{\lemma{philosophum}\Bfootnote{}} octavo Metaphysicae}{\lemma{}\Bfootnote{content B}}"
