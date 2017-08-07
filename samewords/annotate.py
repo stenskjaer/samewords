@@ -82,7 +82,7 @@ class CritText(str):
         """
         # Determine lemma type. The `dots` variable is used for processing of ldots notes.
         if self.has_lemma:
-            lemma_word_list = as_list(clean(self.lemma_content))
+            lemma_word_list = Words(self.lemma_content).list
             if re.search(r'\\l?dots({})?', self.lemma_content):
                 # Covers ldots lemma. We use the dots variable to identify first and last
                 # word in dots lemmas.
@@ -98,7 +98,7 @@ class CritText(str):
             else:
                 search_words = []
         else:
-            return [clean(self.maintext_note)]
+            return [Words(self.maintext_note).to_string()]
         return search_words
 
     def get_lemma_content(self):
@@ -303,7 +303,7 @@ class Context:
             input_list = list(reversed(input_list))
 
         try:
-            word_count_sum += len(as_list(clean(input_list[index])))
+            word_count_sum += len(Words(input_list[index]).list)
         except IndexError:
             pass
 
@@ -418,189 +418,147 @@ class Macro:
             return ''
 
 
-def as_list(input_string):
-    if len(input_string) > 0:
-        return re.sub('\s+', ' ', input_string).strip().split(' ')
-    else:
-        return []
-
-
-def clean(search_string):
-    """
-    Return a string of only containing the text that goes into the main text.
-
-    :param search_string: The string to create list of.
-    :return: List of words
-    """
-
-    def custom_macros(argument) -> List[str]:
-        if ARGS[argument]:
-            with open(ARGS[argument]) as f:
-                lines = []
-                for line in f:
-                    lines.append(line.strip().replace('\n', ''))
-                return lines
-        else:
-            return []
-
-    if isinstance(search_string, CritText):
-        search_string = search_string.maintext_note
-
-    ignored_macros = [
-        '\\Afootnote',
-        '\\Bfootnote',
-        '\\Cfootnote',
-        '\\Dfootnote',
-        '\\Efootnote',
-        '\\lemma',
-        '\\applabel',
-        '\\somemacro',
-    ]
-
-    keep_macros = [
-        '\\index',
-        '\\sameword',
-    ]
-
-    position = 0
-    words = ''
-    while position < len(search_string):
-        symbol = search_string[position]
-        if re.match('[\w\s]', symbol):
-            chunk = re.match('[\w\s]+', search_string[position:]).group(0)
-            words += chunk
-            position += len(chunk)
-        elif symbol == '\\':
-            macro = Macro(search_string[position:])
-            if macro.name in ignored_macros:
-                position += len(macro.complete_macro())
-            elif macro.name in keep_macros:
-                full_macro = macro.complete_macro()
-                words += full_macro
-                position += len(full_macro)
-            else:
-                position += len(macro.before_opening)
-        else:
-            position += 1
-    return words
-
-
-
-class Word:
+class Word(str):
 
     def __init__(self, input_string):
+        str.__init__(self)
         self.content = input_string
         self.start = 0
         self.end = self.start + len(input_string)
         self.wrapped = False
         self.wrap_macro = ''
 
-    def __repr__(self):
-        return self.content
+    def __iadd__(self, other):
+        """Perform inplace addition by copying the current object to new and making addition."""
+        old = self
+        w = Word(self + other)
+        w.start = old.start
+        w.end = old.start + w.end
+        w.wrapped = old.wrapped
+        w.wrap_macro = old.wrap_macro
+        return w
 
-    def add(self, value):
-        if isinstance(value, Word):
-            self.content += value.content
-            self.end += value.end
+    def flatten(self, obj) -> Iterable[str]:
+        """Return a flat list from an arbitrarily nested list of Word objects."""
+        if isinstance(obj.content, list):
+            for item in obj.content:
+                yield from self.flatten(item)
         else:
-            self.content += value
+            yield obj.content
 
-def dict_clean(search_string, global_offset: int = 0):
+    def to_string(self):
+        return ' '.join(list(self.flatten(self)))
 
-    def custom_macros(argument) -> List[str]:
-        if ARGS[argument]:
-            with open(ARGS[argument]) as f:
-                lines = []
-                for line in f:
-                    lines.append(line.strip().replace('\n', ''))
-                return lines
-        else:
-            return []
 
-    if isinstance(search_string, CritText):
-        search_string = search_string.maintext_note
+class Words:
 
-    ls = []
-    ignored_macros = [
-        '\\Afootnote',
-        '\\Bfootnote',
-        '\\Cfootnote',
-        '\\Dfootnote',
-        '\\Efootnote',
-        '\\lemma',
-        '\\applabel',
-        '\\somemacro',
-    ]
+    def __init__(self, input_string, global_offset: int = 0):
+        self.input_string = input_string
+        self.list = self.clean(input_string)
 
-    keep_macros = [
-        '\\index',
-    ]
+    def clean(self, search_string: str, global_offset: int = 0):
 
-    position = 0
-    word = None
-    while position < len(search_string):
-
-        if re.match('\w', search_string[position]):
-            # If we match word character, store that word and start position, and bump to
-            # following symbol.
-            chunk = re.match('\w+', search_string[position:]).group(0)
-            if word is not None:
-                position += len(word.content)
-                word.add(chunk)
-                word.end += position + global_offset
+        def custom_macros(argument) -> List[str]:
+            if ARGS[argument]:
+                with open(ARGS[argument]) as f:
+                    lines = []
+                    for line in f:
+                        lines.append(line.strip().replace('\n', ''))
+                    return lines
             else:
-                word = Word(chunk)
-                ls.append(word)
-                word.start = position + global_offset
-                position += len(word.content)
-                word.end = position + global_offset
-            continue
+                return []
 
-        if search_string[position] == '\\':
-            # If symbol is macro
-            macro = Macro(search_string[position:])
-            if macro.name in ignored_macros:
-                position += len(macro.complete_macro())
-                if word:
+        if isinstance(search_string, CritText):
+            search_string = search_string.maintext_note
+
+        ls = []
+        ignored_macros = [
+            '\\Afootnote',
+            '\\Bfootnote',
+            '\\Cfootnote',
+            '\\Dfootnote',
+            '\\Efootnote',
+            '\\lemma',
+            '\\applabel',
+            '\\somemacro',
+        ]
+
+        keep_macros = [
+            '\\index',
+        ]
+
+        position = 0
+        word = None
+        while position < len(search_string):
+
+            if re.match('\w', search_string[position]):
+                # If we match word character, store that word and start position, and bump to
+                # following symbol.
+                chunk = re.match('\w+', search_string[position:]).group(0)
+                if word is not None:
+                    position += len(word.content)
+                    word += chunk
+                    ls[-1] = word  # word is immutable. __iadd__ returns new object, so update list.
                     word.end += position + global_offset
-                continue
-            elif macro.name in keep_macros:
-                if word:
-                    position += len(macro.complete_macro())
-                    word.add(macro.complete_macro())
-                    word.end = position + global_offset
                 else:
-                    word = Word(macro.complete_macro())
+                    word = Word(chunk)
+                    ls.append(word)
+                    word.start = position + global_offset
+                    position += len(word.content)
+                    word.end = position + global_offset
+                continue
+
+            if search_string[position] == '\\':
+                # If symbol is macro
+                macro = Macro(search_string[position:])
+                if macro.name in ignored_macros:
+                    position += len(macro.complete_macro())
+                    if word:
+                        word.end += position + global_offset
+                    continue
+                elif macro.name in keep_macros:
+                    if word:
+                        position += len(macro.complete_macro())
+                        word += macro.complete_macro()
+                        ls[-1] = word
+                        word.end = position + global_offset
+                    else:
+                        word = Word(macro.complete_macro())
+                        word.start = position + global_offset
+                        position += len(macro.complete_macro())
+                        word.end = position + global_offset
+                        ls.append(word)
+                    continue
+                elif macro.name == '\\sameword':
+                    offset_pos = position + global_offset + len(macro.before_opening + '{')
+                    word = Word(self.clean(macro.content(), global_offset=offset_pos))
+                    word.wrap_macro = macro.before_opening
                     word.start = position + global_offset
                     position += len(macro.complete_macro())
                     word.end = position + global_offset
                     ls.append(word)
-                continue
-            elif macro.name == '\\sameword':
-                offset_pos = position + global_offset + len(macro.before_opening + '{')
-                word = Word(dict_clean(macro.content(), global_offset=offset_pos))
-                word.wrap_macro = macro.before_opening
-                word.start = position + global_offset
-                position += len(macro.complete_macro())
-                word.end = position + global_offset
-                ls.append(word)
-                continue
-            else:
-                # macro call should not be registered in search string.
-                if word:
-                    # If we are recording a word, store content of macro as part of word.
-                    position += len(macro.complete_macro())
-                    word.add(macro.content())
-                    word.end = position
                     continue
                 else:
-                    position += len(macro.before_opening)
+                    # macro call should not be registered in search string.
+                    if word:
+                        # If we are recording a word, store content of macro as part of word.
+                        position += len(macro.complete_macro())
+                        word += macro.content()
+                        ls[-1] = word
+                        word.end = position
+                        continue
+                    else:
+                        position += len(macro.before_opening)
 
-        if re.match('\W', search_string[position]):
-            position += 1
+            if re.match('\W', search_string[position]):
+                position += 1
 
-        word = None
-    return ls
+            word = None
+        return ls
+
+    def to_string(self) -> str:
+        """Return a flattened cleaned string of the Words object."""
+        return ' '.join([i.to_string() for i in self.list])
 
 
 def search_in_proximity(search_word: str, context_before: List[List[str]],
@@ -629,20 +587,12 @@ def search_in_proximity(search_word: str, context_before: List[List[str]],
     contexts = flatten_list(context_before + context_after)
 
     for context_chunk in contexts:
-        maintext_words = ' '.join([i.content for i in flatten_word_list(dict_clean(context_chunk))])
-        search_word = ' '.join([i.content for i in flatten_word_list(dict_clean(search_word))])
+        maintext_words = Words(context_chunk).to_string()
+        search_word = Words(search_word).to_string()
         if re.search(r'(?<!\w)' + re.escape(search_word) + '(?!\w)', maintext_words):
             return True
     return False
 
-
-def flatten_word_list(input_list: Union[str, list]) -> Iterable[str]:
-    """Return a flat list from an arbitrarily nested list."""
-    for item in input_list:
-        if type(item.content) == list:
-            yield from flatten_word_list(item.content)
-        else:
-            yield item
 
 
 def replace_in_proximity(context_before_list: ContextList, context_after_list: ContextList,
@@ -690,21 +640,6 @@ def replace_in_string(replace_word: str, replace_string: str, lemma_level: int =
     :param lemma_level: The lemma level, if applicable.
     :return: Updated or unchanged string.
     """
-    def move_punctuation(input_list: List[str]) -> List[str]:
-        """Given a list of words, if the item ends in a punctuation character, move the character 
-        into new subsequent item """
-        return_list = []
-        for item in input_list:
-            try:
-                if item[-1] in ',.?!;':
-                    return_list.append(item[:-1])
-                    return_list.append(item[-1])
-                else:
-                    return_list.append(item)
-            except IndexError:
-                return_list.append(item)
-        return return_list
-
     def check_list_match(pattern_list: List[str], replace_list: List[Word],
                          return_list: List[str] = [], first: bool = True):
         """Check whether a word string in `pattern_list` (search phrase) is matched in 
@@ -731,7 +666,7 @@ def replace_in_string(replace_word: str, replace_string: str, lemma_level: int =
             # replace_list, register the start and end of that word in return_list.
 
             if isinstance(word.content, list):
-                match = ' '.join([i.content for i in flatten_word_list(word.content)])
+                match = word.to_string()
             else:
                 match = word.content
 
@@ -742,52 +677,70 @@ def replace_in_string(replace_word: str, replace_string: str, lemma_level: int =
             return return_list
 
     def make_replacements(search_list: List[str], word_list: List[Word], orig_string: str,
-                          wrap_item=None) -> str:
+                          wrap_item: Word = None, context: List[Word] = None,
+                          offset: int = 0) -> str:
         """
-        Iterate the content of the `replacement_list` and wrap it in `\sameword{}` if necessary.
-          
-        This function iterates over each word in the `replacement_list` and checks whether it ( 
-        along with subsequent words, when applicable) match the content of the `search_list` with 
-        the `check_list_match` function. When that is the case, the item(s) are wrapped in 
-        `\sameword{}`. 
-        
-        When returning the updated list, a bit of whitespace cleanup is performed on it.
-         
-        :param search_list: List of words that should be matched in sequence. 
-        :param word_list: The string of words that should be checked for matches.
-        :param updated_list: The updated list. Empty by default. Argument in recursive calls. 
-        :return: The updated list in full.
+        Directing function for replacement.
+
+        This analyses a string of `Word` objects (returned by the `Words().list` parameter).
+        Since the clean function of `Words` returns a potentially nested list (sameword
+        annotations are processed as a nested list of their content), this handles `Word().content`
+        as either `str` or `list`.
+
+        :param search_list: List of `str` objects providing match patterns for string matching.
+        :param word_list: List of `Word` objects representing a cleaned version of `orig_string`.
+        :param orig_string: The original form of the string with the content we want to replace.
+        :param wrap_item: On recursion this provides context for wrap positions.
+        :param context: On recursion this provides the parent context list.
+        :param offset: Used for updated position index on multiple matches on same string.
+        :return: Updated string containing sameword annotations.
         """
-        for idx, item in enumerate(word_list):
-            if isinstance(item.content, str):
-                matches = check_list_match(search_list, word_list[idx:])
-                if matches:
+        if not word_list:
+            # Word list is empty and we made no matches. Return the original string.
+            return orig_string
+        if isinstance(word_list[0].content, str):
+            # The word contains a non-wrapped string that we can match.
+            matches = check_list_match(search_list, word_list)
+            if matches:
 
-                    start = matches[0].start
-                    end = matches[-1].end
+                start = matches[0].start + offset
+                end = matches[-1].end + offset
 
-                    if wrap_item:
-                        # Create return string and copy all up to start
-                        updated = orig_string[:wrap_item.start]
-                    else:
-                        updated = orig_string[:start]
-
-                    # create a phrase of the length of all the matches
-                    phrase = orig_string[start:end]
-                    # wrap the phrase (handles wrapped macro too)
-                    updated += wrap_phrase(phrase, lemma_level=lemma_level, wrap=wrap_item)
-
-                    if wrap_item:
-                        updated += orig_string[wrap_item.end:]
-                    else:
-                        updated += orig_string[end:]
-                    return updated
+                if wrap_item:
+                    # Create return string and copy all up to start
+                    updated = orig_string[:wrap_item.start + offset]
                 else:
-                    return make_replacements(search_list, word_list[1:], orig_string, wrap_item=None)
+                    updated = orig_string[:start]
+
+                phrase = orig_string[start:end]
+                len_before_wrap = len(phrase)
+                wrapped_phrase = wrap_phrase(phrase, lemma_level=lemma_level, wrap=wrap_item)
+                len_after_wrap = len(wrapped_phrase)
+                offset += len_after_wrap - len_before_wrap
+
+                # wrap the phrase (handles wrapped macro too)
+                updated += wrapped_phrase
+
+                if wrap_item:
+                    updated += orig_string[wrap_item.end:]
+                else:
+                    updated += orig_string[end:]
+                return make_replacements(search_list, word_list[1:], updated, offset=offset)
             else:
-                return make_replacements(search_list, item.content, orig_string, wrap_item=item)
-        # If we have no matches in any items in word_list just return the unchanged input string.
-        return orig_string
+                if context:
+                    # No match on this recursion level, so we continue from parent context.
+                    return make_replacements(search_list, context[1:], orig_string,
+                                             wrap_item=None, offset=offset)
+                else:
+                    return make_replacements(search_list, word_list[1:], orig_string,
+                                             wrap_item=None, offset=offset)
+        else:
+            # The word contains a list of Word obj's that we must go through. Replace with
+            # content as input list, the object as position context and the whole word_list for
+            # context preservation when we continue after the recursion.
+            return make_replacements(search_list, word_list[0].content, orig_string,
+                                     wrap_item=word_list[0], context=word_list)
+
 
     unwrapped = False
     try:
@@ -798,7 +751,7 @@ def replace_in_string(replace_word: str, replace_string: str, lemma_level: int =
         # The input replacement string is empty, so just return with processing.
         return replace_string
 
-    haystack_nested_list = dict_clean(replace_string)
+    haystack_nested_list = Words(replace_string).list
     search_word_listed = replace_word.split(' ')
     if haystack_nested_list:
         updated_replace_string = make_replacements(search_word_listed, haystack_nested_list, replace_string)

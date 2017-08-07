@@ -66,7 +66,7 @@ class TestLatexListMaintextWords:
     def test_clean_nested_edtext_macros(self):
         edtext_string = r"""et \edtext{hic \edtext{et}{\Afootnote{÷ A}} hoc}{\Afootnote{ille et illud B}} et cetera """
         edtext_string_result = ['et', 'hic', 'et', 'hoc', 'et', 'cetera']
-        assert as_list(clean(edtext_string)) == edtext_string_result
+        assert Words(edtext_string).list == edtext_string_result
 
 
 class TestProximityListing:
