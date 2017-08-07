@@ -168,11 +168,13 @@ class TestWrapWordPhrase:
 class TestMainReplaceFunction:
 
     def test_match_custom_singleword_exclude(self):
+        settings.exclude_macros += ['\\somemacro']
         text = 'Han var sonr \edtext{Hákon\emph{ar}\somemacro{Håkon II}}{\Afootnote{k\emph{on}gſ hakon\emph{ar} Sk}}, sons Hákonar\somemacro{Håkon I}'
         result = 'Han var sonr \edtext{\sameword[1]{Hákon\emph{ar}\somemacro{Håkon II}}}{\Afootnote{k\emph{on}gſ hakon\emph{ar} Sk}}, sons \sameword{Hákonar\somemacro{Håkon I}}'
         assert critical_note_match_replace_samewords(text) == result
 
     def test_match_custom_multiword_exclude(self):
+        settings.exclude_macros += ['\\somemacro']
         text = 'Han var sonr \edtext{Hákon\emph{ar}\somemacro{Håkon II} konungs}{\Afootnote{k\emph{on}gſ hakon\emph{ar} Sk}}, sons Hákonar\somemacro{Håkon I} konungs'
         result = 'Han var sonr \edtext{\sameword[1]{Hákon\emph{ar}\somemacro{Håkon II} konungs}}{\Afootnote{k\emph{on}gſ hakon\emph{ar} Sk}}, sons \sameword{Hákonar\somemacro{Håkon I} konungs}'
         assert critical_note_match_replace_samewords(text) == result

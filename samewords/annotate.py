@@ -7,7 +7,7 @@ Identify and annotate potentially ambiguous words in a string.
 import re
 from typing import Iterable, List, Union, Tuple, Dict
 
-from samewords.cli import ARGS
+from samewords import settings
 
 # Type aliases
 ContextList = List[List[str]]
@@ -452,41 +452,19 @@ class Word(str):
 
 class Words:
 
-    def __init__(self, input_string, global_offset: int = 0):
+    def __init__(self, input_string):
         self.input_string = input_string
         self.list = self.clean(input_string)
 
     def clean(self, search_string: str, global_offset: int = 0):
 
-        def custom_macros(argument) -> List[str]:
-            if ARGS[argument]:
-                with open(ARGS[argument]) as f:
-                    lines = []
-                    for line in f:
-                        lines.append(line.strip().replace('\n', ''))
-                    return lines
-            else:
-                return []
-
         if isinstance(search_string, CritText):
             search_string = search_string.maintext_note
 
+        ignored_macros = settings.exclude_macros
+        keep_macros = settings.include_macros
+
         ls = []
-        ignored_macros = [
-            '\\Afootnote',
-            '\\Bfootnote',
-            '\\Cfootnote',
-            '\\Dfootnote',
-            '\\Efootnote',
-            '\\lemma',
-            '\\applabel',
-            '\\somemacro',
-        ]
-
-        keep_macros = [
-            '\\index',
-        ]
-
         position = 0
         word = None
         while position < len(search_string):
