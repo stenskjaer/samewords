@@ -55,6 +55,24 @@ class TestLatexExpressionCapturing:
     def test_capture_escaped(self):
         assert Brackets(self.escaped_latex_string).content == self.escaped_latex_string[1:-1]
 
+    def test_capture_after_linebreak(self):
+        text = r"""
+        \lemma{A \ldots{} C}\Afootnote{a b c}"""
+        assert Brackets(text, macro=r'\lemma').content == r'A \ldots{} C'
+
+    def test_capture_content_linebreak(self):
+        text = r"""{
+        \lemma{A \ldots{} C}\Afootnote{a b c}}"""
+        assert Brackets(text).content == r"""
+        \lemma{A \ldots{} C}\Afootnote{a b c}"""
+
+    def test_temp(self):
+        text = r"""A \edtext{A \edtext{B}{\Afootnote{b}} C}{
+  \lemma{A \ldots{} C}\Afootnote{a b c}} C"""
+        result = r"""\sameword{A} \edtext{\sameword[1]{A} \edtext{B}{\Afootnote{b}} \sameword[1]{C}}{
+  \lemma{\sameword{A} \ldots{} \sameword{C}}\Afootnote{a b c}} \sameword{C}"""
+        assert critical_note_match_replace_samewords(text) == result
+
     def test_capture_unbalanced(self):
         with pytest.raises(ValueError):
             Brackets(self.unbalanced_string).content

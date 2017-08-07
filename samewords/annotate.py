@@ -104,7 +104,7 @@ class CritText(str):
     def get_lemma_content(self):
         """Isolate the content of the `\lemma{}` macro in the critical note."""
         if self.has_lemma:
-            return Brackets(self.critical_note, start=len(r'\lemma')).content
+            return Brackets(self.critical_note, macro=r'\lemma').content
         else:
             return None
 
@@ -226,20 +226,18 @@ class CritText(str):
 
         return segments.to_string()
 
-    def replace_in_critical_note(self, replace_word: str, replace_string: str = None) -> str:
+    def replace_in_critical_note(self, replace_word: str) -> str:
         """
         Update content of critical note by wrapping possible match words.
         """
+        lemma_content = Brackets(self.critical_note, macro=r'\lemma').content
 
-        if replace_string:
-            lemma_content = Brackets(replace_string, start=len(r'\lemma')).content
-        else:
-            lemma_content = Brackets(self.critical_note, start=len(r'\lemma')).content
+        # Store everything up to start of lemma content.
+        position = self.critical_note.find(r'{') + 1
+        return_string = self.critical_note[:position]
 
-        return_string = r'\lemma{'
-        position = len(r'\lemma{')
+        # Replace the content and put into return list.
         return_string += replace_in_string(replace_word, lemma_content, lemma_level=0)
-
         position += len(lemma_content)
 
         # Add the following app note, where nothing should be changed, and return it
@@ -341,6 +339,9 @@ class Brackets:
         """
         special_chars = r'\&%$#_{}~^'
         capture = ''
+
+        if re.match('\n+\s+', search_string[position:]):
+            position += len(re.match('\n+\s+', search_string[position:]).group(0))
 
         if macro:
             if search_string[position:position + len(macro)] == macro:
