@@ -5,7 +5,7 @@ Identify and annotate potentially ambiguous words in a string.
 """
 
 import re
-from typing import Iterable, List, Union, Tuple, Dict
+from typing import Iterable, List, Union, Tuple
 
 from samewords import settings
 
@@ -22,7 +22,7 @@ class TextSegment(list):
     def __init__(self, input_string: str) -> None:
         list.__init__(self, self.content_split(input_string))
 
-    def content_split(self, search_string: str, return_list: List[str] = [],
+    def content_split(self, search_string: str, return_list: List[str] = list(),
                       first: bool = True) -> List[str]:
         """
         Split the input `search_string` into list demarcated by `\edtext{}`-items.
@@ -38,7 +38,8 @@ class TextSegment(list):
         if r'\edtext' in search_string:
             appnote_start = search_string.find(r'\edtext')
             maintext_note_length = len(Macro(search_string[appnote_start:]).complete_macro())
-            crit_note_length = Brackets(search_string, start=appnote_start + maintext_note_length).length
+            crit_note_length = Brackets(search_string,
+                                        start=appnote_start + maintext_note_length).length
             appnote_end = appnote_start + maintext_note_length + crit_note_length
 
             if appnote_start > 0:
@@ -336,7 +337,8 @@ class Brackets:
         position += bracket_offset
         return position - start_position
 
-    def content(self, search_string: str, position: int, macro: str) -> str:
+    @staticmethod
+    def content(search_string: str, position: int, macro: str) -> str:
         """Get the content of the macro and return it.
         """
         special_chars = r'\&%$#_{}~^'
@@ -406,7 +408,7 @@ class Macro:
         if self.has_opening:
             position = self.start + self.input_string[self.start:].find('{')
             return self.before_opening \
-                   + '{' + Brackets(self.input_string, start=position).content + '}'
+                + '{' + Brackets(self.input_string, start=position).content + '}'
         else:
             return self.before_opening
 
@@ -572,7 +574,6 @@ def search_in_proximity(search_word: str, context_before: List[List[str]],
     return False
 
 
-
 def replace_in_proximity(context_before_list: ContextList, context_after_list: ContextList,
                          search_word: str) -> Tuple[ContextList, ContextList]:
     """
@@ -619,7 +620,7 @@ def replace_in_string(replace_word: str, replace_string: str, lemma_level: int =
     :return: Updated or unchanged string.
     """
     def check_list_match(pattern_list: List[str], replace_list: List[Word],
-                         return_list: List[str] = [], first: bool = True):
+                         return_list: List[str] = list(), first: bool = True) -> List[Word]:
         """Check whether a word string in `pattern_list` (search phrase) is matched in 
         `replace_list`. 
         
@@ -633,7 +634,8 @@ def replace_in_string(replace_word: str, replace_string: str, lemma_level: int =
         
         :param pattern_list: List of search words to be matched in `replace_list`.
         :param replace_list: List of words to be matched.
-        :param return_list: The results to be returned, built successively in recursive calls. 
+        :param return_list: The results to be returned, built successively in recursive calls.
+        :param first: Indicate whether we are at the first iteration on a recursive stack.
         :return List of items from `replace_list` that match items in `pattern_list`.
         """
         if first:
@@ -650,7 +652,8 @@ def replace_in_string(replace_word: str, replace_string: str, lemma_level: int =
 
             if re.search(r'(?<!\w)' + re.escape(pattern_list[0]) + '(?!\w)', match):
                 return_list.append(word)
-                return check_list_match(pattern_list[1:], replace_list[1:], return_list, first=False)
+                return check_list_match(pattern_list[1:], replace_list[1:],
+                                        return_list, first=False)
         except IndexError:
             return return_list
 
@@ -719,7 +722,6 @@ def replace_in_string(replace_word: str, replace_string: str, lemma_level: int =
             return make_replacements(search_list, word_list[0].content, orig_string,
                                      wrap_item=word_list[0], context=word_list)
 
-
     unwrapped = False
     try:
         if replace_string[0] is '{' and replace_string[-1] is '}':
@@ -729,10 +731,10 @@ def replace_in_string(replace_word: str, replace_string: str, lemma_level: int =
         # The input replacement string is empty, so just return with processing.
         return replace_string
 
-    haystack_nested_list = Words(replace_string).list
-    search_word_listed = replace_word.split(' ')
-    if haystack_nested_list:
-        updated_replace_string = make_replacements(search_word_listed, haystack_nested_list, replace_string)
+    words_list = Words(replace_string).list
+    search_words = replace_word.split(' ')
+    if words_list:
+        updated_replace_string = make_replacements(search_words, words_list, replace_string)
     else:
         updated_replace_string = replace_string
 
@@ -749,7 +751,8 @@ def wrap_phrase(phrase: str, lemma_level: int = 0, wrap: Word = None) -> str:
     wrapped in another. If one or more words of a phrase are wrapped, it should wrap the whole 
     phrase. It also needs to handle the conditions of lemma level numbering. 
     
-    :param phrase: the word or phrase that should be wrapped. 
+    :param wrap: `Word` object containg information on wrapping macro.
+    :param phrase: the word or phrase that should be wrapped.
     :param lemma_level: the level of the lemma annotation. Default=0
     :return: The wrapped input phrase
     """
