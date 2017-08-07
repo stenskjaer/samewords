@@ -1,5 +1,6 @@
 import pytest
 
+from samewords import settings
 from samewords.annotate import *
 
 no_proximity_match = r"""sw \edtext{so}{\lemma{so}\Bfootnote{foot content}}  and again sw it is all and something after."""
@@ -102,10 +103,14 @@ class TestSamewordWrapping:
         assert wrap_phrase('sw', lemma_level=1) == r'\sameword[1]{sw}'
 
     def test_wrap_wrapped_sameword_without_argument(self):
-        assert wrap_phrase('\sameword{so}', lemma_level=2) == r"\sameword[2]{so}"
+        wrap = Word(r'\sameword{so}')
+        wrap.wrap_macro = r'\sameword'
+        assert wrap_phrase('so', lemma_level=2, wrap=wrap) == r"\sameword[2]{so}"
 
     def test_wrap_wrapped_sameword_with_argument(self):
-        assert wrap_phrase('\sameword[2]{so}', lemma_level=1) == r'\sameword[1,2]{so}'
+        w_item = Word(r'\sameword[2]{so}')
+        w_item.wrap_macro = r'\sameword[2]'
+        assert wrap_phrase('so', lemma_level=1, wrap=w_item) == r'\sameword[1,2]{so}'
 
     def test_wrap_no_lemma(self):
         assert wrap_phrase('so', lemma_level=0) == r"\sameword{so}"
@@ -121,25 +126,33 @@ class TestWrapWordPhrase:
         assert wrap_phrase(single_word) == single_word_result
 
     def test_wrap_wrapped_word(self):
-        single_word = r'\sameword{input}'
+        single_word = 'input'
+        wrap = Word(r'\sameword{input}')
+        wrap.wrap_macro = r'\sameword'
         single_word_result = r'\sameword{input}'
-        assert wrap_phrase(single_word) == single_word_result
+        assert wrap_phrase(single_word, wrap=wrap) == single_word_result
 
 
     def test_wrap_w_level(self):
         single_word = 'input'
+        wrap = Word(r'\sameword[1]{input}')
+        wrap.wrap_macro = r'\sameword[1]'
         single_word_result = r'\sameword[1]{input}'
-        assert wrap_phrase(single_word, lemma_level=1) == single_word_result
+        assert wrap_phrase(single_word, lemma_level=1, wrap=wrap) == single_word_result
 
     def test_wrap_wrapped_w_level(self):
-        single_word = r'\sameword{input}'
+        single_word = 'input'
+        wrap = Word(r'\sameword[1]{input}')
+        wrap.wrap_macro = r'\sameword[1]'
         single_word_result = r'\sameword[1]{input}'
-        assert wrap_phrase(single_word, lemma_level=1) == single_word_result
+        assert wrap_phrase(single_word, lemma_level=1, wrap=wrap) == single_word_result
 
     def test_wrap_multiword(self):
         multiword = 'input material'
+        wrap = Word(r'\sameword{input material}')
+        wrap.wrap_macro = r'\sameword'
         multiword_result = r'\sameword{input material}'
-        assert wrap_phrase(multiword) == multiword_result
+        assert wrap_phrase(multiword, wrap=wrap) == multiword_result
 
     def test_wrap_multi_partially_wrapped(self):
         multiword = r'input \sameword{material}'
@@ -153,6 +166,16 @@ class TestWrapWordPhrase:
 
 
 class TestMainReplaceFunction:
+
+    def test_match_custom_singleword_exclude(self):
+        text = 'Han var sonr \edtext{Hákon\emph{ar}\somemacro{Håkon II}}{\Afootnote{k\emph{on}gſ hakon\emph{ar} Sk}}, sons Hákonar\somemacro{Håkon I}'
+        result = 'Han var sonr \edtext{\sameword[1]{Hákon\emph{ar}\somemacro{Håkon II}}}{\Afootnote{k\emph{on}gſ hakon\emph{ar} Sk}}, sons \sameword{Hákonar\somemacro{Håkon I}}'
+        assert critical_note_match_replace_samewords(text) == result
+
+    def test_match_custom_multiword_exclude(self):
+        text = 'Han var sonr \edtext{Hákon\emph{ar}\somemacro{Håkon II} konungs}{\Afootnote{k\emph{on}gſ hakon\emph{ar} Sk}}, sons Hákonar\somemacro{Håkon I} konungs'
+        result = 'Han var sonr \edtext{\sameword[1]{Hákon\emph{ar}\somemacro{Håkon II} konungs}}{\Afootnote{k\emph{on}gſ hakon\emph{ar} Sk}}, sons \sameword{Hákonar\somemacro{Håkon I} konungs}'
+        assert critical_note_match_replace_samewords(text) == result
 
     def test_text_match_with_index_command(self):
         text_w_index = r"\edtext{Sortes\index[persons]{Sortes}}{\Afootnote{Socrates B}} dicit: Sortes\index[persons]{Sortes} probus"
@@ -170,9 +193,9 @@ class TestMainReplaceFunction:
         assert critical_note_match_replace_samewords(emph_conflict) == emph_conflict_result
 
     def test_nested_no_lemma(self):
-        nested_no_lemma = r"""et \edtext{hic \edtext{et}{\Afootnote{÷ A}} hoc}{\Afootnote{ille et 
+        nested_no_lemma = r"""et \edtext{hic \edtext{et}{\Afootnote{÷ A}} hoc}{\Afootnote{ille et
             illud B}} et cetera """
-        nested_no_lemma_result = r"""\sameword{et} \edtext{hic \edtext{\sameword[2]{et}}{\Afootnote{÷ A}} hoc}{\Afootnote{ille et 
+        nested_no_lemma_result = r"""\sameword{et} \edtext{hic \edtext{\sameword[2]{et}}{\Afootnote{÷ A}} hoc}{\Afootnote{ille et
             illud B}} \sameword{et} cetera """
         assert critical_note_match_replace_samewords(nested_no_lemma) == nested_no_lemma_result
 
@@ -210,8 +233,11 @@ class TestMainReplaceFunction:
     def test_multiword_lemma(self):
         assert critical_note_match_replace_samewords(multiword_lemma) == multiword_lemma_result
 
+    @pytest.mark.skip('Not implemented yet!')
     def test_multiword_lemma_intervening_macro(self):
         test_string = r'per \sidenote{1rb O} causam scire est \edtext{per causam}{\lemma{per causam}\Bfootnote{causam rei B}} cognoscere'
+        test_string_res = r'\sameword{per \sidenote{1rb O} causam} scire est \edtext{\sameword[1]{per causam}}{\lemma{\sameword{per causam}}\Bfootnote{causam rei B}} cognoscere'
+        assert critical_note_match_replace_samewords(test_string) == test_string_res
 
     def test_nested_ambiguity(self):
         assert critical_note_match_replace_samewords(nested_ambiguity) == nested_ambiguity_result
