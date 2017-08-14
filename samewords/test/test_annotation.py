@@ -40,6 +40,53 @@ no_annotation_in_footnote = r"""Ad primum argumentum dicendum \edtext{quod minor
 no_annotation_in_footnote_result = r"""Ad primum argumentum dicendum \edtext{quod minor est falsa}{\lemma{quod minor est falsa}\Bfootnote{per interemptionem minoris B}} \edtext{\sameword[1]{per}}{\lemma{\sameword{per}}\Bfootnote{\emph{om.} O}} privationem. Per privationem sicut \edtext{dicitur \sameword{per}}{\lemma{dicitur per}\Bfootnote{per match}}."""
 
 
+class TestCritTextObject:
+
+    def test_define_search_words_ldots(self):
+        text = r"""\edtext{A B C D E F}{\lemma{A \ldots F}\Afootnote{b c d e f}}"""
+        result = ['A', 'F']
+        obj = CritText(text)
+        assert obj.search_words == result
+
+    def test_define_search_words_dash(self):
+        text = r"""\edtext{A B C D E F}{\lemma{A-F}\Afootnote{b c d e f}}"""
+        result = ['A', 'F']
+        obj = CritText(text)
+        assert obj.search_words == result
+
+    def test_define_search_words_dash_with_space(self):
+        text = r"""\edtext{A B C D E F}{\lemma{A - F}\Afootnote{b c d e f}}"""
+        result = ['A', 'F']
+        obj = CritText(text)
+        assert obj.search_words == result
+
+    def test_define_search_words_en_dash(self):
+        text = r"""\edtext{A B C D E F}{\lemma{A–F}\Afootnote{b c d e f}}"""
+        result = ['A', 'F']
+        obj = CritText(text)
+        assert obj.search_words == result
+
+    def test_define_search_words_em_dash(self):
+        text = r"""\edtext{A B C D E F}{\lemma{A—F}\Afootnote{b c d e f}}"""
+        result = ['A', 'F']
+        obj = CritText(text)
+        assert obj.search_words == result
+
+    def test_define_search_words_double_dash(self):
+        text = r"""\edtext{A B C D E F}{\lemma{A--F}\Afootnote{b c d e f}}"""
+        result = ['A', 'F']
+        obj = CritText(text)
+        assert obj.search_words == result
+
+    def test_define_search_words_triple_dash(self):
+        text = r"""\edtext{A B C D E F}{\lemma{A---F}\Afootnote{b c d e f}}"""
+        result = ['A', 'F']
+        obj = CritText(text)
+        assert obj.search_words == result
+
+
+
+
 class TestLatexExpressionCapturing:
     long_string = """
     test of content \edtext{content \edtext{content2 \emph{test}}}{\lemma{content \edtext{content2 \emph{ 

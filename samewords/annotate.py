@@ -59,6 +59,10 @@ class TextSegment(list):
 class CritText(str):
     """
     A critical apparatus note.
+
+    It takes a text segment containing exactly one critical text node like so: "\edtext{
+    maintext}{critical text}". If the second argument contains a `\lemma`, that is used for
+    determining the search words of the objects.
     """
 
     def __init__(self, input_string: str) -> None:
@@ -81,10 +85,13 @@ class CritText(str):
 
         :return: List of search words.
         """
-        # Determine lemma type. The `dots` variable is used for processing of ldots notes.
+        def add_ellipses(patterns: List[str]) -> str:
+            return ''.join(['|({})'.format(pat) for pat in patterns])
+
         if self.has_lemma:
             lemma_word_list = Words(self.lemma_content).list
-            if re.search(r'\\l?dots({})?', self.lemma_content):
+            ellipsis = re.compile(r'(\\l?dots({})?)' + add_ellipses(settings.ellipsis_patterns))
+            if re.search(ellipsis, self.lemma_content):
                 # Covers ldots lemma. We use the dots variable to identify first and last
                 # word in dots lemmas.
                 search_words = [lemma_word_list[0]] + [lemma_word_list[-1]]
