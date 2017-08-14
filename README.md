@@ -125,8 +125,44 @@ Alternatively regular unix redirecting will work just as well in a Unix context:
 samewords my-beautiful-edition.tex > ~/Desktop/test/output.tex
 ```
 
-### Include macros in disambiguations (`--include-macros`) ###
+### Configuration file
 
+You can configure a small range of settings relevant for the processing. This is
+done in a JSON-formatted file. You give the location of the config file to the
+argument `--config-file`. The script will automatically look for a config file
+with the name `~/.samewords.json`, so if you put it there, you won't have to
+specify the command line argument every time you call the script. That can be
+very handy if you often need to use the same configuration.
+
+The configuration file recognizes the following parameters:
+- `include_macros`
+- `exclude_macros`
+- `ellipsis_patterns`
+
+JSON requires backslashes to be escaped if you want to preserved them in the
+string. You do that with another backslash, so `\\` will
+result in a single backslash. You must remember this when noting `TeX` strings
+or regular expressions that contain backslashes.
+
+A complete configuration file could contain the following content:
+```json
+{
+  "ellipsis_patterns": [
+    "--",
+    "–"
+  ],
+  "include_macros": [
+    "\\includedMacro"
+  ],
+  "exclude_macros": [
+    "\\excludedMacro"
+  ]
+}
+```
+
+For details, see below.
+
+#### `include_macros`
 The script searches for words or phrases identical to those in the `\edtext{}{}`
 macros to identify possible conflicts. Per default the content of practically
 all macros are included in this comparison.
@@ -149,19 +185,21 @@ which will succeed and therefore annotate the instances.
 
 You might want to distinguish some phrases based on their contained macros. For
 instance you might want to let `Hákon\emph{ar}` and `Hákonar` be two different
-strings. In that case you use the `--include-macros` argument.
+strings. In that case you use the `include_macros` argument.
 
-`--include-macros` must point to a text file where each line contains a macro
+`include_macros` must be a list of strings that each specify a macro
 that you want to keep in the comparison algorithm. So to distinguish
-`Hákon\emph{ar}` from `Hákonar`, I would write the following text-file:
+`Hákon\emph{ar}` from `Hákonar`, the configuration file must contain the
+following key-value pair:
 
-```txt
-\emph
+```json
+{
+  "include_macros": "\\emph"
+}
 ```
 
-And then pass the location of that file in the argument `--include-macros`.
 
-### Exclude macros in disambiguations (`--exclude-macros`) ###
+#### `exclude_macros`
 
 This is the inverse feature of the above. You might want to define some macros
 which are entirely ignored in the comparison of text segments. 
@@ -177,12 +215,44 @@ Since the content of (almost) all macros is included by default, this would give
 the comparison of the phrase `I know` (`\edtext` content) with `I23v know that`
 (context). It will not match, and hence not annotate the phrase.
 
-If we pass a file to the `--exclude-macros` argument which contains a line with
+If we pass a file to the `exclude_macros` argument which contains a line with
 the command `\pagebreak`, that will be ignored in processing, and we will get a
 comparison between `I know` (`\edtext` content) with `I know that`
 (context). This will match and hence correctly annotate the phrase.
 
 To see the details of this, see the `Words` object in the `annotate` module.
+
+#### `ellipsis_patterns`
+
+This key contains a list of patterns that should be included when matching for
+ellipsis symbols in `\lemma{}`. These are used in a regular expression match, so
+any valid python regular expression will work. 
+
+Say you use "--" and "..." to indicate ellipsis. Actually, you ought to write
+the dotted ellipsis with `\dots{}` in `LaTeX`, but if you insist, you could give
+the key the following list (but you shouldn't, really. Use `\dots{}`):
+
+```json
+{
+  "ellipsis_patterns": [
+    "\\.\\.\\.",
+    "-+"
+  ]
+}
+```
+
+This looks complicated, but don't worry. The "..." is matched with a regex
+pattern, which requires us to escape the regular "." – that would normally look
+like this `\.\.\.`. But since we also need to escape the backslashes in the JSON
+regex string format, they are doubly escaped.
+
+The second is a lot simpler, it is just a regex that will match one or more
+regular dashes in your text. Note that this comes with some danger as it will
+match if your lemma contains a single dash, even though you might not have
+thought of it as an "ellipsis"-dash. In these cases, its better to be explicit
+and either use double dashes (`--`) or real unicode en-dashes (`–`). It is also
+typographically much better.
+
 
 # Issue reporting and testing
 
