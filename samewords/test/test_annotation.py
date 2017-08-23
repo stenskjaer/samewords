@@ -364,12 +364,10 @@ et cetera \edtext{et}{\Afootnote{÷}} cetera et cetera
         assert critical_note_match_replace_samewords(
             multiword_lemma) == multiword_lemma_result
 
-    @pytest.mark.skip('Not implemented yet!')
     def test_multiword_lemma_intervening_macro(self):
         test_string = r'per \sidenote{1rb O} causam scire est \edtext{per causam}{\lemma{per causam}\Bfootnote{causam rei B}} cognoscere'
         test_string_res = r'\sameword{per \sidenote{1rb O} causam} scire est \edtext{\sameword[1]{per causam}}{\lemma{\sameword{per causam}}\Bfootnote{causam rei B}} cognoscere'
-        assert critical_note_match_replace_samewords(
-            test_string) == test_string_res
+        assert critical_note_match_replace_samewords(test_string) == test_string_res
 
     def test_nested_ambiguity(self):
         assert critical_note_match_replace_samewords(

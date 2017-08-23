@@ -5,6 +5,9 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
 
 ## [Unreleased]
 ### Added
+- Ignore `\sidenote` in sameword matching. This means for example that if a
+  `\sidenote` intervenes between two words that would constitute a match, it is
+  appropriately ignored and they match.
 - Add customization option for whether to compare same words in lower case
   forms.
 - Add `--config-file` command line argument that makes it possible to use

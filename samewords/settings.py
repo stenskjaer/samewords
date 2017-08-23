@@ -9,6 +9,7 @@ exclude_macros = [
     '\\Efootnote',
     '\\lemma',
     '\\applabel',
+    '\\sidenote',
 ]
 
 # Macros that should be included when identifying matches
