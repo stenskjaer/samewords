@@ -410,7 +410,9 @@ class Macro:
             self.has_opening = True
             return opening.group(0)[:-1]
         else:
-            space_pos = re.search(r'\s', self.input_string[self.start:]).start() or -1
+            space_pos = -1
+            if re.search(r'\s', self.input_string[self.start:]):
+                space_pos = re.search(r'\s', self.input_string[self.start:]).start()
             return self.input_string[self.start:space_pos]
 
     def complete_macro(self) -> str:
