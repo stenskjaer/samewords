@@ -395,15 +395,16 @@ class Macro:
         return self.before_opening
 
     def identify_name(self) -> str:
-        return re.match(r'[^ [{]+', self.input_string[self.start:]).group(0)
+        return re.match(r'[^\s[{]+', self.input_string[self.start:]).group(0)
 
     def before_opening(self) -> str:
-        opening = re.match(r'[^ ]+?{', self.input_string)
+        opening = re.match(r'[^\s]+?{', self.input_string)
         if opening:
             self.has_opening = True
             return opening.group(0)[:-1]
         else:
-            return self.input_string[self.start:self.input_string[self.start:].find(' ')]
+            space_pos = re.search(r'\s', self.input_string[self.start:]).start() or -1
+            return self.input_string[self.start:space_pos]
 
     def complete_macro(self) -> str:
         if self.has_opening:
