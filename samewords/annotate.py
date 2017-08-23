@@ -452,7 +452,7 @@ def search_in_proximity(search_word: str, context_before: List[List[str]],
 
     for context_chunk in contexts:
         maintext_words = ' '.join(list_maintext_words(context_chunk))
-        if re.search(r'\b' + search_word.lower() + r'\b', maintext_words.lower()):
+        if re.search(r'\b' + search_word.casefold() + r'\b', maintext_words.casefold()):
             return True
     return False
 
@@ -536,7 +536,7 @@ def replace_in_string(replace_word: str, replace_string: str, lemma_level: int =
         :return List of items from `replace_list` that match items in `pattern_list`.
         """
         try:
-            if re.search(r'\b' + pattern_list[0].lower() + r'\b', replace_list[0].lower()):
+            if re.search(r'\b' + pattern_list[0].casefold() + r'\b', replace_list[0].casefold()):
                 return_list.append(replace_list[0])
                 return check_list_match(pattern_list[1:], replace_list[1:], return_list)
         except IndexError:
