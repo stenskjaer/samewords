@@ -14,7 +14,7 @@ import re
 
 def document_content(filename):
     """Return the content of file."""
-    with open(filename, 'r') as f:
+    with open(filename, mode='r', encoding='utf-8') as f:
         return f.read()
 
 
