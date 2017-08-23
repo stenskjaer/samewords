@@ -12,13 +12,14 @@ Options:
   --output <location>      Location of output. You can specify a filename as
                            part of the address. If you don't do that, the name
                            of the input file will be used.
-  --include-macros <file>  File listing the macros that should be included when
-                           comparing text segments.
-  --exclude-macros <file>  File listing the macros that should be ignored when
-                           comparing text segments.
+  --config-file <file>     JSON-formatted file with application configuration variables. For
+                           recognized keys and formatting of values, see the documentation on
+                           https://github.com/stenskjaer/samewords. [default: ~/.samewords.json]
   -v, --version            Show version and exit.
   -h, --help               Show this help message and exit.
 """
+
+import json
 
 import samewords
 import docopt
@@ -26,24 +27,40 @@ import os
 
 from samewords import settings
 
-def parse_macro_file(input_file: str) -> list:
-    "Return a list of the content of a macro file."
-    ls = []
-    with open(input_file) as f:
-        for line in f:
-            ls.append(line.strip())
-    return ls
+
+def load_config(filename):
+    """Load and read in configuration from local config file.
+
+    :return Dictionary of the configuration."""
+    try:
+        with open(filename, mode='r') as f:
+            conf = json.loads(f.read())
+        return conf
+    except json.decoder.JSONDecodeError as e:
+        raise
+    except FileNotFoundError:
+        return {}
+
+
+def parse_config_file(filename: str) -> object:
+    """Parse the config file and update the global settings.
+
+    If successful, return settings, otherwise return None."""
+    filename = os.path.expanduser(filename)
+    if os.path.isfile(filename):
+        user_conf = load_config(filename)
+        settings.ellipsis_patterns += user_conf.get('ellipsis_patterns', [])
+        settings.include_macros += user_conf.get('include_macros', [])
+        settings.exclude_macros += user_conf.get('exclude_macros', [])
+        return settings
+    return None
+
 
 def main():
     args = docopt.docopt(__doc__, version=samewords.__version__)
     filename = args['<file>']
     output = args['--output']
-
-    if args['--include-macros']:
-        settings.include_macros += parse_macro_file(args['--include-macros'])
-
-    if args['--exclude-macros']:
-        settings.exclude_macros += parse_macro_file(args['--exclude-macros'])
+    parse_config_file(args['--config-file'])
 
     if not output:
         print(samewords.core.process_document(filename))

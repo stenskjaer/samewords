@@ -1,0 +1,12 @@
+{
+  "ellipsis_patterns": [
+    "\\.\\.\\.",
+    "-+"
+  ],
+  "include_macros": [
+    "\\myMacro"
+  ],
+  "exclude_macros": [
+    "\\anotherMacro"
+  ]
+}
