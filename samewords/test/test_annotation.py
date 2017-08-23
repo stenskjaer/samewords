@@ -41,8 +41,8 @@ no_annotation_in_footnote_result = r"""Ad primum argumentum dicendum \edtext{quo
 
 class TestLatexExpressionCapturing:
     long_string = """
-    test of content \edtext{content \edtext{content2 \emph{test}}}{\lemma{content \edtext{content2 \emph{ 
-    test}}}\Afootnote{Footnote content}} and some content afterwards! 
+    test of content \edtext{content \edtext{content2 \emph{test}}}{\lemma{content \edtext{content2 \emph{
+    test}}}\Afootnote{Footnote content}} and some content afterwards!
     """
 
     balanced_string = '{\lemma{\sw{content}}}'
@@ -50,14 +50,22 @@ class TestLatexExpressionCapturing:
     escaped_latex_string = '{\\ \& \% \$ \# \_ \{ \} \~ \^}'
 
     def test_capture_balanced(self):
-        assert Macro(self.balanced_string).content == self.balanced_string[1:-1]
+        assert Brackets(self.balanced_string).content == self.balanced_string[1:-1]
 
     def test_capture_escaped(self):
-        assert Macro(self.escaped_latex_string).content == self.escaped_latex_string[1:-1]
+        assert Brackets(self.escaped_latex_string).content == self.escaped_latex_string[1:-1]
 
     def test_capture_unbalanced(self):
         with pytest.raises(ValueError):
-            Macro(self.unbalanced_string).content
+            Brackets(self.unbalanced_string).content
+
+
+class TestLatexListMaintextWords:
+
+    def test_clean_nested_edtext_macros(self):
+        edtext_string = r"""et \edtext{hic \edtext{et}{\Afootnote{÷ A}} hoc}{\Afootnote{ille et illud B}} et cetera """
+        edtext_string_result = ['et', 'hic', 'et', 'hoc', 'et', 'cetera']
+        assert as_list(clean(edtext_string)) == edtext_string_result
 
 
 class TestProximityListing:
@@ -146,15 +154,64 @@ class TestWrapWordPhrase:
 
 class TestMainReplaceFunction:
 
-    def test_compare_strings_lowercased(self):
-        case_insensitive_match = r"per \edtext{Per}{\Bfootnote{secundum O}}"
-        case_insensitive_match_result = r"\sameword{per} \edtext{\sameword[1]{Per}}{\Bfootnote{secundum O}}"
-        assert critical_note_match_replace_samewords(case_insensitive_match) == case_insensitive_match_result
+    def test_wrap_with_linebreak(self):
+        linebreak_text = r"""Leo aut ursus aut oryx aut ricinus aut equus aut
+lupus \edtext{aut}{\Afootnote{et}\Bfootnote{monotone\ldots}} canis aut felix aut asinus \edtext{aut}{\Bfootnote{et}} burricus."""
+        linebreak_text_result = r"""Leo \sameword{aut} ursus \sameword{aut} oryx \sameword{aut} ricinus \sameword{aut} equus \sameword{aut}
+lupus \edtext{\sameword[1]{aut}}{\Afootnote{et}\Bfootnote{monotone\ldots}} canis \sameword{aut} felix \sameword{aut} asinus \edtext{\sameword[1]{aut}}{\Bfootnote{et}} burricus."""
+        assert critical_note_match_replace_samewords(linebreak_text) == linebreak_text_result
 
-    def test_recursion_on_nested_empty_edtext(self):
-        recursing = r"secundum \edtext{secundum}{\lemma{secundum}\Bfootnote{\emph{om.} P}} \edtext{\edtext{}{\lemma{philosophum}\Bfootnote{}} octavo Metaphysicae}{\lemma{}\Bfootnote{content B}}"
-        recursing_result = r"\sameword{secundum} \edtext{\sameword[1]{secundum}}{\lemma{\sameword{secundum}}\Bfootnote{\emph{om.} P}} \edtext{\edtext{}{\lemma{philosophum}\Bfootnote{}} octavo Metaphysicae}{\lemma{}\Bfootnote{content B}}"
-        assert critical_note_match_replace_samewords(recursing) == recursing_result
+    def test_wrap_with_tabs(self):
+        tabs = """
+Leo aut ursus aut oryx
+	aut ricinus aut
+	equus
+	aut lupus aut
+	canis aut felix aut asinus \edtext{aut}{\Bfootnote{et}} burricus.
+"""
+        tabs_result = """
+Leo \sameword{aut} ursus \sameword{aut} oryx
+	\sameword{aut} ricinus \sameword{aut}
+	equus
+	\sameword{aut} lupus \sameword{aut}
+	canis \sameword{aut} felix \sameword{aut} asinus \edtext{\sameword[1]{aut}}{\Bfootnote{et}} burricus.
+"""
+        assert critical_note_match_replace_samewords(tabs) == tabs_result
+
+    def test_linebreak_first_word(self):
+        linebreak_first = """
+\pstart
+et cetera \edtext{et}{\Afootnote{÷}} cetera et cetera
+\pend
+"""
+        linebreak_first_result = """
+\pstart
+\sameword{et} cetera \edtext{\sameword[1]{et}}{\Afootnote{÷}} cetera \sameword{et} cetera
+\pend
+"""
+        assert critical_note_match_replace_samewords(linebreak_first) == linebreak_first_result
+
+    def test_text_match_with_index_command(self):
+        text_w_index = r"\edtext{Sortes\index[persons]{Sortes}}{\Afootnote{Socrates B}} dicit: Sortes\index[persons]{Sortes} probus"
+        text_w_index_result = r"\edtext{\sameword[1]{Sortes\index[persons]{Sortes}}}{\Afootnote{Socrates B}} dicit: \sameword{Sortes\index[persons]{Sortes}} probus"
+        assert critical_note_match_replace_samewords(text_w_index) == text_w_index_result
+
+    def test_text_no_match_with_index_command(self):
+        text_w_index = r"\edtext{Sortes\index[persons]{Socrates}}{\Afootnote{Socrates B}} dicit: Sortes\index[persons]{Sortes} probus"
+        text_w_index_result = r"\edtext{Sortes\index[persons]{Socrates}}{\Afootnote{Socrates B}} dicit: Sortes\index[persons]{Sortes} probus"
+        assert critical_note_match_replace_samewords(text_w_index) == text_w_index_result
+
+    def test_ignoring_emph_macro(self):
+        emph_conflict = r'\edtext{So\emph{cra}tes}{\Afootnote{Socrates B}} dicit: Socrates probus'
+        emph_conflict_result = r'\edtext{\sameword[1]{So\emph{cra}tes}}{\Afootnote{Socrates B}} dicit: \sameword{Socrates} probus'
+        assert critical_note_match_replace_samewords(emph_conflict) == emph_conflict_result
+
+    def test_nested_no_lemma(self):
+        nested_no_lemma = r"""et \edtext{hic \edtext{et}{\Afootnote{÷ A}} hoc}{\Afootnote{ille et
+            illud B}} et cetera """
+        nested_no_lemma_result = r"""\sameword{et} \edtext{hic \edtext{\sameword[2]{et}}{\Afootnote{÷ A}} hoc}{\Afootnote{ille et
+            illud B}} \sameword{et} cetera """
+        assert critical_note_match_replace_samewords(nested_no_lemma) == nested_no_lemma_result
 
     def test_wrap_without_lemma(self):
         no_lemma = r'non videtur sed \edtext{non}{\Bfootnote{sic B}}'
@@ -229,13 +286,13 @@ class TestMainReplaceFunction:
         text = r"""
         \edlabelS{da-49-l1q1-ysmgk1}%
         \no{1.1}
-        Illud de quo est scientia est intelligibile, quia cum scientia sit habitus intellectus, de quo est scientia oportet esse intelligibile; sed anima non est intelligibile, quia omnis nostra cognitio ortum habet a sensu, \edtext{unde ipsum intelligere non est}{\lemma{unde \dots{} est}\Bfootnote{quia nihil intelligimus B}} sine phantasmate, sed anima sub sensu non cadit, nec phantasma facit; ergo et cetera. 
+        Illud de quo est scientia est intelligibile, quia cum scientia sit habitus intellectus, de quo est scientia oportet esse intelligibile; sed anima non est intelligibile, quia omnis nostra cognitio ortum habet a sensu, \edtext{unde ipsum intelligere non est}{\lemma{unde \dots{} est}\Bfootnote{quia nihil intelligimus B}} sine phantasmate, sed anima sub sensu non cadit, nec phantasma facit; ergo et cetera.
         \edlabelE{da-49-l1q1-ysmgk1}
         """
         result = r"""
         \edlabelS{da-49-l1q1-ysmgk1}%
         \no{1.1}
-        Illud de quo \sameword{est} scientia \sameword{est} intelligibile, quia cum scientia sit habitus intellectus, de quo \sameword{est} scientia oportet esse intelligibile; sed anima non \sameword{est} intelligibile, quia omnis nostra cognitio ortum habet a sensu, \edtext{unde ipsum intelligere non \sameword[1]{est}}{\lemma{unde \dots{} \sameword{est}}\Bfootnote{quia nihil intelligimus B}} sine phantasmate, sed anima sub sensu non cadit, nec phantasma facit; ergo et cetera. 
+        Illud de quo \sameword{est} scientia \sameword{est} intelligibile, quia cum scientia sit habitus intellectus, de quo \sameword{est} scientia oportet esse intelligibile; sed anima non \sameword{est} intelligibile, quia omnis nostra cognitio ortum habet a sensu, \edtext{unde ipsum intelligere non \sameword[1]{est}}{\lemma{unde \dots{} \sameword{est}}\Bfootnote{quia nihil intelligimus B}} sine phantasmate, sed anima sub sensu non cadit, nec phantasma facit; ergo et cetera.
         \edlabelE{da-49-l1q1-ysmgk1}
         """
         assert critical_note_match_replace_samewords(text) == result

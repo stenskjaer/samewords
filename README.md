@@ -125,11 +125,104 @@ Alternatively regular unix redirecting will work just as well in a Unix context:
 samewords my-beautiful-edition.tex > ~/Desktop/test/output.tex
 ```
 
-# Be advised
+### Include macros in disambiguations (`--include-macros`) ###
 
-This is beta level software. Bugs are to be expected and I provide no
-guarantees for the integrity of your software or editions when you use the
-package.
+The script searches for words or phrases identical to those in the `\edtext{}{}`
+macros to identify possible conflicts. Per default the content of practically
+all macros are included in this comparison.
 
-This also means: Let me know when and how it breaks by filing
-an [issue report](https://github.com/stenskjaer/samewords/issues). 
+Take this passage:
+```latex
+\edtext{Sortes\test{1}}{\Afootnote{Socrates B}} dicit: Sortes\test{2} probus
+```
+
+Will result in a search for "Sortes1" in the string "dicit Sortes2 probus",
+which will not succeed.
+
+On the other hand, this passage:
+```latex
+\edtext{Sortes\test{1}}{\Afootnote{Socrates B}} dicit: Sortes\test{1} probus
+```
+
+Will result in a search for "Sortes 1" in the string "dicit Sortes 1 probus",
+which will succeed and therefore annotate the instances.
+
+You might want to distinguish some phrases based on their contained macros. For
+instance you might want to let `Hákon\emph{ar}` and `Hákonar` be two different
+strings. In that case you use the `--include-macros` argument.
+
+`--include-macros` must point to a text file where each line contains a macro
+that you want to keep in the comparison algorithm. So to distinguish
+`Hákon\emph{ar}` from `Hákonar`, I would write the following text-file:
+
+```txt
+\emph
+```
+
+And then pass the location of that file in the argument `--include-macros`.
+
+### Exclude macros in disambiguations (`--exclude-macros`) ###
+
+This is the inverse feature of the above. You might want to define some macros
+which are entirely ignored in the comparison of text segments. 
+
+For example, you might use a custom macro called `\pagebreak{}` to indicate a
+pagebreak in your edition. Take this example phrase:
+
+```latex
+I\pagebreak{23v} know that \edtext{I know}{\Afootnote{I don't know B}} nothing.
+```
+
+Since the content of (almost) all macros is included by default, this would give
+the comparison of the phrase `I know` (`\edtext` content) with `I23v know that`
+(context). It will not match, and hence not annotate the phrase.
+
+If we pass a file to the `--exclude-macros` argument which contains a line with
+the command `\pagebreak`, that will be ignored in processing, and we will get a
+comparison between `I know` (`\edtext` content) with `I23v know that`
+(context). This will match and hence correctly annotate the phrase.
+
+To see the details of this, see the `clean` function in the `annotate` module.
+
+# Issue reporting and testing
+
+If you like the idea of this software, please help improving it by
+filing [issue report](https://github.com/stenskjaer/samewords/issues) when you
+find bugs.
+
+To file a bug:
+- Create a *minimal working example* (MWE) TeX document that contains absolutely
+  nothing aside from the material necessary for reproducing the bug. The
+  document should (if possible) be able to compile on a fresh installation of
+  LateX without any custom packages.
+- Open an [issue report](https://github.com/stenskjaer/samewords/issues) and
+  describe the conditions under which you experience the bug. It should be
+  possible for me to reproduce the bug by following your directions.
+- If the script returns an error, copy and paste the error traceback into the
+  report.
+- If the script returns you document, include that, and describe the result you
+  expected, and how that differs from what you get.
+  
+Once I (think I) have a solution, I will ask you to test a branch. To do that:
+- Navigate to that branch in Github (the “Branch: ” dropdown).
+- Clone or download that branch to your computer.
+- Navigate to the downloaded folder.
+- Create a *virtual environment* for testing by running `python3 -m venv .env`,
+  and then activate it with `source .env/bin/activate` (this is based on a Unix
+  environment, if you run Windows, check
+  out
+  [the Python documentation](https://docs.python.org/3.6/library/venv.html)).
+- While in the *virtual environment*, run your supplied MWE (or other material
+  provided by me in the issue report) and inspect whether the problem is solved
+  and report back in the issue report.
+- When you are done testing, deactivate the virtual environment by running
+  `deactivate` (Bash on Unix) or `deactivate.bat` (Windows).
+- You can now delete the downloaded branch folder.
+  
+
+# Disclaimer and license
+
+This is beta level software. Bugs are to be expected and I provide no guarantees
+for the integrity of your software or editions when you use the package.
+
+Copyright (c) 2017 Michael Stenskjær Christensen, MIT License.

@@ -9,21 +9,33 @@ Arguments:
   <file>                Location of local file to be processed.
 
 Options:
-  --output <location>   Location of output. You can specify a filename as part of
-                        the address. If you don't do that, the name of the input
-                        file will be used.
-  -v, --version         Show version and exit.
-  -h, --help            Show this help message and exit.
+  --output <location>      Location of output. You can specify a filename as
+                           part of the address. If you don't do that, the name
+                           of the input file will be used.
+  --include-macros <file>  File listing the macros that should be included when
+                           comparing text segments.
+  --exclude-macros <file>  File listing the macros that should be ignored when
+                           comparing text segments.
+  -v, --version            Show version and exit.
+  -h, --help               Show this help message and exit.
 """
 
 import samewords
-from docopt import docopt
+import docopt
 import os
 
-def main():
-    # Read command line arguments
-    args = docopt(__doc__, version=samewords.__version__)
 
+def cl_arguments():
+    try:
+        return docopt.docopt(__doc__, version=samewords.__version__)
+    except docopt.DocoptExit:
+        return {}
+
+ARGS = cl_arguments()
+
+def main():
+    args = cl_arguments()
+    print(args)
     filename = args['<file>']
     output = args['--output']
 
