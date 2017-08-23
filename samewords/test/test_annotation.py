@@ -1,6 +1,6 @@
 import pytest
 
-from samewords import settings
+from samewords import settings, cli
 from samewords.annotate import *
 
 no_proximity_match = r"""sw \edtext{so}{\lemma{so}\Bfootnote{foot content}}  and again sw it is all and something after."""
@@ -39,50 +39,39 @@ nested_2_result = r"""Sed hic occurrunt arduae difficultates; et primo considera
 no_annotation_in_footnote = r"""Ad primum argumentum dicendum \edtext{quod minor est falsa}{\lemma{quod minor est falsa}\Bfootnote{per interemptionem minoris B}} \edtext{per}{\lemma{per}\Bfootnote{\emph{om.} O}} privationem. Per privationem sicut \edtext{dicitur per}{\lemma{dicitur per}\Bfootnote{per match}}."""
 no_annotation_in_footnote_result = r"""Ad primum argumentum dicendum \edtext{quod minor est falsa}{\lemma{quod minor est falsa}\Bfootnote{per interemptionem minoris B}} \edtext{\sameword[1]{per}}{\lemma{\sameword{per}}\Bfootnote{\emph{om.} O}} privationem. Per privationem sicut \edtext{dicitur \sameword{per}}{\lemma{dicitur per}\Bfootnote{per match}}."""
 
-
 class TestCritTextObject:
 
-    def test_define_search_words_ldots(self):
-        text = r"""\edtext{A B C D E F}{\lemma{A \ldots F}\Afootnote{b c d e f}}"""
-        result = ['A', 'F']
-        obj = CritText(text)
-        assert obj.search_words == result
+    def test_custom_ellipsis_dots_from_config(self):
+        fname = './samewords/test/assets/sample_config.json'
+        settings = cli.parse_config_file(fname)
+        edtext = r'\edtext{A B C D E}{\lemma{A ... E}\Afootnote{A Vat.}}'
+        assert CritText(edtext).search_words == ['A', 'E']
 
-    def test_define_search_words_dash(self):
-        text = r"""\edtext{A B C D E F}{\lemma{A-F}\Afootnote{b c d e f}}"""
-        result = ['A', 'F']
-        obj = CritText(text)
-        assert obj.search_words == result
+    def test_ellipsis_dashes(self):
+        single_dash = r'\edtext{A B C D E}{\lemma{A - E}\Afootnote{A Vat.}}'
+        double_dash = r'\edtext{A B C D E}{\lemma{A -- E}\Afootnote{A Vat.}}'
+        triple_dash = r'\edtext{A B C D E}{\lemma{A --- E}\Afootnote{A Vat.}}'
+        dash_without_space = r'\edtext{A B C D E}{\lemma{A-E}\Afootnote{A Vat.}}'
+        endash = r'\edtext{A B C D E}{\lemma{A – E}\Afootnote{A Vat.}}'
+        emdash = r'\edtext{A B C D E}{\lemma{A — E}\Afootnote{A Vat.}}'
+        result = ['A', 'E']
+        assert CritText(single_dash).search_words == result
+        assert CritText(double_dash).search_words == result
+        assert CritText(triple_dash).search_words == result
+        assert CritText(dash_without_space).search_words == result
+        assert CritText(endash).search_words == result
+        assert CritText(emdash).search_words == result
 
-    def test_define_search_words_dash_with_space(self):
-        text = r"""\edtext{A B C D E F}{\lemma{A - F}\Afootnote{b c d e f}}"""
-        result = ['A', 'F']
-        obj = CritText(text)
-        assert obj.search_words == result
-
-    def test_define_search_words_en_dash(self):
-        text = r"""\edtext{A B C D E F}{\lemma{A–F}\Afootnote{b c d e f}}"""
-        result = ['A', 'F']
-        obj = CritText(text)
-        assert obj.search_words == result
-
-    def test_define_search_words_em_dash(self):
-        text = r"""\edtext{A B C D E F}{\lemma{A—F}\Afootnote{b c d e f}}"""
-        result = ['A', 'F']
-        obj = CritText(text)
-        assert obj.search_words == result
-
-    def test_define_search_words_double_dash(self):
-        text = r"""\edtext{A B C D E F}{\lemma{A--F}\Afootnote{b c d e f}}"""
-        result = ['A', 'F']
-        obj = CritText(text)
-        assert obj.search_words == result
-
-    def test_define_search_words_triple_dash(self):
-        text = r"""\edtext{A B C D E F}{\lemma{A---F}\Afootnote{b c d e f}}"""
-        result = ['A', 'F']
-        obj = CritText(text)
-        assert obj.search_words == result
+    def test_ellipsis_dots(self):
+        dots = r'\edtext{A B C D E}{\lemma{A \dots E}\Afootnote{A Vat.}}'
+        dots_brackets = r'\edtext{A B C D E}{\lemma{A \dots{} E}\Afootnote{A Vat.}}'
+        ldots = r'\edtext{A B C D E}{\lemma{A \ldots E}\Afootnote{A Vat.}}'
+        ldots_brackets = r'\edtext{A B C D E}{\lemma{A \ldots{} E}\Afootnote{A Vat.}}'
+        result = ['A', 'E']
+        assert CritText(dots).search_words == result
+        assert CritText(dots_brackets).search_words == result
+        assert CritText(ldots).search_words == result
+        assert CritText(ldots_brackets).search_words == result
 
 
 
