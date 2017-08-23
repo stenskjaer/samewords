@@ -20,6 +20,6 @@ include_macros = [
 # are used in a regular expression match, so any valid python regular expression will work.
 ellipsis_patterns = [
     '-+',  # one or more dashes
-    '–',   # en-dash
-    '—'    # em-dash
+    '–',  # en-dash
+    '—'  # em-dash
 ]

@@ -39,8 +39,8 @@ nested_2_result = r"""Sed hic occurrunt arduae difficultates; et primo considera
 no_annotation_in_footnote = r"""Ad primum argumentum dicendum \edtext{quod minor est falsa}{\lemma{quod minor est falsa}\Bfootnote{per interemptionem minoris B}} \edtext{per}{\lemma{per}\Bfootnote{\emph{om.} O}} privationem. Per privationem sicut \edtext{dicitur per}{\lemma{dicitur per}\Bfootnote{per match}}."""
 no_annotation_in_footnote_result = r"""Ad primum argumentum dicendum \edtext{quod minor est falsa}{\lemma{quod minor est falsa}\Bfootnote{per interemptionem minoris B}} \edtext{\sameword[1]{per}}{\lemma{\sameword{per}}\Bfootnote{\emph{om.} O}} privationem. \sameword{Per} privationem sicut \edtext{dicitur \sameword{per}}{\lemma{dicitur per}\Bfootnote{per match}}."""
 
-class TestCritTextObject:
 
+class TestCritTextObject:
     def test_custom_ellipsis_dots_from_config(self):
         fname = './samewords/test/assets/sample_config.json'
         settings = cli.parse_config_file(fname)
@@ -74,8 +74,6 @@ class TestCritTextObject:
         assert CritText(ldots_brackets).search_words == result
 
 
-
-
 class TestLatexExpressionCapturing:
     long_string = """
     test of content \edtext{content \edtext{content2 \emph{test}}}{\lemma{content \edtext{content2 \emph{
@@ -87,10 +85,13 @@ class TestLatexExpressionCapturing:
     escaped_latex_string = '{\\ \& \% \$ \# \_ \{ \} \~ \^}'
 
     def test_capture_balanced(self):
-        assert Brackets(self.balanced_string).content == self.balanced_string[1:-1]
+        assert Brackets(
+            self.balanced_string).content == self.balanced_string[1:-1]
 
     def test_capture_escaped(self):
-        assert Brackets(self.escaped_latex_string).content == self.escaped_latex_string[1:-1]
+        assert Brackets(
+            self.escaped_latex_string).content == self.escaped_latex_string[1:
+                                                                            -1]
 
     def test_capture_after_linebreak(self):
         text = r"""
@@ -116,7 +117,6 @@ class TestLatexExpressionCapturing:
 
 
 class TestLatexListMaintextWords:
-
     def test_clean_nested_edtext_macros(self):
         edtext_string = r"""et \edtext{hic \edtext{et}{\Afootnote{÷ A}} hoc}{\Afootnote{ille et illud B}} et cetera """
         edtext_string_result = ['et', 'hic', 'et', 'hoc', 'et', 'cetera']
@@ -124,29 +124,41 @@ class TestLatexListMaintextWords:
 
 
 class TestProximityListing:
-    simple_string = TextSegment("One major reason for \edtext{the}{\lemma{the}\Bfootnote{an}} "
-                                "interest \edtext{in}{\lemma{in}\Bfootnote{an}} intentionality in "
-                                "medieval philosophy is that it has been widely recognized that "
-                                "Franz Brentano was reviving a scholastic notion when he "
-                                "introduced intentionality as “the mark of the mental” (Brentano "
-                                "1924). But Brentano never used \edtext{the}{\lemma{"
-                                "the}\Bfootnote{an}} terminology of representation to explicate "
-                                "intentionality. This was done much later, "
-                                "in post-Wittgensteinian philosophy of mind. In later medieval "
-                                "philosophy, it was, however, \edtext{standard}{\lemma{"
-                                "standard}\Bfootnote{cont}} to explain the content of a thought "
-                                "by referring to \edtext{the}{\lemma{the}\Bfootnote{or its}} "
-                                "representational nature.")
+    simple_string = TextSegment(
+        "One major reason for \edtext{the}{\lemma{the}\Bfootnote{an}} "
+        "interest \edtext{in}{\lemma{in}\Bfootnote{an}} intentionality in "
+        "medieval philosophy is that it has been widely recognized that "
+        "Franz Brentano was reviving a scholastic notion when he "
+        "introduced intentionality as “the mark of the mental” (Brentano "
+        "1924). But Brentano never used \edtext{the}{\lemma{"
+        "the}\Bfootnote{an}} terminology of representation to explicate "
+        "intentionality. This was done much later, "
+        "in post-Wittgensteinian philosophy of mind. In later medieval "
+        "philosophy, it was, however, \edtext{standard}{\lemma{"
+        "standard}\Bfootnote{cont}} to explain the content of a thought "
+        "by referring to \edtext{the}{\lemma{the}\Bfootnote{or its}} "
+        "representational nature.")
 
     def test_proximity_listing_left(self):
         input_list = self.simple_string
-        output_list = [' terminology of representation to explicate intentionality. This was done much later, in post-Wittgensteinian philosophy of mind. In later medieval philosophy, it was, however, ','\\edtext{standard}{\\lemma{standard}\\Bfootnote{cont}}',' to explain the content of a thought by referring to ', '\\edtext{the}{\\lemma{the}\\Bfootnote{or its}}', ' representational nature.']
+        output_list = [
+            ' terminology of representation to explicate intentionality. This was done much later, in post-Wittgensteinian philosophy of mind. In later medieval philosophy, it was, however, ',
+            '\\edtext{standard}{\\lemma{standard}\\Bfootnote{cont}}',
+            ' to explain the content of a thought by referring to ',
+            '\\edtext{the}{\\lemma{the}\\Bfootnote{or its}}',
+            ' representational nature.'
+        ]
         context = Context()
         context.update(raw_before=input_list, raw_after=[])
         assert context.before[0] == output_list
 
     def test_proximity_listing_right(self):
-        output_list = ['One major reason for ', '\\edtext{the}{\\lemma{the}\\Bfootnote{an}}', ' interest ', '\\edtext{in}{\\lemma{in}\\Bfootnote{an}}', ' intentionality in medieval philosophy is that it has been widely recognized that Franz Brentano was reviving a scholastic notion when he introduced intentionality as “the mark of the mental” (Brentano 1924). But Brentano never used ']
+        output_list = [
+            'One major reason for ',
+            '\\edtext{the}{\\lemma{the}\\Bfootnote{an}}', ' interest ',
+            '\\edtext{in}{\\lemma{in}\\Bfootnote{an}}',
+            ' intentionality in medieval philosophy is that it has been widely recognized that Franz Brentano was reviving a scholastic notion when he introduced intentionality as “the mark of the mental” (Brentano 1924). But Brentano never used '
+        ]
         context = Context()
         context.update(raw_before=[], raw_after=self.simple_string)
         assert context.after[0] == output_list
@@ -159,18 +171,21 @@ class TestSamewordWrapping:
     def test_wrap_wrapped_sameword_without_argument(self):
         wrap = Word(r'\sameword{so}')
         wrap.wrap_macro = r'\sameword'
-        assert wrap_phrase('so', lemma_level=2, wrap=wrap) == r"\sameword[2]{so}"
+        assert wrap_phrase(
+            'so', lemma_level=2, wrap=wrap) == r"\sameword[2]{so}"
 
     def test_wrap_wrapped_sameword_with_argument(self):
         w_item = Word(r'\sameword[2]{so}')
         w_item.wrap_macro = r'\sameword[2]'
-        assert wrap_phrase('so', lemma_level=1, wrap=w_item) == r'\sameword[1,2]{so}'
+        assert wrap_phrase(
+            'so', lemma_level=1, wrap=w_item) == r'\sameword[1,2]{so}'
 
     def test_wrap_no_lemma(self):
         assert wrap_phrase('so', lemma_level=0) == r"\sameword{so}"
 
     def test_no_proximity_match(self):
-        assert critical_note_match_replace_samewords(no_proximity_match) == no_proximity_match
+        assert critical_note_match_replace_samewords(
+            no_proximity_match) == no_proximity_match
 
 
 class TestWrapWordPhrase:
@@ -186,20 +201,21 @@ class TestWrapWordPhrase:
         single_word_result = r'\sameword{input}'
         assert wrap_phrase(single_word, wrap=wrap) == single_word_result
 
-
     def test_wrap_w_level(self):
         single_word = 'input'
         wrap = Word(r'\sameword[1]{input}')
         wrap.wrap_macro = r'\sameword[1]'
         single_word_result = r'\sameword[1]{input}'
-        assert wrap_phrase(single_word, lemma_level=1, wrap=wrap) == single_word_result
+        assert wrap_phrase(
+            single_word, lemma_level=1, wrap=wrap) == single_word_result
 
     def test_wrap_wrapped_w_level(self):
         single_word = 'input'
         wrap = Word(r'\sameword[1]{input}')
         wrap.wrap_macro = r'\sameword[1]'
         single_word_result = r'\sameword[1]{input}'
-        assert wrap_phrase(single_word, lemma_level=1, wrap=wrap) == single_word_result
+        assert wrap_phrase(
+            single_word, lemma_level=1, wrap=wrap) == single_word_result
 
     def test_wrap_multiword(self):
         multiword = 'input material'
@@ -220,13 +236,13 @@ class TestWrapWordPhrase:
 
 
 class TestMainReplaceFunction:
-
     def test_wrap_with_linebreak(self):
         linebreak_text = r"""Leo aut ursus aut oryx aut ricinus aut equus aut
 lupus \edtext{aut}{\Afootnote{et}\Bfootnote{monotone\ldots}} canis aut felix aut asinus \edtext{aut}{\Bfootnote{et}} burricus."""
         linebreak_text_result = r"""Leo \sameword{aut} ursus \sameword{aut} oryx \sameword{aut} ricinus \sameword{aut} equus \sameword{aut}
 lupus \edtext{\sameword[1]{aut}}{\Afootnote{et}\Bfootnote{monotone\ldots}} canis \sameword{aut} felix \sameword{aut} asinus \edtext{\sameword[1]{aut}}{\Bfootnote{et}} burricus."""
-        assert critical_note_match_replace_samewords(linebreak_text) == linebreak_text_result
+        assert critical_note_match_replace_samewords(
+            linebreak_text) == linebreak_text_result
 
     def test_wrap_with_tabs(self):
         tabs = """
@@ -256,7 +272,8 @@ et cetera \edtext{et}{\Afootnote{÷}} cetera et cetera
 \sameword{et} cetera \edtext{\sameword[1]{et}}{\Afootnote{÷}} cetera \sameword{et} cetera
 \pend
 """
-        assert critical_note_match_replace_samewords(linebreak_first) == linebreak_first_result
+        assert critical_note_match_replace_samewords(
+            linebreak_first) == linebreak_first_result
 
     def test_match_custom_singleword_exclude(self):
         settings.exclude_macros += ['\\somemacro']
@@ -273,57 +290,66 @@ et cetera \edtext{et}{\Afootnote{÷}} cetera et cetera
     def test_text_match_with_index_command(self):
         text_w_index = r"\edtext{Sortes\index[persons]{Sortes}}{\Afootnote{Socrates B}} dicit: Sortes\index[persons]{Sortes} probus"
         text_w_index_result = r"\edtext{\sameword[1]{Sortes\index[persons]{Sortes}}}{\Afootnote{Socrates B}} dicit: \sameword{Sortes\index[persons]{Sortes}} probus"
-        assert critical_note_match_replace_samewords(text_w_index) == text_w_index_result
+        assert critical_note_match_replace_samewords(
+            text_w_index) == text_w_index_result
 
     def test_text_no_match_with_index_command(self):
         text_w_index = r"\edtext{Sortes\index[persons]{Socrates}}{\Afootnote{Socrates B}} dicit: Sortes\index[persons]{Sortes} probus"
         text_w_index_result = r"\edtext{Sortes\index[persons]{Socrates}}{\Afootnote{Socrates B}} dicit: Sortes\index[persons]{Sortes} probus"
-        assert critical_note_match_replace_samewords(text_w_index) == text_w_index_result
+        assert critical_note_match_replace_samewords(
+            text_w_index) == text_w_index_result
 
     def test_ignoring_emph_macro(self):
         emph_conflict = r'\edtext{So\emph{cra}tes}{\Afootnote{Socrates B}} dicit: Socrates probus'
         emph_conflict_result = r'\edtext{\sameword[1]{So\emph{cra}tes}}{\Afootnote{Socrates B}} dicit: \sameword{Socrates} probus'
-        assert critical_note_match_replace_samewords(emph_conflict) == emph_conflict_result
+        assert critical_note_match_replace_samewords(
+            emph_conflict) == emph_conflict_result
 
     def test_nested_no_lemma(self):
         nested_no_lemma = r"""et \edtext{hic \edtext{et}{\Afootnote{÷ A}} hoc}{\Afootnote{ille et
             illud B}} et cetera """
         nested_no_lemma_result = r"""\sameword{et} \edtext{hic \edtext{\sameword[2]{et}}{\Afootnote{÷ A}} hoc}{\Afootnote{ille et
             illud B}} \sameword{et} cetera """
-        assert critical_note_match_replace_samewords(nested_no_lemma) == nested_no_lemma_result
+        assert critical_note_match_replace_samewords(
+            nested_no_lemma) == nested_no_lemma_result
 
     def test_compare_strings_lowercased(self):
         case_insensitive_match = r"per \edtext{Per}{\Bfootnote{secundum O}}"
         case_insensitive_match_result = r"\sameword{per} \edtext{\sameword[1]{Per}}{\Bfootnote{secundum O}}"
-        assert critical_note_match_replace_samewords(case_insensitive_match) == case_insensitive_match_result
+        assert critical_note_match_replace_samewords(
+            case_insensitive_match) == case_insensitive_match_result
 
     def test_recursion_on_nested_empty_edtext(self):
         recursing = r"secundum \edtext{secundum}{\lemma{secundum}\Bfootnote{\emph{om.} P}} \edtext{\edtext{}{\lemma{philosophum}\Bfootnote{}} octavo Metaphysicae}{\lemma{}\Bfootnote{content B}}"
         recursing_result = r"\sameword{secundum} \edtext{\sameword[1]{secundum}}{\lemma{\sameword{secundum}}\Bfootnote{\emph{om.} P}} \edtext{\edtext{}{\lemma{philosophum}\Bfootnote{}} octavo Metaphysicae}{\lemma{}\Bfootnote{content B}}"
-        assert critical_note_match_replace_samewords(recursing) == recursing_result
+        assert critical_note_match_replace_samewords(
+            recursing) == recursing_result
 
     def test_wrap_without_lemma(self):
         no_lemma = r'non videtur sed \edtext{non}{\Bfootnote{sic B}}'
         no_lemma_result = r'\sameword{non} videtur sed \edtext{\sameword[1]{non}}{\Bfootnote{sic B}}'
-        assert critical_note_match_replace_samewords(no_lemma) == no_lemma_result
+        assert critical_note_match_replace_samewords(
+            no_lemma) == no_lemma_result
 
     def test_wrap_text_with_macro(self):
         macro_wrap = r'\emph{non apparentium} quia \edtext{non}{\lemma{non}\Bfootnote{sed SV}}'
         macro_wrap_result = r'\emph{\sameword{non} apparentium} quia ' \
                             r'\edtext{\sameword[1]{non}}{\lemma{\sameword{non}}\Bfootnote{sed SV}}'
-        assert critical_note_match_replace_samewords(macro_wrap) == macro_wrap_result
+        assert critical_note_match_replace_samewords(
+            macro_wrap) == macro_wrap_result
 
     def test_wrap_text_with_macro_with_optional_argument(self):
         macro_wrap = r'\macro[optional]{non apparentium} quia \edtext{non}{\lemma{non}\Bfootnote{sed SV}}'
         macro_wrap_result = r'\macro[optional]{\sameword{non} apparentium} quia ' \
                             r'\edtext{\sameword[1]{non}}{\lemma{\sameword{non}}\Bfootnote{sed SV}}'
-        assert critical_note_match_replace_samewords(macro_wrap) == macro_wrap_result
+        assert critical_note_match_replace_samewords(
+            macro_wrap) == macro_wrap_result
 
     def test_wrap_multiword_with_macro(self):
         macro_wrap = r'sed \emph{non} \edtext{sed non}{\lemma{sed non}\Bfootnote{sed SV}}'
         macro_wrap_result = r'\sameword{sed \emph{non}} \edtext{\sameword[1]{sed non}}{\lemma{\sameword{sed non}}\Bfootnote{sed SV}}'
-        assert critical_note_match_replace_samewords(macro_wrap) == macro_wrap_result
-
+        assert critical_note_match_replace_samewords(
+            macro_wrap) == macro_wrap_result
 
     def test_two_multi_words(self):
         double_multiword = r"\edtext{nobis apparentes}{\lemma{nobis apparentes}\Bfootnote{\emph{om.} B}} " \
@@ -331,48 +357,61 @@ et cetera \edtext{et}{\Afootnote{÷}} cetera et cetera
         double_multiword_result = r"\edtext{\sameword[1]{nobis apparentes}}{\lemma{\sameword{nobis " \
                                   r"apparentes}}\Bfootnote{\emph{om.} B}} \edtext{\sameword[1]{nobis apparentes}}{" \
                                   r"\lemma{\sameword{nobis apparentes}}\Bfootnote{\emph{om.} B}}"
-        assert critical_note_match_replace_samewords(double_multiword) == double_multiword_result
+        assert critical_note_match_replace_samewords(
+            double_multiword) == double_multiword_result
 
     def test_multiword_lemma(self):
-        assert critical_note_match_replace_samewords(multiword_lemma) == multiword_lemma_result
+        assert critical_note_match_replace_samewords(
+            multiword_lemma) == multiword_lemma_result
 
     @pytest.mark.skip('Not implemented yet!')
     def test_multiword_lemma_intervening_macro(self):
         test_string = r'per \sidenote{1rb O} causam scire est \edtext{per causam}{\lemma{per causam}\Bfootnote{causam rei B}} cognoscere'
         test_string_res = r'\sameword{per \sidenote{1rb O} causam} scire est \edtext{\sameword[1]{per causam}}{\lemma{\sameword{per causam}}\Bfootnote{causam rei B}} cognoscere'
-        assert critical_note_match_replace_samewords(test_string) == test_string_res
+        assert critical_note_match_replace_samewords(
+            test_string) == test_string_res
 
     def test_nested_ambiguity(self):
-        assert critical_note_match_replace_samewords(nested_ambiguity) == nested_ambiguity_result
+        assert critical_note_match_replace_samewords(
+            nested_ambiguity) == nested_ambiguity_result
 
     def test_false_positives(self):
-        assert critical_note_match_replace_samewords(false_positives) == false_positives
+        assert critical_note_match_replace_samewords(
+            false_positives) == false_positives
 
     def test_flat_ldots_lemma(self):
-        assert critical_note_match_replace_samewords(flat_ldots_lemma) == flat_ldots_lemma_result
+        assert critical_note_match_replace_samewords(
+            flat_ldots_lemma) == flat_ldots_lemma_result
 
     def test_no_proximity_match(self):
-        assert critical_note_match_replace_samewords(no_proximity_match) == no_proximity_match
+        assert critical_note_match_replace_samewords(
+            no_proximity_match) == no_proximity_match
 
     def test_three_close_levels(self):
-        assert critical_note_match_replace_samewords(three_close_levels) == three_close_levels_result
+        assert critical_note_match_replace_samewords(
+            three_close_levels) == three_close_levels_result
 
     def test_flat_proximity_match(self):
-        assert critical_note_match_replace_samewords(flat_proximity_match) == flat_proximity_match_result
+        assert critical_note_match_replace_samewords(
+            flat_proximity_match) == flat_proximity_match_result
 
     def test_nested_ldots_lemma(self):
-        assert critical_note_match_replace_samewords(nested_ldots_lemma) == nested_ldots_lemma_result
+        assert critical_note_match_replace_samewords(
+            nested_ldots_lemma) == nested_ldots_lemma_result
 
     def test_complex_real_example(self):
-        assert critical_note_match_replace_samewords(nested_2) == nested_2_result
+        assert critical_note_match_replace_samewords(
+            nested_2) == nested_2_result
 
     def test_long_proximate_before_after(self):
-        assert critical_note_match_replace_samewords(long_proximate_before_after) == long_proximate_before_after_result
+        assert critical_note_match_replace_samewords(
+            long_proximate_before_after) == long_proximate_before_after_result
 
     def test_wrapping_of_already_wrapped(self):
         identical_wrap_result = r"""Praeterea intellectus intelligit se: \edtext{\sameword[1]{aut}}{\lemma{\sameword{aut}}\Bfootnote{aliter Aguin.}} ergo per suam essentiam, \edtext{\sameword[1]{aut}}{\lemma{\sameword{aut}}\Bfootnote{aliter Aguin.}} per speciem, \edtext{\sameword[1]{aut}}{\lemma{\sameword{aut}}\Bfootnote{aliter Aguin.}} per suum actum; sed \edtext{\sameword[1]{nec}}{\lemma{\sameword{nec}}\Bfootnote{non Aguin.}} per speciem |\ledsidenote{B 174vb} \sameword{nec} per suum actum;"""
         identical_wrap = r"""Praeterea intellectus intelligit se: \edtext{aut}{\lemma{aut}\Bfootnote{aliter Aguin.}} ergo per suam essentiam, \edtext{aut}{\lemma{aut}\Bfootnote{aliter Aguin.}} per speciem, \edtext{aut}{\lemma{aut}\Bfootnote{aliter Aguin.}} per suum actum; sed \edtext{nec}{\lemma{nec}\Bfootnote{non Aguin.}} per speciem |\ledsidenote{B 174vb} nec per suum actum;"""
-        assert (critical_note_match_replace_samewords(identical_wrap)) == identical_wrap_result
+        assert (critical_note_match_replace_samewords(identical_wrap)
+                ) == identical_wrap_result
 
     def test_text_with_arbitrary_commands(self):
         text = r"""
@@ -390,12 +429,14 @@ et cetera \edtext{et}{\Afootnote{÷}} cetera et cetera
         assert critical_note_match_replace_samewords(text) == result
 
     def test_no_annotation_in_footnote(self):
-        assert critical_note_match_replace_samewords(no_annotation_in_footnote) == no_annotation_in_footnote_result
+        assert critical_note_match_replace_samewords(
+            no_annotation_in_footnote) == no_annotation_in_footnote_result
 
 
 class TestReplaceInEdtext:
-    edtext_unnested = CritText(r"\edtext{sw so sw another thing}{\lemma{sw \ldots thing"
-                               r"}\Afootnote{critical note}} ")
+    edtext_unnested = CritText(
+        r"\edtext{sw so sw another thing}{\lemma{sw \ldots thing"
+        r"}\Afootnote{critical note}} ")
     edtext_unnested_result = r"\edtext{\sameword[1]{sw} so sw another thing}{\lemma{sw \ldots thing}\Afootnote{critical note}}"
 
     def test_replace_in_edtext(self):

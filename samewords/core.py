@@ -11,6 +11,10 @@ def process_document(filename):
     document_content = document.document_content(filename)
     chunked_document = document.chunk_document(document_content)
     paragraphs = document.chunk_paragraphs(chunked_document['inside'])
-    updated_paragraphs = [annotate.critical_note_match_replace_samewords(par) for par in paragraphs]
+    updated_paragraphs = [
+        annotate.critical_note_match_replace_samewords(par)
+        for par in paragraphs
+    ]
 
-    return chunked_document['before'] + ''.join(updated_paragraphs) + chunked_document['after']
+    return chunked_document['before'] + ''.join(
+        updated_paragraphs) + chunked_document['after']

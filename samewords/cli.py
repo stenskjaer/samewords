@@ -69,7 +69,8 @@ def main():
             _, output_filename = os.path.split(filename)
             output_dir = output
         elif os.path.isfile(output):
-            answer = input('The file {} already exists. Overwrite (y/n)? '.format(output))
+            answer = input(
+                'The file {} already exists. Overwrite (y/n)? '.format(output))
             if answer.lower() == 'y':
                 output_dir, output_filename = os.path.split(output)
             else:
