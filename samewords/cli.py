@@ -24,20 +24,26 @@ import samewords
 import docopt
 import os
 
+from samewords import settings
 
-def cl_arguments():
-    try:
-        return docopt.docopt(__doc__, version=samewords.__version__)
-    except docopt.DocoptExit:
-        return {}
-
-ARGS = cl_arguments()
+def parse_macro_file(input_file: str) -> list:
+    "Return a list of the content of a macro file."
+    ls = []
+    with open(input_file) as f:
+        for line in f:
+            ls.append(line.strip())
+    return ls
 
 def main():
-    args = cl_arguments()
-    print(args)
+    args = docopt.docopt(__doc__, version=samewords.__version__)
     filename = args['<file>']
     output = args['--output']
+
+    if args['--include-macros']:
+        settings.include_macros += parse_macro_file(args['--include-macros'])
+
+    if args['--exclude-macros']:
+        settings.exclude_macros += parse_macro_file(args['--exclude-macros'])
 
     if not output:
         print(samewords.core.process_document(filename))
