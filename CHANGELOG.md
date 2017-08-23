@@ -5,6 +5,7 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
 
 ## [Unreleased]
 ### Added
+- Ignore content after line comments on same word comparison.
 - Add customization option for whether to compare same words in lower case
   forms.
 - Add `--config-file` command line argument that makes it possible to use
