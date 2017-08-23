@@ -455,11 +455,11 @@ def clean(search_string):
         '\\Efootnote',
         '\\lemma',
         '\\applabel',
-    ] + custom_macros('--exclude-macros')
+    ]
 
     keep_macros = [
         '\\index',
-    ] + custom_macros('--include-macros')
+    ]
 
     position = 0
     words = ''
@@ -511,7 +511,8 @@ def search_in_proximity(search_word: str, context_before: List[List[str]],
     for context_chunk in contexts:
         maintext_words = clean(context_chunk)
         search_word = clean(search_word)
-        if re.search(r'(?<!\w)' + re.escape(search_word) + '(?!\w)', maintext_words):
+        if re.search(r'(?<!\w)' + re.escape(search_word.casefold()) + '(?!\w)',
+                     maintext_words.casefold()):
             return True
     return False
 
@@ -600,8 +601,8 @@ def replace_in_string(replace_word: str, replace_string: str, lemma_level: int =
 
         """
         try:
-            if re.search(r'(?<!\w)' + re.escape(clean(pattern_list[0])) + '(?!\w)',
-                         clean(replace_list[0])):
+            if re.search(r'(?<!\w)' + re.escape(clean(pattern_list[0].casefold())) + '(?!\w)',
+                         clean(replace_list[0].casefold())):
                 return_list.append(replace_list[0])
                 return check_list_match(pattern_list[1:], replace_list[1:], return_list)
             elif re.match('\s', replace_list[0]) and return_list:
