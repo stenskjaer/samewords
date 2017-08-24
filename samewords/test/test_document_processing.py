@@ -2,15 +2,21 @@ from samewords.document import *
 
 
 class TestDocumentOpening:
-    def test_document_content(self):
-        with open('./samewords/test/assets/da-49-l1q1.tex', 'rb') as f:
-            content = f.read().decode('utf-8')
-        assert document_content(
-            './samewords/test/assets/da-49-l1q1.tex') == content
+    def test_ensure_unicode(self, tmpdir):
+        f_name = tmpdir.mkdir('sub').join('cp1252.txt')
+        f_content = 'Cœur ‰'
+        with open(f_name, encoding='cp1252', mode='w') as f:
+            f.write(f_content)
+
+        assert open(f_name, encoding='cp1252').encoding == 'cp1252'
+        assert open(f_name, mode='rb').read() == b'C\x9cur \x89'
+        assert document_content(f_name) == f_content
 
     def test_normalization(self, tmpdir):
-        decomp_content = unicodedata.normalize('NFD', 'μῆνιν ἄειδε, θεά, Πηληϊάδεω Ἀχιλῆος')
-        comp_content = unicodedata.normalize('NFC', 'μῆνιν ἄειδε, θεά, Πηληϊάδεω Ἀχιλῆος')
+        decomp_content = unicodedata.normalize(
+            'NFD', 'μῆνιν ἄειδε, θεά, Πηληϊάδεω Ἀχιλῆος')
+        comp_content = unicodedata.normalize(
+            'NFC', 'μῆνιν ἄειδε, θεά, Πηληϊάδεω Ἀχιλῆος')
 
         p = tmpdir.mkdir("sub").join("decomp.txt")
         p.write(decomp_content)

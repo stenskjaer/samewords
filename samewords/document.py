@@ -12,11 +12,20 @@ TODO: This should also be able to handle more than one section of numbered text 
 import re
 import unicodedata
 
+import chardet
+
 
 def document_content(filename):
     """Return the content of file."""
+
     with open(filename, mode='r', encoding='utf-8') as f:
-        return unicodedata.normalize('NFC', f.read())
+        try:
+            return unicodedata.normalize('NFC', f.read())
+        except UnicodeDecodeError:
+            raw = open(filename, 'rb').read()
+            encoding = chardet.detect(raw)['encoding']
+            with open(filename, mode='r', encoding=encoding) as f:
+                return unicodedata.normalize('NFC', f.read())
 
 
 def chunk_document(content):
