@@ -5,6 +5,10 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
 
 ## [Unreleased]
 ### Added
+- Ensure that all characters are unicode composed characters. This means that
+  any decomposed unicode codepoints (é = `b'e\xcc\x81'`) are converted into
+  composed codepoints (é = `b'\xc3\xa9'`). Otherwise `'μῆνιν' == 'μῆνιν'` might
+  return false and fail to match where there are matches.
 - Ignore `\sidenote` in sameword matching. This means for example that if a
   `\sidenote` intervenes between two words that would constitute a match, it is
   appropriately ignored and they match.

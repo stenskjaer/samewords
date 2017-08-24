@@ -1,11 +1,23 @@
 from samewords.document import *
 
 
-def test_document_content():
-    with open('./samewords/test/assets/da-49-l1q1.tex', 'rb') as f:
-        content = f.read().decode('utf-8')
-    assert document_content(
-        './samewords/test/assets/da-49-l1q1.tex') == content
+class TestDocumentOpening:
+    def test_document_content(self):
+        with open('./samewords/test/assets/da-49-l1q1.tex', 'rb') as f:
+            content = f.read().decode('utf-8')
+        assert document_content(
+            './samewords/test/assets/da-49-l1q1.tex') == content
+
+    def test_normalization(self, tmpdir):
+        decomp_content = unicodedata.normalize('NFD', 'μῆνιν ἄειδε, θεά, Πηληϊάδεω Ἀχιλῆος')
+        comp_content = unicodedata.normalize('NFC', 'μῆνιν ἄειδε, θεά, Πηληϊάδεω Ἀχιλῆος')
+
+        p = tmpdir.mkdir("sub").join("decomp.txt")
+        p.write(decomp_content)
+        assert p.read() == decomp_content
+        assert len(unicodedata.normalize('NFD', p.read())) == 43
+        assert document_content(p) == comp_content
+
 
 
 class TestParagraphHandling:

@@ -10,12 +10,13 @@ TODO: This should also be able to handle more than one section of numbered text 
 """
 
 import re
+import unicodedata
 
 
 def document_content(filename):
     """Return the content of file."""
     with open(filename, mode='r', encoding='utf-8') as f:
-        return f.read()
+        return unicodedata.normalize('NFC', f.read())
 
 
 def chunk_document(content):
