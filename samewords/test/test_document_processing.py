@@ -1,5 +1,7 @@
 import pickle
 
+import pytest
+
 from samewords.document import *
 
 
@@ -12,7 +14,8 @@ class TestDocumentOpening:
 
         assert open(f_name, encoding='cp1252').encoding == 'cp1252'
         assert open(f_name, mode='rb').read() == b'C\x9cur \x89'
-        assert document_content(f_name) == f_content
+        with pytest.raises(ValueError):
+            document_content(f_name)
 
     def test_normalization(self, tmpdir):
         decomp_content = unicodedata.normalize(

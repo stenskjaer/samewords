@@ -12,8 +12,6 @@ TODO: This should also be able to handle more than one section of numbered text 
 import re
 import unicodedata
 
-import chardet
-
 
 def document_content(filename):
     """Return the content of file."""
@@ -21,11 +19,8 @@ def document_content(filename):
     with open(filename, mode='r', encoding='utf-8') as f:
         try:
             return unicodedata.normalize('NFC', f.read())
-        except UnicodeDecodeError:
-            raw = open(filename, 'rb').read()
-            encoding = chardet.detect(raw)['encoding']
-            with open(filename, mode='r', encoding=encoding) as f:
-                return unicodedata.normalize('NFC', f.read())
+        except UnicodeDecodeError as e:
+            raise ValueError('The input file must be in utf-8 unicode encoding.') from e
 
 
 def chunk_document(content):

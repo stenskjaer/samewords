@@ -9,7 +9,6 @@ setup(name='samewords',
       install_requires=[
           'pytest==3.0.7',
           'docopt==0.6.2',
-          'chardet==3.0.4',
       ],
       classifiers=[
           'Development Status :: 4 - Beta',

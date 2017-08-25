@@ -5,7 +5,7 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
 
 ## [Unreleased]
 ### Added
-- Force the input file to be represented internally as unicode.
+- Ensure that the user submits a unicode encoded file.
 - Ensure that all characters are unicode composed characters. This means that
   any decomposed unicode codepoints (é = `b'e\xcc\x81'`) are converted into
   composed codepoints (é = `b'\xc3\xa9'`). Otherwise `'μῆνιν' == 'μῆνιν'` might
