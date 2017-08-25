@@ -29,6 +29,7 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
   included or excluded. See the documentation on the configuration file.
 
 ### Changed
+- Code refactoring and improvement of some tests.
 - Make word matching case-insensitive.
 - Sameword matching improved. Handling and cleaning of main text words for
   string comparison has been significantly improved to represent all and only
