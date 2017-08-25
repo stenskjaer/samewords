@@ -12,9 +12,11 @@ Options:
   --output <location>      Location of output. You can specify a filename as
                            part of the address. If you don't do that, the name
                            of the input file will be used.
-  --config-file <file>     JSON-formatted file with application configuration variables. For
-                           recognized keys and formatting of values, see the documentation on
-                           https://github.com/stenskjaer/samewords. [default: ~/.samewords.json]
+  --config-file <file>     JSON-formatted file with application configuration
+                           variables. For recognized keys and formatting of
+                           values, see the documentation on
+                           https://github.com/stenskjaer/samewords.
+                           [default: ~/.samewords.json]
   -v, --version            Show version and exit.
   -h, --help               Show this help message and exit.
 """

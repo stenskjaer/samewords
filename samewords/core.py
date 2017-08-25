@@ -6,7 +6,10 @@ import samewords.document as document
 
 
 def process_document(filename):
-    """The function directing the processing of a document. Return updated document as string."""
+    """
+    The function directing the processing of a document. Return updated
+    document as string.
+    """
 
     document_content = document.document_content(filename)
     chunked_document = document.chunk_document(document_content)

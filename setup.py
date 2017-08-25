@@ -16,12 +16,13 @@ setup(name='samewords',
           'Programming Language :: Python :: 3.6',
           'Topic :: Text Processing :: Markup :: LaTeX',
       ],
-      description='Package for disambiguation of identical terms in critical editions in LaTeX with reledmac.',
+      description='Package for disambiguation of identical terms in critical '
+                  'editions in LaTeX with reledmac.',
       url='https://github.com/stenskjaer/samewords',
       author='Michael Stenskjær Christensen',
       author_email='michael.stenskjaer@gmail.com',
       license='MIT',
-      entry_points = {
-          'console_scripts' : ['samewords=samewords.cli:main']
+      entry_points={
+          'console_scripts': ['samewords=samewords.cli:main']
       },
 )
