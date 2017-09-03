@@ -30,6 +30,10 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
 
 ### Changed
 - Code refactoring and improvement of some tests.
+- Include `\index{}` in `exclude_macros` by default. Index macros should always
+  be ignored as their content is not relevant to the content of the text (it's
+  never printed), so although they may contain different content, the word that
+  they may precede should still be disambiguated.
 - Make word matching case-insensitive.
 - Sameword matching improved. Handling and cleaning of main text words for
   string comparison has been significantly improved to represent all and only
