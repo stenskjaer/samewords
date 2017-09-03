@@ -238,7 +238,7 @@ class TestWrapWordPhrase:
 class TestMainReplaceFunction:
     def test_index_with_space(self):
         text = r'\edtext{A}{\Afootnote{a}}\index{A, A}'
-        expectation = r'\edtext{\sameword[1]{A}}{\Afootnote{a}}\index{\sameword{A}, \sameword{A}}'
+        expectation = r'\edtext{A}{\Afootnote{a}}\index{A, A}'
         assert critical_note_match_replace_samewords(text) == expectation
 
     def test_wrap_with_linebreak(self):
@@ -292,15 +292,15 @@ et cetera \edtext{et}{\Afootnote{÷}} cetera et cetera
         result = 'Han var sonr \edtext{\sameword[1]{Hákon\emph{ar}\somemacro{Håkon II} konungs}}{\Afootnote{k\emph{on}gſ hakon\emph{ar} Sk}}, sons \sameword{Hákonar\somemacro{Håkon I} konungs}'
         assert critical_note_match_replace_samewords(text) == result
 
-    def test_text_match_with_index_command(self):
+    def test_text_same_index_content(self):
         text_w_index = r"\edtext{Sortes\index[persons]{Sortes}}{\Afootnote{Socrates B}} dicit: Sortes\index[persons]{Sortes} probus"
         text_w_index_result = r"\edtext{\sameword[1]{Sortes\index[persons]{Sortes}}}{\Afootnote{Socrates B}} dicit: \sameword{Sortes\index[persons]{Sortes}} probus"
         assert critical_note_match_replace_samewords(
             text_w_index) == text_w_index_result
 
-    def test_text_no_match_with_index_command(self):
+    def test_text_different_index_content(self):
         text_w_index = r"\edtext{Sortes\index[persons]{Socrates}}{\Afootnote{Socrates B}} dicit: Sortes\index[persons]{Sortes} probus"
-        text_w_index_result = r"\edtext{Sortes\index[persons]{Socrates}}{\Afootnote{Socrates B}} dicit: Sortes\index[persons]{Sortes} probus"
+        text_w_index_result = r"\edtext{\sameword[1]{Sortes\index[persons]{Socrates}}}{\Afootnote{Socrates B}} dicit: \sameword{Sortes\index[persons]{Sortes}} probus"
         assert critical_note_match_replace_samewords(
             text_w_index) == text_w_index_result
 
