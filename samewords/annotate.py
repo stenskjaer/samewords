@@ -557,7 +557,7 @@ class Words:
                 if macro.name in ignored_macros:
                     position += len(macro.complete_macro())
                     if word:
-                        word.end += position + global_offset
+                        word.end = position + global_offset
                     continue
                 elif macro.name in keep_macros:
                     if word:
