@@ -595,6 +595,12 @@ class Words:
                         continue
                     else:
                         position += len(macro.before_opening)
+            elif search_string[position] == '%':
+                # We have hit a line comment. Ignore the rest of the line or string.
+                if search_string.find('\n') is not -1:
+                    position += search_string[position:].find('\n')
+                else:
+                    break
 
             if re.match('\W', search_string[position]):
                 position += 1

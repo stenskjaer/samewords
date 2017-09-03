@@ -241,6 +241,11 @@ class TestWrapWordPhrase:
 
 
 class TestMainReplaceFunction:
+    def test_comments_with_match(self):
+        commented_text = r'\edtext{A}{\Afootnote{a}}  % A'
+        expected_result = r'\edtext{A}{\Afootnote{a}}  % A'
+        assert critical_note_match_replace_samewords(commented_text) == expected_result
+
     def test_wrap_with_linebreak(self):
         linebreak_text = r"""Leo aut ursus aut oryx aut ricinus aut equus aut
 lupus \edtext{aut}{\Afootnote{et}\Bfootnote{monotone\ldots}} canis aut felix aut asinus \edtext{aut}{\Bfootnote{et}} burricus."""
