@@ -142,7 +142,9 @@ class TestProximityListing:
     def test_proximity_listing_left(self):
         input_list = self.simple_string
         output_list = [
-            ' terminology of representation to explicate intentionality. This was done much later, in post-Wittgensteinian philosophy of mind. In later medieval philosophy, it was, however, ',
+            ' terminology of representation to explicate intentionality. This '
+            'was done much later, in post-Wittgensteinian philosophy of mind. '
+            'In later medieval philosophy, it was, however, ',
             '\\edtext{standard}{\\lemma{standard}\\Bfootnote{cont}}',
             ' to explain the content of a thought by referring to ',
             '\\edtext{the}{\\lemma{the}\\Bfootnote{or its}}',
@@ -157,7 +159,10 @@ class TestProximityListing:
             'One major reason for ',
             '\\edtext{the}{\\lemma{the}\\Bfootnote{an}}', ' interest ',
             '\\edtext{in}{\\lemma{in}\\Bfootnote{an}}',
-            ' intentionality in medieval philosophy is that it has been widely recognized that Franz Brentano was reviving a scholastic notion when he introduced intentionality as “the mark of the mental” (Brentano 1924). But Brentano never used '
+            ' intentionality in medieval philosophy is that it has been widely '
+            'recognized that Franz Brentano was reviving a scholastic notion '
+            'when he introduced intentionality as “the mark of the mental” ('
+            'Brentano 1924). But Brentano never used '
         ]
         context = Context()
         context.update(raw_before=[], raw_after=self.simple_string)
