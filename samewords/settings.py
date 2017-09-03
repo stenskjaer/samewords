@@ -17,10 +17,7 @@ exclude_macros = [
 ]
 
 # Macros that should be included when identifying matches
-include_macros = [
-    # because Sortes\index[persons]{Socrates} ≠ Sortes\index[persons]{Sortes}
-    '\\index',
-]
+include_macros = []
 
 # List of patterns that should be included when matching for ellipsis symbols
 #  in `\lemma{}`. These are used in a regular expression match, so any valid

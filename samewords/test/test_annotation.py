@@ -236,6 +236,11 @@ class TestWrapWordPhrase:
 
 
 class TestMainReplaceFunction:
+    def test_index_with_space(self):
+        text = r'\edtext{A}{\Afootnote{a}}\index{A, A}'
+        expectation = r'\edtext{\sameword[1]{A}}{\Afootnote{a}}\index{\sameword{A}, \sameword{A}}'
+        assert critical_note_match_replace_samewords(text) == expectation
+
     def test_wrap_with_linebreak(self):
         linebreak_text = r"""Leo aut ursus aut oryx aut ricinus aut equus aut
 lupus \edtext{aut}{\Afootnote{et}\Bfootnote{monotone\ldots}} canis aut felix aut asinus \edtext{aut}{\Bfootnote{et}} burricus."""
