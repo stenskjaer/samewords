@@ -5,6 +5,7 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
 
 ## [Unreleased]
 ### Added
+- Add configuration option for enabling case sensitive proximity matching.
 - Ensure that the user submits a unicode encoded file.
 - Ensure that all characters are unicode composed characters. This means that
   any decomposed unicode codepoints (é = `b'e\xcc\x81'`) are converted into

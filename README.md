@@ -222,7 +222,7 @@ comparison between `I know` (`\edtext` content) with `I know that`
 
 To see the details of this, see the `Words` object in the `annotate` module.
 
-#### `ellipsis_patterns`
+#### `ellipsis_patterns` ####
 
 This key contains a list of patterns that should be included when matching for
 ellipsis symbols in `\lemma{}`. These are used in a regular expression match, so
@@ -253,6 +253,23 @@ thought of it as an "ellipsis"-dash. In these cases, its better to be explicit
 and either use double dashes (`--`) or real unicode en-dashes (`–`). It is also
 typographically much better.
 
+
+#### Case sensitive or insensitive proximity matching
+The value of the settings variable `sensitive_proximity_match` determines
+whether the search for matches in the proximity is case sensitive. By default it
+is insensitive, but if the value is set to `True`, then it will be case
+sensitive. 
+
+In JSON:
+```json
+{
+  "sensitive_proximity_match": True,
+}
+```
+
+That would mean that the search for "an" in the context string "An example"
+would not match. This is a good setting when lemma words are not lower cased in
+the critical apparatus.
 
 # Issue reporting and testing
 

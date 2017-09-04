@@ -643,8 +643,11 @@ def search_in_proximity(search_word: str,
     for context_chunk in contexts:
         maintext_words = Words(context_chunk).to_string()
         search_word = Words(search_word).to_string()
-        if re.search(r'(?<!\w)' + re.escape(search_word.casefold()) + '(?!\w)',
-                     maintext_words.casefold()):
+        if not settings.sensitive_proximity_match:
+            maintext_words = maintext_words.casefold()
+            search_word = search_word.casefold()
+        if re.search(r'(?<!\w)' + re.escape(search_word) + '(?!\w)',
+                     maintext_words):
             return True
     return False
 
@@ -746,8 +749,14 @@ def replace_in_string(replace_word: str,
             else:
                 match = word.content
 
-            if re.search(r'(?<!\w)' + re.escape(pattern_list[0].casefold()) +
-                                 '(?!\w)', match.casefold()):
+            if not settings.sensitive_proximity_match:
+                search_word = re.escape(pattern_list[0].casefold())
+                match_word = match.casefold()
+            else:
+                search_word = re.escape(pattern_list[0])
+                match_word = match
+
+            if re.search(r'(?<!\w)' + search_word + '(?!\w)', match_word):
                 return_list.append(word)
                 return check_list_match(
                     pattern_list[1:],

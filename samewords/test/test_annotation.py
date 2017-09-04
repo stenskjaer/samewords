@@ -74,6 +74,24 @@ class TestCritTextObject:
         assert CritText(ldots_brackets).search_words == result
 
 
+class TestProximitySearch:
+
+    def test_proximity_case_insensitive(self):
+        before = 'An example of'.split(' ')
+        after = ['case']
+        search_word = 'an'
+        assert search_in_proximity(search_word, before, after) == True
+
+    def test_proximity_case_sensitive(self):
+        settings.sensitive_proximity_match = True
+        before = 'An example of'.split(' ')
+        after = ['case']
+        search_word = 'an'
+        assert search_in_proximity(search_word, before, after) == False
+        settings.sensitive_proximity_match = False
+
+
+
 class TestLatexExpressionCapturing:
     long_string = """
     test of content \edtext{content \edtext{content2 \emph{test}}}{\lemma{content \edtext{content2 \emph{
