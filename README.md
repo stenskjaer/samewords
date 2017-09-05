@@ -138,6 +138,7 @@ The configuration file recognizes the following parameters:
 - `include_macros`
 - `exclude_macros`
 - `ellipsis_patterns`
+- `sensitive_proximity_match`
 
 JSON requires backslashes to be escaped if you want to preserved them in the
 string. You do that with another backslash, so `\\` will
@@ -254,7 +255,7 @@ and either use double dashes (`--`) or real unicode en-dashes (`–`). It is als
 typographically much better.
 
 
-#### Case sensitive or insensitive proximity matching
+#### `sensitive_proximity_match`
 The value of the settings variable `sensitive_proximity_match` determines
 whether the search for matches in the proximity is case sensitive. By default it
 is insensitive, but if the value is set to `True`, then it will be case
@@ -263,13 +264,13 @@ sensitive.
 In JSON:
 ```json
 {
-  "sensitive_proximity_match": True,
+  "sensitive_proximity_match": true
 }
 ```
 
 That would mean that the search for "an" in the context string "An example"
-would not match. This is a good setting when lemma words are not lower cased in
-the critical apparatus.
+would not match. This is a sensible setting when lemma words are not lower cased 
+in the critical apparatus.
 
 # Issue reporting and testing
 
