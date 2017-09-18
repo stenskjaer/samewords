@@ -1,7 +1,8 @@
 {
   "ellipsis_patterns": [
     "\\.\\.\\.",
-    "-+"
+    "-+",
+    "\\,-\\,"
   ],
   "include_macros": [
     "\\myMacro"
