@@ -165,7 +165,7 @@ For details, see below.
 
 #### `include_macros`
 The script searches for words or phrases identical to those in the `\edtext{}{}`
-macros to identify possible conflicts. Per default the content of practically
+macros to identify possible conflicts. By default the content of practically
 all macros are included in this comparison.
 
 Take this passage:
@@ -181,7 +181,7 @@ On the other hand, this passage:
 \edtext{Sortes\test{1}}{\Afootnote{Socrates B}} dicit: Sortes\test{1} probus
 ```
 
-Will result in a search for "Sortes 1" in the string "dicit Sortes 1 probus",
+Will result in a search for "Sortes1" in the string "dicit Sortes1 probus",
 which will succeed and therefore annotate the instances.
 
 You might want to distinguish some phrases based on their contained macros. For

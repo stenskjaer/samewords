@@ -554,9 +554,9 @@ class Words:
                 # If symbol is macro
                 macro = Macro(search_string[position:])
                 if macro.name in ignored_macros:
-                    position += len(macro.complete_macro())
                     if word:
                         word.end = position + global_offset
+                    position += len(macro.complete_macro())
                     continue
                 elif macro.name in keep_macros:
                     if word:
