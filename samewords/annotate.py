@@ -537,18 +537,17 @@ class Words:
                 # position, and bump to following symbol.
                 chunk = re.match('\w+', search_string[position:]).group(0)
                 if word is not None:
-                    position += len(word.content)
+                    position += len(chunk)
                     word += chunk
                     # word is immutable. __iadd__ returns new object,
                     # so update list.
                     ls[-1] = word
-                    word.end += position + global_offset
                 else:
                     word = Word(chunk)
                     ls.append(word)
                     word.start = position + global_offset
                     position += len(word.content)
-                    word.end = position + global_offset
+                word.end = position + global_offset
                 continue
 
             if search_string[position] == '\\':
@@ -597,8 +596,9 @@ class Words:
                         position += len(macro.before_opening)
             elif search_string[position] == '%':
                 # We have hit a line comment. Ignore the rest of the line or string.
-                if search_string.find('\n') is not -1:
-                    position += search_string[position:].find('\n')
+                if search_string[position:].find('\n') is not -1:
+                    position += search_string[position:].find('\n') + 1
+                    continue
                 else:
                     break
 

@@ -40,6 +40,28 @@ no_annotation_in_footnote = r"""Ad primum argumentum dicendum \edtext{quod minor
 no_annotation_in_footnote_result = r"""Ad primum argumentum dicendum \edtext{quod minor est falsa}{\lemma{quod minor est falsa}\Bfootnote{per interemptionem minoris B}} \edtext{\sameword[1]{per}}{\lemma{\sameword{per}}\Bfootnote{\emph{om.} O}} privationem. \sameword{Per} privationem sicut \edtext{dicitur \sameword{per}}{\lemma{dicitur per}\Bfootnote{per match}}."""
 
 
+class TestWordsObject:
+    def test_comments_with_match(self):
+        commented_text = r'\edtext{A}{\Afootnote{a}}  % A'
+        expected_list = ['A']
+        assert Words(commented_text).list == expected_list
+
+    def test_comment_w_linebreak(self):
+        commented_text = r"""wo% check whether "o" or "ø"
+rd"""
+        expected_list = ['word']
+        assert Words(commented_text).list == expected_list
+
+    def test_extra(self):
+        commented = r"""
+wo% check whether "o" or "ø"
+rd
+\edtext{word}{\Afootnote{statement}} %A
+w% "W" or "w"?
+ord
+word"""
+        assert Words(commented).list == ['word', 'word', 'word', 'word']
+
 class TestCritTextObject:
     def test_custom_ellipsis_dots_from_config(self):
         fname = './samewords/test/assets/sample_config.json'
@@ -259,10 +281,23 @@ class TestWrapWordPhrase:
 
 
 class TestMainReplaceFunction:
-    def test_comments_with_match(self):
-        commented_text = r'\edtext{A}{\Afootnote{a}}  % A'
-        expected_result = r'\edtext{A}{\Afootnote{a}}  % A'
-        assert critical_note_match_replace_samewords(commented_text) == expected_result
+    def test_comments_with_linebreak(self):
+        commented = r"""
+wo% check whether "o" or "ø"
+rd
+\edtext{word}{\Afootnote{statement}} %A
+w% "W" or "w"?
+ord
+word"""
+        expectation = r"""
+\sameword{wo% check whether "o" or "ø"
+rd}
+\edtext{\sameword[1]{word}}{\Afootnote{statement}} %A
+\sameword{w% "W" or "w"?
+ord}
+\sameword{word}"""
+        assert critical_note_match_replace_samewords(commented) == expectation
+
 
     def test_wrap_with_linebreak(self):
         linebreak_text = r"""Leo aut ursus aut oryx aut ricinus aut equus aut
