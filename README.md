@@ -253,6 +253,16 @@ thought of it as an "ellipsis"-dash. In these cases, its better to be explicit
 and either use double dashes (`--`) or real unicode en-dashes (`–`). It is also
 typographically much better.
 
+Another example of a regex match pattern would be to match for the thin space
+command in `LaTeX`, which is `\,`, which produces a space of just 0.16667em. A
+comma is a meta-character in regex, so it would need escaped, which would look
+like `\\,`, but the backslash is also a meta-character, so that needs escaping
+too. This means that to match the literal expression `\,` the regex would look
+like this: `\\\\,`. So if we wanted to match the `LaTeX` expression `\,-\,`
+(thin space, a dash, and another thin space), we would write the following
+regex: `\\\\,-\\\\,`. But as we would probably want to match any length of
+dashes, it could be improved to `\\\\,-+\\\\,`. 
+
 
 # Issue reporting and testing
 

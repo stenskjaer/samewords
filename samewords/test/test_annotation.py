@@ -55,6 +55,7 @@ class TestCritTextObject:
         endash = r'\edtext{A B C D E}{\lemma{A – E}\Afootnote{A Vat.}}'
         emdash = r'\edtext{A B C D E}{\lemma{A — E}\Afootnote{A Vat.}}'
         comma_string = r'\edtext{A B C D E}{\lemma{A ,-, E}\Afootnote{A Vat.}}'
+        thin_space = r'\edtext{A B C D E}{\lemma{A \,--\, E}\Afootnote{A Vat.}}'
         result = ['A', 'E']
         assert CritText(single_dash).search_words == result
         assert CritText(double_dash).search_words == result
@@ -63,6 +64,7 @@ class TestCritTextObject:
         assert CritText(endash).search_words == result
         assert CritText(emdash).search_words == result
         assert CritText(comma_string).search_words == result
+        assert CritText(thin_space).search_words == result
 
     def test_ellipsis_dots(self):
         dots = r'\edtext{A B C D E}{\lemma{A \dots E}\Afootnote{A Vat.}}'
