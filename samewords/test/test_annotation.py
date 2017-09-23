@@ -236,11 +236,6 @@ class TestWrapWordPhrase:
 
 
 class TestMainReplaceFunction:
-    def test_index_with_space(self):
-        text = r'\edtext{A}{\Afootnote{a}}\index{A, A}'
-        expectation = r'\edtext{A}{\Afootnote{a}}\index{A, A}'
-        assert critical_note_match_replace_samewords(text) == expectation
-
     def test_wrap_with_linebreak(self):
         linebreak_text = r"""Leo aut ursus aut oryx aut ricinus aut equus aut
 lupus \edtext{aut}{\Afootnote{et}\Bfootnote{monotone\ldots}} canis aut felix aut asinus \edtext{aut}{\Bfootnote{et}} burricus."""
@@ -283,7 +278,7 @@ et cetera \edtext{et}{\Afootnote{÷}} cetera et cetera
     def test_match_custom_singleword_exclude(self):
         settings.exclude_macros += ['\\somemacro']
         text = 'Han var sonr \edtext{Hákon\emph{ar}\somemacro{Håkon II}}{\Afootnote{k\emph{on}gſ hakon\emph{ar} Sk}}, sons Hákonar\somemacro{Håkon I}'
-        result = 'Han var sonr \edtext{\sameword[1]{Hákon\emph{ar}\somemacro{Håkon II}}}{\Afootnote{k\emph{on}gſ hakon\emph{ar} Sk}}, sons \sameword{Hákonar\somemacro{Håkon I}}'
+        result = 'Han var sonr \edtext{\sameword[1]{Hákon\emph{ar}}\somemacro{Håkon II}}{\Afootnote{k\emph{on}gſ hakon\emph{ar} Sk}}, sons \sameword{Hákonar}\somemacro{Håkon I}'
         assert critical_note_match_replace_samewords(text) == result
 
     def test_match_custom_multiword_exclude(self):
@@ -292,15 +287,35 @@ et cetera \edtext{et}{\Afootnote{÷}} cetera et cetera
         result = 'Han var sonr \edtext{\sameword[1]{Hákon\emph{ar}\somemacro{Håkon II} konungs}}{\Afootnote{k\emph{on}gſ hakon\emph{ar} Sk}}, sons \sameword{Hákonar\somemacro{Håkon I} konungs}'
         assert critical_note_match_replace_samewords(text) == result
 
+    def test_index_with_space(self):
+        text = r'\edtext{A}{\Afootnote{a}}\index{A, A}'
+        expectation = r'\edtext{A}{\Afootnote{a}}\index{A, A}'
+        assert critical_note_match_replace_samewords(text) == expectation
+
+    def test_ignored_edindex(self):
+        text = r'A \edtext{A\edindex{A}}{\Afootnote{A}}'
+        expectation = r'\sameword{A} \edtext{\sameword[1]{A}\edindex{A}}{\Afootnote{A}}'
+        assert critical_note_match_replace_samewords(text) == expectation
+
+    def test_ignored_wrapping_before(self):
+        text = r'A\index{A} \edtext{A}{\Afootnote{A}} B B B'
+        expectation = r'\sameword{A}\index{A} \edtext{\sameword[1]{A}}{\Afootnote{A}} B B B'
+        assert critical_note_match_replace_samewords(text) == expectation
+
+    def test_ignored_wrapping_before_and_after(self):
+        text = r'A \edtext{A}{\Afootnote{A}} B B B A\index{A} A \edtext{A}{\Afootnote{A}}'
+        expectation = r'\sameword{A} \edtext{\sameword[1]{A}}{\Afootnote{A}} B B B \sameword{A}\index{A} \sameword{A} \edtext{\sameword[1]{A}}{\Afootnote{A}}'
+        assert critical_note_match_replace_samewords(text) == expectation
+
     def test_text_same_index_content(self):
         text_w_index = r"\edtext{Sortes\index[persons]{Sortes}}{\Afootnote{Socrates B}} dicit: Sortes\index[persons]{Sortes} probus"
-        text_w_index_result = r"\edtext{\sameword[1]{Sortes\index[persons]{Sortes}}}{\Afootnote{Socrates B}} dicit: \sameword{Sortes\index[persons]{Sortes}} probus"
+        text_w_index_result = r"\edtext{\sameword[1]{Sortes}\index[persons]{Sortes}}{\Afootnote{Socrates B}} dicit: \sameword{Sortes}\index[persons]{Sortes} probus"
         assert critical_note_match_replace_samewords(
             text_w_index) == text_w_index_result
 
     def test_text_different_index_content(self):
         text_w_index = r"\edtext{Sortes\index[persons]{Socrates}}{\Afootnote{Socrates B}} dicit: Sortes\index[persons]{Sortes} probus"
-        text_w_index_result = r"\edtext{\sameword[1]{Sortes\index[persons]{Socrates}}}{\Afootnote{Socrates B}} dicit: \sameword{Sortes\index[persons]{Sortes}} probus"
+        text_w_index_result = r"\edtext{\sameword[1]{Sortes}\index[persons]{Socrates}}{\Afootnote{Socrates B}} dicit: \sameword{Sortes}\index[persons]{Sortes} probus"
         assert critical_note_match_replace_samewords(
             text_w_index) == text_w_index_result
 

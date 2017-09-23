@@ -15,6 +15,7 @@ exclude_macros = [
     '\\applabel',
     '\\sidenote',
     '\\index',
+    '\\edindex',
 ]
 
 # Macros that should be included when identifying matches

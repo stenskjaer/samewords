@@ -29,6 +29,7 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
   included or excluded. See the documentation on the configuration file.
 
 ### Changed
+- Ignored macros are not included in the sameword wrap when they follow a match. 
 - Code refactoring and improvement of some tests.
 - Include `\index{}` in `exclude_macros` by default. Index macros should always
   be ignored as their content is not relevant to the content of the text (it's
