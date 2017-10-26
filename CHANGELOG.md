@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [Unreleased 0.2.0]
 ### Added
 - Add configuration option for enabling case sensitive proximity matching.
 - Ensure that the user submits a unicode encoded file.
