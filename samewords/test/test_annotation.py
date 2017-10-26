@@ -39,6 +39,30 @@ nested_2_result = r"""Sed hic occurrunt arduae difficultates; et primo considera
 no_annotation_in_footnote = r"""Ad primum argumentum dicendum \edtext{quod minor est falsa}{\lemma{quod minor est falsa}\Bfootnote{per interemptionem minoris B}} \edtext{per}{\lemma{per}\Bfootnote{\emph{om.} O}} privationem. Per privationem sicut \edtext{dicitur per}{\lemma{dicitur per}\Bfootnote{per match}}."""
 no_annotation_in_footnote_result = r"""Ad primum argumentum dicendum \edtext{quod minor est falsa}{\lemma{quod minor est falsa}\Bfootnote{per interemptionem minoris B}} \edtext{\sameword[1]{per}}{\lemma{\sameword{per}}\Bfootnote{\emph{om.} O}} privationem. Per privationem sicut \edtext{dicitur \sameword{per}}{\lemma{dicitur per}\Bfootnote{per match}}."""
 
+class TestWordsObject:
+
+    def test_space_macros(self):
+        thinspace1 = r'A\,B'
+        thinspace2 = r'A\thinspace B'
+        enskip = r'A\enskip B'
+        quad = r'A\quad B'
+        qquad = r'A\qquad B'
+        hskip = r'A\hskip{10pt}B'
+        enspace = r'A\enspace B'
+        negthinspace = r'A\negthinspace B'
+        kern = r'A\kern{.5em}B'
+        result = ['A', 'B']
+        assert Words(thinspace1).list == result
+        assert Words(thinspace2).list == result
+        assert Words(enskip).list == result
+        assert Words(quad).list == result
+        assert Words(qquad).list == result
+        assert Words(hskip).list == result
+        assert Words(enspace).list == result
+        assert Words(negthinspace).list == result
+        assert Words(kern).list == result
+
+
 class TestCritTextObject:
 
     def test_custom_ellipsis_dots_from_config(self):
@@ -55,7 +79,7 @@ class TestCritTextObject:
         endash = r'\edtext{A B C D E}{\lemma{A – E}\Afootnote{A Vat.}}'
         emdash = r'\edtext{A B C D E}{\lemma{A — E}\Afootnote{A Vat.}}'
         comma_string = r'\edtext{A B C D E}{\lemma{A ,-, E}\Afootnote{A Vat.}}'
-        thin_space = r'\edtext{A B C D E}{\lemma{A \,--\, E}\Afootnote{A Vat.}}'
+        thin_space = r'\edtext{A B C D E}{\lemma{A\,--\,E}\Afootnote{A Vat.}}'
         result = ['A', 'E']
         assert CritText(single_dash).search_words == result
         assert CritText(double_dash).search_words == result

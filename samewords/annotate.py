@@ -401,7 +401,9 @@ class Macro:
         return self.before_opening
 
     def identify_name(self) -> str:
-        return re.match(r'[^ [{]+', self.input_string[self.start:]).group(0)
+        # A TeX macro can be '\' followed by either a string of letters or
+        # any single character
+        return re.match(r'\\(\w+|.)', self.input_string[self.start:]).group(0)
 
     def before_opening(self) -> str:
         opening = re.match(r'[^ ]+?{', self.input_string)
@@ -417,7 +419,7 @@ class Macro:
             return self.before_opening \
                 + '{' + Brackets(self.input_string, start=position).content + '}'
         else:
-            return self.before_opening
+            return self.name
 
     def content(self) -> str:
         if self.has_opening:
@@ -472,6 +474,18 @@ class Words:
 
         ignored_macros = settings.exclude_macros
         keep_macros = settings.include_macros
+        space_macros = [
+            r'\,',
+            r'\ ',
+            r'\enskip',
+            r'\quad',
+            r'\qquad',
+            r'\hskip',
+            r'\enspace',
+            r'\thinspace',
+            r'\negthinspace',
+            r'\kern'
+        ]
 
         ls = []
         position = 0
@@ -498,6 +512,12 @@ class Words:
             if search_string[position] == '\\':
                 # If symbol is macro
                 macro = Macro(search_string[position:])
+                if macro.name in space_macros:
+                    # We hit a space so jump to end of space macro and clear
+                    # the word buffer.
+                    position += len(macro.complete_macro())
+                    word = None
+                    continue
                 if macro.name in ignored_macros:
                     position += len(macro.complete_macro())
                     if word:
