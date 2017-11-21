@@ -15,8 +15,8 @@ ContextList = List[List[str]]
 
 class TextSegment(list):
     """
-    A chunk of text. Can be anything from a whole paragraph to a short expression. Contains 
-    list of normal string and CritText objects. 
+    A chunk of text. Can be anything from a whole paragraph to a short expression. Contains
+    list of normal string and CritText objects.
     """
 
     def __init__(self, input_string: str) -> None:
@@ -117,7 +117,7 @@ class CritText(str):
             return None
 
     def assemble(self, maintext=None, critical=None):
-        """Wrap maintext_note and critical_note in `\edtext{}{}` macro. 
+        """Wrap maintext_note and critical_note in `\edtext{}{}` macro.
         """
         if not maintext:
             maintext = self.maintext_note
@@ -129,17 +129,17 @@ class CritText(str):
     def replace_in_maintext_note(self, replace_word: str, replace_string: str = None,
                                  lemma_level: int = 1) -> str:
         """
-        Replace all instances of `replace_word` in a apparatus note (full `\edtext{}{}`) and return 
-        the updated string. 
+        Replace all instances of `replace_word` in a apparatus note (full `\edtext{}{}`) and return
+        the updated string.
 
-        We instantiate self.maintext_note or `replace_string` (if given) as TextSegment, 
-        thus splitting it into segments of critical notes and regular text. That list is 
+        We instantiate self.maintext_note or `replace_string` (if given) as TextSegment,
+        thus splitting it into segments of critical notes and regular text. That list is
         iterated, wrapping any match of `replace_word` as we go along.
-        
-        Updates self.maintext_note and return the updated self.content or returns the updated 
+
+        Updates self.maintext_note and return the updated self.content or returns the updated
         `replace_string` if given.
-        
-        The possibility of passing `replace_string` is required for recursive calls in nested 
+
+        The possibility of passing `replace_string` is required for recursive calls in nested
         edtext elements.
 
         :param replace_word: The word to be replaced.
@@ -196,8 +196,8 @@ class CritText(str):
                                    lemma_level: int = 1) -> str:
         """
         Replace only on the very last maintext word of `replace_string` (if it matches).
-        
-        :return: The updated `replace_string`. 
+
+        :return: The updated `replace_string`.
         """
         segments = TextSegment(replace_string)
         self.dotted_lemma = False
@@ -274,11 +274,14 @@ class Context:
     def update(self, raw_before: TextSegment, raw_after: TextSegment,
                lemma_level: int = 1):
         """
-        Build the surrounding context. If is a list of lists, list 0 contains context on lvl 1, 
-        list 1 contains context on lvl 2 etc. 
+        Build the surrounding context. If is a list of lists, list 0 contains context on lvl 1,
+        list 1 contains context on lvl 2 etc.
         """
-        prox_context_before = self.iter_proximate_words(raw_before, side='left')
-        prox_context_after = self.iter_proximate_words(raw_after, side='right')
+        prox_context_before = self.shorten(raw_before)
+        prox_context_after = self.shorten(raw_after)
+        #
+        # prox_context_before = self.iter_proximate_words(self.shorten(raw_before), side='left')
+        # prox_context_after = self.iter_proximate_words(self.shorten(raw_after), side='right')
 
         try:
             self.before[lemma_level - 1] = prox_context_before
@@ -288,6 +291,23 @@ class Context:
             self.after[lemma_level - 1] = prox_context_after
         except IndexError:
             self.after = self.after + [prox_context_after]
+
+    def shorten(self, raw_list: TextSegment):
+
+        c = 0
+        short_before = []
+        for chunk in raw_list:
+            worded = Words(chunk)
+            if c < 30:
+                if len(worded) + c < 30:
+                    short_before.extend(worded)
+                else:
+                    add = 30 - c
+                    short_before.extend(worded[:add])
+                c += len(worded)
+            else:
+                break
+        return short_before
 
     def iter_proximate_words(self, input_list, index=0, word_count_sum=0, side='', length=15):
         """
@@ -461,16 +481,33 @@ class Word(str):
         return ' '.join(list(self.flatten(self)))
 
 
-class Words:
+import numbers
+
+class Words(list):
 
     def __init__(self, input_string):
-        self.input_string = input_string
+        super().__init__(self.clean(input_string))
         self.list = self.clean(input_string)
+
+    def __len__(self):
+        return len(self.list)
+
+    def __getitem__(self, item):
+        cls = type(self)
+        if isinstance(item, slice):
+            return cls(self.list[item])
+        elif isinstance(item, numbers.Integral):
+            return self.list[item].content
+        else:
+            msg = '{cls.__name__} indices must be integers'
+            raise TypeError(msg.format(cls=cls))
 
     def clean(self, search_string: str, global_offset: int = 0):
 
         if isinstance(search_string, CritText):
             search_string = search_string.maintext_note
+        elif isinstance(search_string, list):
+            return search_string
 
         ignored_macros = settings.exclude_macros
         keep_macros = settings.include_macros
@@ -571,12 +608,12 @@ class Words:
 def search_in_proximity(search_word: str, context_before: List[List[str]],
                         context_after: List[List[str]]) -> bool:
     """
-    Check whether a search word is present in the one of two lists. The two input lists contain 
-    the context of the search word. 
+    Check whether a search word is present in the one of two lists. The two input lists contain
+    the context of the search word.
 
-    We need to search for a regex demarcating the string with boundaries to make sure we don't 
-    just match a partial word ("so" matching "something"). We can't demarcate by whitespace, 
-    as that may not always be present. 
+    We need to search for a regex demarcating the string with boundaries to make sure we don't
+    just match a partial word ("so" matching "something"). We can't demarcate by whitespace,
+    as that may not always be present.
 
     :param search_word: The word we look for.
     :param context_before: List of preceding context to be searched.
@@ -606,8 +643,8 @@ def replace_in_proximity(context_before_list: ContextList, context_after_list: C
     """
     Replace a specified search word in two lists containing the text surrounding a chunk of text.
 
-    This is used for replacing a word that is present in an `\edtext{}`-element and that is 
-    confirmed to be in the proximate context. 
+    This is used for replacing a word that is present in an `\edtext{}`-element and that is
+    confirmed to be in the proximate context.
 
     The replacement is only done on the proximity of the pivot element.
 
@@ -636,10 +673,10 @@ def replace_in_proximity(context_before_list: ContextList, context_after_list: C
 
 def replace_in_string(replace_word: str, replace_string: str, lemma_level: int = 0) -> str:
     """
-    Recursively replace the search word in the search string with a version that is wrapped in 
-    sameword. This is designed to handle replacement of multiword phrases in the string too. The 
-    wrapping is done intelligently so that what is already wrapped is not double wrapped, 
-    and lemma levels are incorporated. 
+    Recursively replace the search word in the search string with a version that is wrapped in
+    sameword. This is designed to handle replacement of multiword phrases in the string too. The
+    wrapping is done intelligently so that what is already wrapped is not double wrapped,
+    and lemma levels are incorporated.
 
     :param replace_word: the word that should be wrapped
     :param replace_string: The string in which the replacement should be done.
@@ -648,17 +685,17 @@ def replace_in_string(replace_word: str, replace_string: str, lemma_level: int =
     """
     def check_list_match(pattern_list: List[str], replace_list: List[Word],
                          return_list: List[str] = list(), first: bool = True) -> List[Word]:
-        """Check whether a word string in `pattern_list` (search phrase) is matched in 
-        `replace_list`. 
-        
-        Check whether first item of `pattern_list` is contained in first item of 
-        `replace_list`. If it does, move on to next item in `pattern_list` until it is exhausted. 
+        """Check whether a word string in `pattern_list` (search phrase) is matched in
+        `replace_list`.
+
+        Check whether first item of `pattern_list` is contained in first item of
+        `replace_list`. If it does, move on to next item in `pattern_list` until it is exhausted.
         This way it matches whole string of words specified in `pattern_list` in `replace_list`.
-        
-        When the caller of this function iterates through the `replace_list`, it is incrementally 
-        checked in full. We want to keep the formatting of the search list, so items from that 
-        are returned in order as they are. 
-        
+
+        When the caller of this function iterates through the `replace_list`, it is incrementally
+        checked in full. We want to keep the formatting of the search list, so items from that
+        are returned in order as they are.
+
         :param pattern_list: List of search words to be matched in `replace_list`.
         :param replace_list: List of words to be matched.
         :param return_list: The results to be returned, built successively in recursive calls.
@@ -773,11 +810,11 @@ def replace_in_string(replace_word: str, replace_string: str, lemma_level: int =
 def wrap_phrase(phrase: str, lemma_level: int = 0, wrap: Word = None) -> str:
     """
     Wrap the word or phrase in the appropriate \sameword{}-element.
-    
-    This means that if the word or phrase is already wrapped in a \sameword{}, it cannot be 
-    wrapped in another. If one or more words of a phrase are wrapped, it should wrap the whole 
-    phrase. It also needs to handle the conditions of lemma level numbering. 
-    
+
+    This means that if the word or phrase is already wrapped in a \sameword{}, it cannot be
+    wrapped in another. If one or more words of a phrase are wrapped, it should wrap the whole
+    phrase. It also needs to handle the conditions of lemma level numbering.
+
     :param wrap: `Word` object containg information on wrapping macro.
     :param phrase: the word or phrase that should be wrapped.
     :param lemma_level: the level of the lemma annotation. Default=0
