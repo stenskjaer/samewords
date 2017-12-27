@@ -1,5 +1,7 @@
 from samewords.tokenize import Tokenizer
 
+from pytest import mark
+
 class TestTokenize:
 
     def test_whitespace(self):
@@ -9,7 +11,7 @@ class TestTokenize:
         assert Tokenizer(text).wordlist.write() == text
 
     def test_punctuation(self):
-        text = 'text, with. punctuation.-! enough?!'
+        text = 'text, with. punctuation.-!"#$%&()*+,-./:;<=>?@[]^`|~ enough?!'
         expect = ['text', 'with', 'punctuation', 'enough']
         tokens = Tokenizer(text)
         assert tokens.wordlist == expect
@@ -31,24 +33,43 @@ class TestTokenize:
 
     def test_registry(self):
         text = 'text \edtext{emphasis}{\Bfootnote{fnote}} is nice'
-        expect = ['text', 'emphasis', 'fnote', 'is', 'nice']
-        registry = [{'lvl': 1, 'data': [2, 3, 3]}]
+        expect = ['text', 'emphasis', 'is', 'nice']
+        registry = [{'lvl': 1, 'data': [2, 2]}]
         tokenization = Tokenizer(text)
         assert tokenization.wordlist == expect
         assert tokenization.wordlist.write() == text
         assert tokenization.registry == registry
 
-    def test_registry_with_nesting(self):
+    def test_edtext_with_nested_brackets(self):
+        text = '\edtext{entry \emph{nested \emph{b}}}{\Bfootnote{fnote}} nice'
+        expect = ['entry', 'nested', 'b', 'nice']
+        registry = [{'lvl': 1, 'data': [1, 3]}]
+        tokenization = Tokenizer(text)
+        assert tokenization.wordlist == expect
+        assert tokenization.wordlist.write() == text
+        assert tokenization.registry == registry
+
+    def test_tokenizer_two_levels(self):
         text = r"""
-        \edtext{lvl1 \edtext{lvl2 \edtext{lvl3-1}{\Bfootnote{n3}} inter 
-        \edtext{lvl3-2}{\Bfootnote{n4}}{\Bfootnote{n2}}}{\Bfootnote{n1}}}
+        \edtext{lvl1 \edtext{lvl2 }{\Bfootnote{l2-note}}}{\Bfootnote{l1-note}}
         """
-        expect = ['', 'lvl1', 'lvl2', 'lvl3-1', 'n3', 'inter', 'lvl3-2', 'n4',
-                  'n2', 'n1']
-        registry = [{'lvl': 1, 'data': [2, 10, 10]},
-                    {'lvl': 2, 'data': [3, 9, 9]},
-                    {'lvl': 3, 'data': [4, 5, 5]},
-                    {'lvl': 3, 'data': [7, 8, 8]}]
+        expect = ['', 'lvl1', 'lvl2', '']
+        registry = [{'lvl': 1, 'data': [2, 4]}, {'lvl': 2, 'data': [3, 4]}]
+        tokenization = Tokenizer(text)
+        assert tokenization.wordlist == expect
+        assert tokenization.wordlist.write() == text
+        assert tokenization.registry == registry
+
+    def test_registry_with_nesting_and_sequential_nested_entries(self):
+        text = r"""
+        \edtext{lvl1 \edtext{lvl2 \edtext{lvl3-1}{\Bfootnote{n3}} inter
+        \edtext{lvl3-2}{\Bfootnote{n4}}}{\Bfootnote{n2}}}{\Bfootnote{n1}}
+        """
+        expect = ['', 'lvl1', 'lvl2', 'lvl3-1', 'inter', 'lvl3-2']
+        registry = [{'lvl': 1, 'data': [2, 6]},
+                    {'lvl': 2, 'data': [3, 6]},
+                    {'lvl': 3, 'data': [4, 4]},
+                    {'lvl': 3, 'data': [6, 6]}]
         tokenization = Tokenizer(text)
         assert tokenization.wordlist == expect
         assert tokenization.wordlist.write() == text

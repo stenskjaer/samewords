@@ -2,7 +2,8 @@ import re
 import string
 
 from collections import UserString, UserList
-from typing import List, Tuple
+from typing import List, Tuple, Dict
+Registry = List[dict]
 
 
 class Macro(UserString):
@@ -70,9 +71,11 @@ class Word(UserString):
         self.text = ''
         self.spaced = False
         self.spaces = ''
-        self.prefix = []
-        self.suffix = []
+        self.prefix = ''
+        self.suffix = ''
         self.macro = ''
+        self.edtext_start = False
+        self.edtext_end = False
 
     def __str__(self) -> str:
         return str(self.text)
@@ -82,6 +85,9 @@ class Word(UserString):
 
     def __eq__(self, other) -> bool:
         return self.text == other
+
+    def __len__(self):
+        return len(self.full())
 
     def full(self) -> str:
         """
@@ -98,14 +104,16 @@ class Words(UserList):
         return ''.join([w.full() for w in self.data])
 
 
+from samewords.annotate import Brackets
+
 class Tokenizer:
     in_crit = False
     in_app = False
     edtext_lvl = 0
     brackets = 0
-    open_stack = []
-    punctuation = re.compile('[{}]+'.format(string.punctuation))
-    edtext_brackets = []
+    punctuation = re.compile('[!"#$%&\'()*+,-./:;<=>?@\[\]^_`|~]+')
+    closures = 0
+
 
     def __init__(self, input: str = '') -> None:
         """
@@ -118,48 +126,32 @@ class Tokenizer:
         """
         self.data = input
         self.registry = []
+        self.edtext_brackets = []
+        self.open_stack = []
         self.wordlist = self._wordlist()
 
     def _wordlist(self) -> Words:
+        """
+        Run the string by tokenizing from each position (subfunction) and
+        register the returned Word object if it either opens or closes an
+        edtext element.
+        """
         words = Words()
         pos = 0
         while pos < len(self.data):
             word, pos = self._tokenize(self.data, pos)
-            words.append(word)
-            index = len(words)
-            if word.macro:
-                if word.macro.name == r'\edtext':
-                    # Opening an edtext macro.
-                    self.open_stack.append(len(self.registry))
-                    self.edtext_lvl += 1
-                    self.registry.append(
-                        {'lvl': self.edtext_lvl, 'data': [index]}
-                    )
-                    self.edtext_brackets.insert(self.edtext_lvl, self.brackets)
-                self.brackets += 1
-            if '{' in word.prefix:
-                # Opening bracket
-                self.brackets += ''.join(word.prefix).count('{')
-                if '}' in words[index-1].suffix:
-                    # Is the opening bracket preceded by closing bracket?
-                    # Then we are in the second argument of a macro.
-                    # TODO: (false) Assumption that this is an edtext app note.
+            index = len(words) + 1
+            if word.edtext_start:
+                self.open_stack.append(len(self.registry))
+                self.registry.append({'lvl': self.edtext_lvl, 'data': [index]})
+            if word.edtext_end:
+                while self.closures > 0:
                     self.registry[self.open_stack[-1]]['data'].append(index)
-                    self.in_app = True
-            if '}' in word.suffix:
-                # Closing bracket
-                self.brackets -= ''.join(word.suffix).count('}')
-                if self.in_app:
-                    # Are we in apparatus note?
-                    if self.brackets == self.edtext_brackets[self.edtext_lvl-1]:
-                        # Have all brackets inside the app note been closed?
-                        # In that case, we close the registry, pop the
-                        # stacks, close the app and decrement the edtext level.
-                        self.registry[self.open_stack[-1]]['data'].append(index)
-                        self.edtext_brackets.pop()
-                        self.open_stack.pop()
-                        self.in_app = False
-                        self.edtext_lvl -= 1
+                    self.open_stack.pop()
+                    self.closures -= 1
+                    self.edtext_lvl -= 1
+
+            words.append(word)
         return words
 
     def _tokenize(self, string: str, pos: int = 0) -> Tuple[Word, int]:
@@ -167,7 +159,8 @@ class Tokenizer:
         Idea: Run the string and build a Word object. Collect characters,
         digits and hyphens into word.text property. Punctuation goes into
         prefix and suffix properties. Macros enclosing the Word.text are put
-        in the Word.macro property.
+        in the Word.macro property. Opening and closing brackets are counted
+        to ensure the timely closing of app notes.
         """
         word = Word()
         while pos < len(string):
@@ -180,6 +173,18 @@ class Tokenizer:
                 word.text += match
                 pos += len(match)
                 continue
+            if re.search(self.punctuation, c):
+                # Exception: .5 is part of word, not punctuation.
+                if re.match('\.\d', string[pos:]):
+                    word.text += c
+                    pos += 1
+                    continue
+                if word.text:
+                    word.suffix += c
+                else:
+                    word.prefix += c
+                pos += 1
+                continue
             if c == '\\':
                 if word.text:
                     # No appended macros
@@ -190,19 +195,30 @@ class Tokenizer:
                 if macro.empty and not(string[pos].isspace()):
                     # Empty macros cannot have following chars (e.g. A\,B)
                     break
+                if macro.name == r'\edtext':
+                    self.edtext_brackets.append(self.brackets)
+                    self.edtext_lvl += 1
+                    word.edtext_start = True
+                self.brackets += 1
                 continue
-            if re.search(self.punctuation, c):
-                # Exception: .5 is part of word, not punctuation.
-                if re.match('\.\d', string[pos:]):
-                    word.text += c
+            if c == '{':
+                if (self.edtext_brackets and
+                    self.edtext_brackets[-1] == self.brackets):
+                    bracket_end = pos + Brackets(string[pos:]).length
+                    app_bracket = string[pos:bracket_end]
+                    word.suffix += app_bracket
+                    pos += len(app_bracket)
+                    word.edtext_end = True
+                    self.edtext_brackets.pop()
+                    self.closures += 1
+                    continue
+                else:
+                    word.suffix += c
                     pos += 1
                     continue
-                if word.text:
-                    if c == '{':
-                        break
-                    word.suffix.append(c)
-                else:
-                    word.prefix.append(c)
+            if c == '}':
+                self.brackets -= 1
+                word.suffix += c
                 pos += 1
                 continue
             if c.isspace():
