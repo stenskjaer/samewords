@@ -73,6 +73,7 @@ class Word(UserString):
         self.spaces = ''
         self.prefix = ''
         self.suffix = ''
+        self.app_entries = []
         self.macro = ''
         self.edtext_start = False
         self.edtext_end = False
@@ -95,7 +96,8 @@ class Word(UserString):
         """
         pref = ''.join(self.prefix)
         suff = ''.join(self.suffix)
-        return pref + str(self.macro) + self.text + suff + self.spaces
+        apps = ''.join(self.app_entries)
+        return pref + str(self.macro) + self.text + suff + apps + self.spaces
 
 
 class Words(UserList):
@@ -138,7 +140,7 @@ class Tokenizer:
         pos = 0
         while pos < len(self.data):
             word, pos = self._tokenize(self.data, pos)
-            index = len(words) + 1
+            index = len(words) + 1    # Why are they one indexed???
             if word.edtext_start:
                 self.open_stack.append(len(self.registry))
                 self.registry.append({'lvl': self.edtext_lvl, 'data': [index]})
@@ -200,12 +202,17 @@ class Tokenizer:
                 self.brackets += 1
                 continue
             if c == '{':
+                # Determine of this is an app entry.
                 if (self.edtext_brackets and
-                    self.edtext_brackets[-1] == self.brackets):
+                        self.edtext_brackets[-1] == self.brackets):
                     bracket_end = pos + len(Brackets(string, pos))
-                    app_bracket = string[pos:bracket_end]
-                    word.suffix += app_bracket
-                    pos += len(app_bracket)
+                    word.app_entries.append(string[pos:bracket_end])
+                    pos = bracket_end
+                    if string[pos] == '}':
+                        # Add possible closing of parent first edtext argument
+                        word.app_entries[-1] += string[pos]
+                        self.brackets -= 1
+                        pos += 1
                     word.edtext_end = True
                     self.edtext_brackets.pop()
                     self.closures += 1
