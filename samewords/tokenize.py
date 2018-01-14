@@ -5,6 +5,7 @@ from collections import UserString, UserList
 from typing import List, Tuple, Dict
 Registry = List[dict]
 
+from samewords.brackets import Brackets
 
 class Macro(UserString):
     """A latex macro, holding information in its name and optional arguments.
@@ -62,7 +63,6 @@ class Macro(UserString):
             return self.name
 
 
-
 class Word(UserString):
 
     def __init__(self, chars: str = '') -> None:
@@ -103,8 +103,6 @@ class Words(UserList):
     def write(self) -> str:
         return ''.join([w.full() for w in self.data])
 
-
-from samewords.annotate import Brackets
 
 class Tokenizer:
     in_crit = False
@@ -204,7 +202,7 @@ class Tokenizer:
             if c == '{':
                 if (self.edtext_brackets and
                     self.edtext_brackets[-1] == self.brackets):
-                    bracket_end = pos + Brackets(string[pos:]).length
+                    bracket_end = pos + len(Brackets(string, pos))
                     app_bracket = string[pos:bracket_end]
                     word.suffix += app_bracket
                     pos += len(app_bracket)
