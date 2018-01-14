@@ -109,7 +109,7 @@ class Words(UserList):
 class Tokenizer:
     in_crit = False
     in_app = False
-    edtext_lvl = 0
+    edtext_lvl = -1     # zero index the levels
     brackets = 0
     punctuation = re.compile('[!"#$%&\'()*+,-./:;<=>?@\[\]^_`|~]+')
     closures = 0
@@ -140,7 +140,7 @@ class Tokenizer:
         pos = 0
         while pos < len(self.data):
             word, pos = self._tokenize(self.data, pos)
-            index = len(words) + 1    # Why are they one indexed???
+            index = len(words)
             if word.edtext_start:
                 self.open_stack.append(len(self.registry))
                 self.registry.append({'lvl': self.edtext_lvl, 'data': [index]})

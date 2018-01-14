@@ -34,7 +34,7 @@ class TestTokenize:
     def test_registry(self):
         text = 'text \edtext{emphasis}{\Bfootnote{fnote}} is nice'
         expect = ['text', 'emphasis', 'is', 'nice']
-        registry = [{'lvl': 1, 'data': [2, 2]}]
+        registry = [{'lvl': 0, 'data': [1, 1]}]
         tokenization = Tokenizer(text)
         assert tokenization.wordlist == expect
         assert tokenization.wordlist.write() == text
@@ -43,7 +43,7 @@ class TestTokenize:
     def test_edtext_with_nested_brackets(self):
         text = '\edtext{entry \emph{nested \emph{b}}}{\Bfootnote{fnote}} nice'
         expect = ['entry', 'nested', 'b', 'nice']
-        registry = [{'lvl': 1, 'data': [1, 3]}]
+        registry = [{'lvl': 0, 'data': [0, 2]}]
         tokenization = Tokenizer(text)
         assert tokenization.wordlist == expect
         assert tokenization.wordlist.write() == text
@@ -54,7 +54,7 @@ class TestTokenize:
         \edtext{lvl1 \edtext{lvl2 }{\Bfootnote{l2-note}}}{\Bfootnote{l1-note}}
         """
         expect = ['', 'lvl1', 'lvl2', '']
-        registry = [{'lvl': 1, 'data': [2, 4]}, {'lvl': 2, 'data': [3, 4]}]
+        registry = [{'lvl': 0, 'data': [1, 3]}, {'lvl': 1, 'data': [2, 3]}]
         tokenization = Tokenizer(text)
         assert tokenization.wordlist == expect
         assert tokenization.wordlist.write() == text
@@ -66,10 +66,10 @@ class TestTokenize:
         \edtext{lvl3-2}{\Bfootnote{n4}}}{\Bfootnote{n2}}}{\Bfootnote{n1}}
         """
         expect = ['', 'lvl1', 'lvl2', 'lvl3-1', 'inter', 'lvl3-2']
-        registry = [{'lvl': 1, 'data': [2, 6]},
-                    {'lvl': 2, 'data': [3, 6]},
-                    {'lvl': 3, 'data': [4, 4]},
-                    {'lvl': 3, 'data': [6, 6]}]
+        registry = [{'lvl': 0, 'data': [1, 5]},
+                    {'lvl': 1, 'data': [2, 5]},
+                    {'lvl': 2, 'data': [3, 3]},
+                    {'lvl': 2, 'data': [5, 5]}]
         tokenization = Tokenizer(text)
         assert tokenization.wordlist == expect
         assert tokenization.wordlist.write() == text
