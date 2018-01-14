@@ -102,8 +102,22 @@ class Word(UserString):
 
 class Words(UserList):
 
+    def __getitem__(self, index):
+        cls = type(self)
+        if isinstance(index, slice):
+            return cls(self.data[index])
+        elif isinstance(index, int):
+            return self.data[index]
+        else:
+            msg = '{cls.__name__} indices must be integers'
+            raise TypeError(msg.format(cls=cls))
+
     def write(self) -> str:
         return ''.join([w.full() for w in self.data])
+
+    def clean(self) -> List:
+        """A list strings of each Word.text item, i.e. a cleaned word list."""
+        return [w.text for w in self.data if w.text]
 
 
 class Tokenizer:
@@ -111,7 +125,7 @@ class Tokenizer:
     in_app = False
     edtext_lvl = -1     # zero index the levels
     brackets = 0
-    punctuation = re.compile('[!"#$%&\'()*+,-./:;<=>?@\[\]^_`|~]+')
+    punctuation = re.compile('[!"#$%&\'()*+,-./:;<=>?@\[\]^_`|~–—]+')
     closures = 0
 
 
@@ -208,11 +222,14 @@ class Tokenizer:
                     bracket_end = pos + len(Brackets(string, pos))
                     word.app_entries.append(string[pos:bracket_end])
                     pos = bracket_end
-                    if string[pos] == '}':
-                        # Add possible closing of parent first edtext argument
-                        word.app_entries[-1] += string[pos]
-                        self.brackets -= 1
-                        pos += 1
+                    try:
+                        if string[pos] == '}':
+                            # Add possible closing of parent first edtext arg
+                            word.app_entries[-1] += string[pos]
+                            self.brackets -= 1
+                            pos += 1
+                    except IndexError:
+                        pass
                     word.edtext_end = True
                     self.edtext_brackets.pop()
                     self.closures += 1
