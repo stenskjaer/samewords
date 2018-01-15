@@ -9,16 +9,13 @@ class TestMatcher:
         text = 'text \edtext{emphasis}{\Bfootnote{fnote}} is nice'
         tokenization = Tokenizer(text)
         matcher = Matcher(tokenization.wordlist, tokenization.registry)
-        matcher.annotate()
+        assert matcher.context_match(tokenization.registry[0]) == False
 
-    def test_no_match_multi_level(self):
-        text = r"""
-            \edtext{lvl1 \edtext{lvl2 \edtext{lvl3-1}{\Bfootnote{n3}} inter
-            \edtext{lvl3-2}{\Bfootnote{n4}}}{\Bfootnote{n2}}}{\Bfootnote{n1}}
-            """
+    def test_match_single_level(self):
+        text = 'emphasis \edtext{emphasis}{\Bfootnote{fnote}} is nice'
         tokenization = Tokenizer(text)
         matcher = Matcher(tokenization.wordlist, tokenization.registry)
-        matcher.annotate()
+        assert matcher.context_match(tokenization.registry[0]) == True
 
 
 class TestDefineSearchWords:

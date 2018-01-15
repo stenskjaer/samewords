@@ -1,9 +1,10 @@
 import re
-import string
 
 from collections import UserString, UserList
-from typing import List, Tuple, Dict
-Registry = List[dict]
+from typing import List, Tuple, Dict, Union
+
+RegistryEntry = Dict[str, Union[List[int], int]]
+Registry = List[RegistryEntry]
 
 from samewords.brackets import Brackets
 

@@ -1,6 +1,6 @@
 import re
 
-from samewords.tokenize import Words, Registry, Tokenizer
+from samewords.tokenize import Words, Registry, RegistryEntry, Tokenizer
 from samewords.brackets import Brackets
 from samewords import settings
 
@@ -13,33 +13,42 @@ class Matcher:
     with samewords.
     """
 
-    def __init__(self, words: Words, reg: Registry) -> None:
+    def __init__(self, words: Words, registry: Registry) -> None:
         self.words = words
-        self.reg = reg
+        self.registry = registry
         self.ellipsis_lemma = False
 
-    def annotate(self) -> Words:
+    def annotate(self):
+        for entry in self.registry:
+            if self.context_match(entry):
+                pass
+
+
+    def context_match(self, entry: RegistryEntry) -> bool:
         """
-        Given the input word list, find sameword matches and return the
-        annotated version of the list.
+        Given a registry entry, determine whether there is a context match of
+        the edtext lemma content.
         """
-        for entry in self.reg:
-            # Get data points for phrase start and end and the edtext level
-            edtext_start = entry['data'][0]
-            edtext_end = entry['data'][1]
-            edtext_lvl = entry['lvl']
-            edtext = self.words[edtext_start:edtext_end + 1]
+        # Get data points for phrase start and end
+        edtext_start = entry['data'][0]
+        edtext_end = entry['data'][1]
+        edtext = self.words[edtext_start:edtext_end + 1]
 
-            # Identify search words
-            search_words = self._define_search_words(edtext)
+        # Identify search words
+        search_words = self._define_search_words(edtext)
 
-            # Get the context list before and after edtext
+        # Establish the context
+        context_before = self.words[edtext_start - 30:edtext_start]
+        context_after = self.words[edtext_end + 1:edtext_end + 31]
 
-            # Match presence of the lemma in context
-
-            # If match in context, annotate
-
-        return self.words
+        # Determine whether matcher function succeeds in either context.
+        for context in [context_before, context_after]:
+            try:
+                match_start = context.index(search_words[0])
+                return context[match_start:len(search_words)] == search_words
+            except ValueError:
+                return False
+        return False
 
     def _define_search_words(self, edtext: Words) -> List[str]:
         """
@@ -49,26 +58,22 @@ class Matcher:
 
         :return: Cleaned list of search words (not Words, but their .text).
         """
-        def add_ellipses(patterns: List[str]) -> str:
-            return ''.join(['|({})'.format(pat) for pat in patterns])
-
-        def get_lemma_content(app_note: str) -> str:
-            lemma_pos = app_note.find(r'\lemma')
-            if lemma_pos is not -1:
-                start = lemma_pos + len(r'\lemma')
-                end = start + len(Brackets(app_note, start=start))
-                # Content excluding the brackets
-                return app_note[start + 1:end - 1]
-            return ''
-
         # The apparatus note is the first item in app_entries of last Word
         app_note = edtext[-1].app_entries.pop(0)
-        lemma_content = get_lemma_content(app_note)
+        lemma_pos = app_note.find(r'\lemma')
+        if lemma_pos is not -1:
+            start = lemma_pos + len(r'\lemma')
+            end = start + len(Brackets(app_note, start=start))
+            # Content excluding the brackets
+            lemma_content = app_note[start + 1:end - 1]
+        else:
+            lemma_content = ''
 
         if lemma_content:
             lemma_word_list = Tokenizer(lemma_content).wordlist
-            ellipsis_pattern = re.compile(
-                r'(\\l?dots({})?)' + add_ellipses(settings.ellipsis_patterns))
+            settings_pattern = ''.join(['|({})'.format(pat) for pat
+                                         in settings.ellipsis_patterns])
+            ellipsis_pattern = re.compile(r'(\\l?dots({})?)' + settings_pattern)
             if re.search(ellipsis_pattern, lemma_content):
                 # Covers ellipsis lemma.
                 search_words = [lemma_word_list[0].text] + \
