@@ -23,7 +23,6 @@ class Matcher:
             if self.context_match(entry):
                 pass
 
-
     def context_match(self, entry: RegistryEntry) -> bool:
         """
         Given a registry entry, determine whether there is a context match of
@@ -43,12 +42,20 @@ class Matcher:
 
         # Determine whether matcher function succeeds in either context.
         for context in [context_before, context_after]:
-            try:
-                match_start = context.index(search_words[0])
-                return context[match_start:len(search_words)] == search_words
-            except ValueError:
-                return False
+            if self._find_match(context, search_words) is not -1:
+                return True
         return False
+    
+    def _find_match(self, context: List, search_words: List):
+        """Return the position of the first match of search_words list in
+        context. If no match is found, return -1 """
+        try:
+            match_start = context.index(search_words[0])
+            if context[match_start:len(search_words)] == search_words:
+                return match_start
+        except ValueError:
+            return -1
+        return -1
 
     def _define_search_words(self, edtext: Words) -> List[str]:
         """
