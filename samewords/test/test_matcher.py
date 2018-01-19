@@ -5,73 +5,83 @@ from samewords import cli
 
 class TestMatcher:
 
-    def test_no_match_single_level(self):
-        text = 'text \edtext{emphasis}{\Bfootnote{fnote}} is nice'
-        tokenization = Tokenizer(text)
+    def run_annotation(self, input_text):
+        tokenization = Tokenizer(input_text)
         matcher = Matcher(tokenization.wordlist, tokenization.registry)
-        assert matcher.context_match(tokenization.registry[0]) == False
+        words = matcher.annotate()
+        return words.write()
 
-    def test_match_single_level(self):
-        text = 'emphasis \edtext{emphasis}{\Bfootnote{fnote}} is nice'
-        tokenization = Tokenizer(text)
-        matcher = Matcher(tokenization.wordlist, tokenization.registry)
-        assert matcher.context_match(tokenization.registry[0]) == True
+    def test_no_match_single_level(self):
+        text = r'text \edtext{emphasis}{\Bfootnote{fnote}} is nice'
+        assert self.run_annotation(text) == text
+
+    def test_match_single_level_single_item(self):
+        text = r'emphasis \edtext{emphasis}{\Bfootnote{fnote}} is emphasis'
+        expect = r'\sameword{emphasis} \edtext{\sameword[1]{emphasis}}{\Bfootnote{fnote}} is \sameword{emphasis}'
+        assert self.run_annotation(text) == expect
+
+    def test_match_single_level_multiple_context_matches(self):
+        text = r'emphasis a emphasis \edtext{emphasis}{\Bfootnote{fnote}} and emphasis'
+        expect = r'\sameword{emphasis} a \sameword{emphasis} \edtext{\sameword[1]{emphasis}}{\Bfootnote{fnote}} and \sameword{emphasis}'
+        assert self.run_annotation(text) == expect
+
+
 class TestSamewordWrapper:
 
     def test_wrap_unwrapped_sameword(self):
         text = r'sw'
         tokenization = Tokenizer(text)
         matcher = Matcher(tokenization.wordlist, tokenization.registry)
-        matcher._add_sameword(0, 0, level=1)
+        matcher._add_sameword(matcher.words, level=1)
         assert matcher.words.write() == r'\sameword[1]{sw}'
 
     def test_wrap_multiword(self):
         text = r'\sameword{one word and another}'
         tokenization = Tokenizer(text)
         matcher = Matcher(tokenization.wordlist, tokenization.registry)
-        matcher._add_sameword(0, 3, level=0)
+        matcher._add_sameword(matcher.words, level=0)
         assert matcher.words.write() == r'\sameword{one word and another}'
 
     def test_wrap_wrapped_sameword_without_argument(self):
         text = r'\sameword{sw}'
         tokenization = Tokenizer(text)
         matcher = Matcher(tokenization.wordlist, tokenization.registry)
-        matcher._add_sameword(0, 0, level=2)
+        matcher._add_sameword(matcher.words, level=2)
         assert matcher.words.write() == r'\sameword[2]{sw}'
 
     def test_wrap_wrapped_multiword_without_argument(self):
         text = r'\sameword{one word and another}'
         tokenization = Tokenizer(text)
         matcher = Matcher(tokenization.wordlist, tokenization.registry)
-        matcher._add_sameword(0, 3, level=2)
+        matcher._add_sameword(matcher.words, level=2)
         assert matcher.words.write() == r'\sameword[2]{one word and another}'
 
     def test_wrap_wrapped_sameword_with_argument(self):
         text = r'\sameword[2]{sw}'
         tokenization = Tokenizer(text)
         matcher = Matcher(tokenization.wordlist, tokenization.registry)
-        matcher._add_sameword(0, 0, level=1)
+        matcher._add_sameword(matcher.words, level=1)
         assert matcher.words.write() == r'\sameword[1,2]{sw}'
 
     def test_wrap_wrapped_multiword_with_argument(self):
         text = r'\sameword[2]{one word and another}'
         tokenization = Tokenizer(text)
         matcher = Matcher(tokenization.wordlist, tokenization.registry)
-        matcher._add_sameword(0, 3, level=1)
+        matcher._add_sameword(matcher.words, level=1)
         assert matcher.words.write() == r'\sameword[1,2]{one word and another}'
 
     def test_wrap_no_lemma(self):
         text = r'sw'
         tokenization = Tokenizer(text)
         matcher = Matcher(tokenization.wordlist, tokenization.registry)
-        matcher._add_sameword(0, 0, level=0)
+        matcher._add_sameword(matcher.words, level=0)
         assert matcher.words.write() == r'\sameword{sw}'
 
     def test_wrap_multiword_no_lemma(self):
         text = r'one word and another'
         tokenization = Tokenizer(text)
         matcher = Matcher(tokenization.wordlist, tokenization.registry)
-        matcher._add_sameword(0, 3, level=0)
+        matcher._add_sameword(matcher.words, level=0)
         assert matcher.words.write() == r'\sameword{one word and another}'
 
 
@@ -101,6 +111,47 @@ class TestDefineSearchWords:
     def test_multiword_no_lemma(self):
         text = '\edtext{item and more}{\Bfootnote{fnote}}'
         assert self.run_wordlist(text) == ['item', 'and', 'more']
+
+    def test_nested_multiwords_no_lemma(self):
+        """Simulate the annotation procedure by getting the search word
+        results for each nested level """
+        text = r"""
+            \edtext{lvl1 \edtext{lvl2 \edtext{lvl3-1}{\Bfootnote{n3}} inter
+            \edtext{lvl3-2}{\Bfootnote{n4}}}{\Bfootnote{n2}}}{\Bfootnote{n1}}
+            """
+        expect = [['lvl1', 'lvl2', 'lvl3-1', 'inter', 'lvl3-2'],
+                  ['lvl2', 'lvl3-1', 'inter', 'lvl3-2'],
+                  ['lvl3-1'], ['lvl3-2']]
+        tokenization = Tokenizer(text)
+        matcher = Matcher(tokenization.wordlist, tokenization.registry)
+        search_words = []
+        for entry in matcher.registry:
+            edtext_start = entry['data'][0]
+            edtext_end = entry['data'][1]
+            edtext_lvl = entry['lvl']
+            edtext = matcher.words[edtext_start:edtext_end + 1]
+            search_words.append(matcher._define_search_words(edtext))
+        assert search_words == expect
+
+    def test_nested_multiwords_with_lemma(self):
+        """Simulate the annotation procedure by getting the search word
+        results for each nested level """
+        text = r"""
+            \edtext{lvl1 \edtext{lvl2 \edtext{lvl3-1}{\lemma{l3}\Bfootnote{n3}} 
+            inter
+            \edtext{lvl3-2}{\lemma{l4}\Bfootnote{n4}}}{\lemma{l2}\Bfootnote{n2}}}{\lemma{l1}\Bfootnote{n1}}
+            """
+        expect = [['l1'], ['l2'], ['l3'], ['l4']]
+        tokenization = Tokenizer(text)
+        matcher = Matcher(tokenization.wordlist, tokenization.registry)
+        search_words = []
+        for entry in matcher.registry:
+            edtext_start = entry['data'][0]
+            edtext_end = entry['data'][1]
+            edtext_lvl = entry['lvl']
+            edtext = matcher.words[edtext_start:edtext_end + 1]
+            search_words.append(matcher._define_search_words(edtext))
+        assert search_words == expect
 
     def test_custom_ellipsis_dots(self):
         fname = './samewords/test/assets/sample_config.json'

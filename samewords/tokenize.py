@@ -34,7 +34,8 @@ class Macro(UserString):
         A TeX macro can be '\' followed by either a string of letters or
         any single character. Find that.
         """
-        return re.match(r'\\(\w+|.)', self.data).group(0)
+        if self.data is not '':
+            return re.match(r'\\(\w+|.)', self.data).group(0)
 
     def _optional_argument(self) -> str:
         """
@@ -58,7 +59,9 @@ class Macro(UserString):
 
     def _full(self) -> str:
         opening = re.match(r'[^ ]+?{', self.data)
-        if opening:
+        if self.data is '':
+            return ''
+        elif opening:
             return opening.group(0)
         else:
             return self.name
@@ -74,8 +77,9 @@ class Word(UserString):
         self.spaces = ''
         self.prefix = ''
         self.suffix = ''
-        self.app_entries = []
-        self.macro = ''
+        self.app_list = []      # List for later use in finding lemmas.
+        self.app_string = ''    # String for returning the full word.
+        self.macro = Macro()
         self.edtext_start = False
         self.edtext_end = False
 
@@ -91,14 +95,24 @@ class Word(UserString):
     def __len__(self):
         return len(self.full())
 
+    def add_app_entry(self, input_string, index: int = None):
+        """Add apparatus entry to the registry list and return string. If the
+        index is provided, add to that index of the list, otherwise append. """
+        if index:
+            self.app_list[index] += input_string
+        else:
+            self.app_list.append(input_string)
+        self.app_string += input_string
+
     def full(self) -> str:
         """
         :return: full word including prefix and suffix.
         """
         pref = ''.join(self.prefix)
         suff = ''.join(self.suffix)
-        apps = ''.join(self.app_entries)
-        return pref + str(self.macro) + self.text + suff + apps + self.spaces
+        apps = self.app_string
+        macro = self.macro.complete
+        return pref + macro + self.text + suff + apps + self.spaces
 
 
 class Words(UserList):
@@ -221,12 +235,12 @@ class Tokenizer:
                 if (self.edtext_brackets and
                         self.edtext_brackets[-1] == self.brackets):
                     bracket_end = pos + len(Brackets(string, pos))
-                    word.app_entries.append(string[pos:bracket_end])
+                    word.add_app_entry(string[pos:bracket_end])
                     pos = bracket_end
                     try:
                         if string[pos] == '}':
                             # Add possible closing of parent first edtext arg
-                            word.app_entries[-1] += string[pos]
+                            word.add_app_entry(string[pos], -1)
                             self.brackets -= 1
                             pos += 1
                     except IndexError:
