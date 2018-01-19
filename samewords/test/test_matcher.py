@@ -16,6 +16,63 @@ class TestMatcher:
         tokenization = Tokenizer(text)
         matcher = Matcher(tokenization.wordlist, tokenization.registry)
         assert matcher.context_match(tokenization.registry[0]) == True
+class TestSamewordWrapper:
+
+    def test_wrap_unwrapped_sameword(self):
+        text = r'sw'
+        tokenization = Tokenizer(text)
+        matcher = Matcher(tokenization.wordlist, tokenization.registry)
+        matcher._add_sameword(0, 0, level=1)
+        assert matcher.words.write() == r'\sameword[1]{sw}'
+
+    def test_wrap_multiword(self):
+        text = r'\sameword{one word and another}'
+        tokenization = Tokenizer(text)
+        matcher = Matcher(tokenization.wordlist, tokenization.registry)
+        matcher._add_sameword(0, 3, level=0)
+        assert matcher.words.write() == r'\sameword{one word and another}'
+
+    def test_wrap_wrapped_sameword_without_argument(self):
+        text = r'\sameword{sw}'
+        tokenization = Tokenizer(text)
+        matcher = Matcher(tokenization.wordlist, tokenization.registry)
+        matcher._add_sameword(0, 0, level=2)
+        assert matcher.words.write() == r'\sameword[2]{sw}'
+
+    def test_wrap_wrapped_multiword_without_argument(self):
+        text = r'\sameword{one word and another}'
+        tokenization = Tokenizer(text)
+        matcher = Matcher(tokenization.wordlist, tokenization.registry)
+        matcher._add_sameword(0, 3, level=2)
+        assert matcher.words.write() == r'\sameword[2]{one word and another}'
+
+    def test_wrap_wrapped_sameword_with_argument(self):
+        text = r'\sameword[2]{sw}'
+        tokenization = Tokenizer(text)
+        matcher = Matcher(tokenization.wordlist, tokenization.registry)
+        matcher._add_sameword(0, 0, level=1)
+        assert matcher.words.write() == r'\sameword[1,2]{sw}'
+
+    def test_wrap_wrapped_multiword_with_argument(self):
+        text = r'\sameword[2]{one word and another}'
+        tokenization = Tokenizer(text)
+        matcher = Matcher(tokenization.wordlist, tokenization.registry)
+        matcher._add_sameword(0, 3, level=1)
+        assert matcher.words.write() == r'\sameword[1,2]{one word and another}'
+
+    def test_wrap_no_lemma(self):
+        text = r'sw'
+        tokenization = Tokenizer(text)
+        matcher = Matcher(tokenization.wordlist, tokenization.registry)
+        matcher._add_sameword(0, 0, level=0)
+        assert matcher.words.write() == r'\sameword{sw}'
+
+    def test_wrap_multiword_no_lemma(self):
+        text = r'one word and another'
+        tokenization = Tokenizer(text)
+        matcher = Matcher(tokenization.wordlist, tokenization.registry)
+        matcher._add_sameword(0, 3, level=0)
+        assert matcher.words.write() == r'\sameword{one word and another}'
 
 
 class TestDefineSearchWords:

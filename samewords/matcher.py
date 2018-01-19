@@ -19,33 +19,81 @@ class Matcher:
         self.ellipsis_lemma = False
 
     def annotate(self):
+        """
+        Given a registry, determine whether there is a context match of
+        the edtext lemma content for each entry and annotate accordingly.
+        """
         for entry in self.registry:
-            if self.context_match(entry):
-                pass
+            # Get data points for phrase start and end
+            edtext_start = entry['data'][0]
+            edtext_end = entry['data'][1]
+            edtext_lvl = entry['lvl']
+            edtext = self.words[edtext_start:edtext_end + 1]
 
-    def context_match(self, entry: RegistryEntry) -> bool:
-        """
-        Given a registry entry, determine whether there is a context match of
-        the edtext lemma content.
-        """
-        # Get data points for phrase start and end
-        edtext_start = entry['data'][0]
-        edtext_end = entry['data'][1]
-        edtext = self.words[edtext_start:edtext_end + 1]
+            # Identify search words
+            search_words = self._define_search_words(edtext)
 
-        # Identify search words
-        search_words = self._define_search_words(edtext)
+            # Establish the context
+            context_before = self.words[edtext_start - 30:edtext_start]
+            context_after = self.words[edtext_end + 1:edtext_end + 31]
 
-        # Establish the context
-        context_before = self.words[edtext_start - 30:edtext_start]
-        context_after = self.words[edtext_end + 1:edtext_end + 31]
+            # Determine whether matcher function succeeds in either context.
+            for context in [context_before, context_after]:
+                if self._find_match(context, search_words) is not -1:
+                    # First annotate the edtext item
+                    self._add_sameword(edtext_start, edtext_end, edtext_lvl)
 
-        # Determine whether matcher function succeeds in either context.
-        for context in [context_before, context_after]:
-            if self._find_match(context, search_words) is not -1:
-                return True
-        return False
-    
+    def _add_sameword(self, start_index, end_index, level: int):
+        word = self.words[start_index]
+
+        # Should we handle the lemma level?
+        if level is not 0:
+            this_lvl = level
+        else:
+            this_lvl = ''
+
+        # Is the phrase wrapped?
+        sw_wrap = None
+        lvl_match = None
+        pre_sw = ''
+        post_sw = ''
+        sw_match = re.search(r'(\\sameword)([^{]+)?', word.macro.complete)
+        if sw_match:
+            sw_wrap = sw_match.group(0)
+            lvl_match = sw_match.group(2)
+            pre_pos = word.macro.find(r'\sameword')
+            pre_sw = word.macro.complete[:pre_pos]
+            post_sw = word.macro.complete[pre_pos + len(sw_wrap) + 1:]
+
+        if sw_wrap:
+            if lvl_match:
+                # Peel of the wrapping brackets
+                lvl_match = lvl_match[1:-1]
+                # Wrap contains level indication
+                if this_lvl:
+                    # If we have a lemma level, combine with existing level.
+                    lvl_set = set(
+                        [int(i) for i in lvl_match.split(',')] + [this_lvl])
+                    this_lvl = ','.join([str(i) for i in lvl_set])
+                else:
+                    # If lemma level of current annotation is None, keep the
+                    # existing level argument.
+                    this_lvl = lvl_match
+            if this_lvl:
+                this_lvl = '[' + str(this_lvl) + ']'
+            sw_macro = r'\sameword' + this_lvl + '{'
+        else:
+            if this_lvl:
+                sw_macro = r'\sameword[' + str(this_lvl) + ']{'
+            else:
+                sw_macro = r'\sameword{'
+
+        word.macro.complete = pre_sw + sw_macro + post_sw
+
+        self.words[start_index] = word
+        if not sw_match:
+            self.words[end_index].suffix += '}'
+
     def _find_match(self, context: List, search_words: List):
         """Return the position of the first match of search_words list in
         context. If no match is found, return -1 """
