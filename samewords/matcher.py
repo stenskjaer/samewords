@@ -1,4 +1,5 @@
 import re
+from collections import namedtuple
 
 from samewords.tokenize import Words, Registry, Word, Tokenizer
 from samewords.brackets import Brackets
@@ -6,6 +7,7 @@ from samewords import settings
 
 from typing import List
 
+SearchWords = namedtuple('SearchWords', 'content ellipsis')
 
 class Matcher:
     """
@@ -16,7 +18,6 @@ class Matcher:
     def __init__(self, words: Words, registry: Registry) -> None:
         self.words = words
         self.registry = registry
-        self.ellipsis_lemma = False
 
     def annotate(self):
         """
@@ -31,7 +32,7 @@ class Matcher:
             edtext = self.words[edtext_start:edtext_end + 1]
 
             # Identify search words
-            search_words = self._define_search_words(edtext)
+            searches = self._define_search_words(edtext)
 
             # Establish the context
             context_before = self.words[edtext_start - 30:edtext_start]
@@ -39,20 +40,22 @@ class Matcher:
             collected_context = context_before + context_after
 
             # Determine whether matcher function succeeds in either context.
-            if self._find_match(collected_context, search_words) is not -1:
+            if self._find_match(collected_context, searches.content) is not -1:
                 # If so, annotate the edtext element
                 self._add_sameword(edtext, edtext_lvl)
 
                 # Then annotate the two contexts
                 for context in [context_before, context_after]:
-                    match_start = self._find_match(context, search_words)
+                    match_start = self._find_match(context,
+                                                   searches.content)
                     if match_start is not -1:
                         pos = match_start
                         # Annotate all matches
                         while True:
-                            end_pos = pos + len(search_words)
+                            end_pos = pos + len(searches.content)
                             self._add_sameword(context[pos:end_pos], level=0)
-                            new_pos = self._find_match(context, search_words,
+                            new_pos = self._find_match(context,
+                                                       searches.content,
                                                        start=end_pos+1)
                             if new_pos is not -1:
                                 pos = new_pos
@@ -124,7 +127,7 @@ class Matcher:
             return -1
         return -1
 
-    def _define_search_words(self, edtext: Words) -> List[str]:
+    def _define_search_words(self, edtext: Words) -> SearchWords:
         """
         From the Words that make up the edtext element, determine the search
         words based on either (1) the content of the lemma element in the
@@ -150,17 +153,19 @@ class Matcher:
             ellipsis_pattern = re.compile(r'(\\l?dots({})?)' + settings_pattern)
             if re.search(ellipsis_pattern, lemma_content):
                 # Covers ellipsis lemma.
-                search_words = [lemma_word_list[0].text] + \
-                               [lemma_word_list[-1].text]
-                self.ellipsis_lemma = True
+                words = SearchWords(content= [lemma_word_list[0].text] + \
+                                             [lemma_word_list[-1].text],
+                                    ellipsis=True)
             elif len(lemma_word_list) == 1:
                 # Covers single word lemma
-                search_words = [lemma_word_list[0].text]
+                words = SearchWords(content=[lemma_word_list[0].text],
+                                    ellipsis=False)
             elif len(lemma_word_list) > 1:
                 # Covers multiword lemma
-                search_words = lemma_word_list.clean()
+                words = SearchWords(content=lemma_word_list.clean(),
+                                    ellipsis=False)
             else:
-                search_words = []
+                words = SearchWords(content=[], ellipsis=False)
         else:
-            search_words = edtext.clean()
-        return search_words
+            words = SearchWords(content=edtext.clean(), ellipsis=False)
+        return words
