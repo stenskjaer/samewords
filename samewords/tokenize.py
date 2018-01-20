@@ -234,10 +234,7 @@ class Tokenizer:
                     word.text += c
                     pos += 1
                     continue
-                if word.text:
-                    word.suffix += c
-                else:
-                    word.prefix += c
+                word.suffix += c
                 pos += 1
                 continue
             if c == '\\':

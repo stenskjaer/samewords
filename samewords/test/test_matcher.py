@@ -50,6 +50,11 @@ class TestMatcher:
                   r"1}}")
         assert self.run_annotation(text) == expect
 
+    def test_false_positives(self):
+        text = (r"\edtext{in}{\lemma{in}\Bfootnote{note content}} species "
+                r"intelligibilis imaginatur secundum Apostolum\index["
+                r"persons]{}.")
+        assert self.run_annotation(text) == text
 
 class TestSamewordWrapper:
 
