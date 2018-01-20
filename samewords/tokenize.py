@@ -162,22 +162,25 @@ class Tokenizer:
         :param input: The input string that will be tokenized.
         """
         self.data = input
-        self._in_crit = False
-        self._in_app = False
-        self._edtext_lvl = -1  # zero index the levels
-        self._brackets = 0
         self._punctuation = re.compile('[!"#$%&\'()*+,-./:;<=>?@\[\]^_`|~–—]+')
+        # keep track of current nesting level (zero indexed, so we start at -1)
+        self._edtext_lvl = -1
+        # keep track of opened brackets at any point
+        self._brackets = 0
+        # keep track of closing elements in registry process
         self._closures = 0
         # open brackets when starting edtext, to identify apparatus start
-        self._edtext_stack = []
+        self._stack_edtext = []
         # for indexing into registry after tokenization
-        self._registry_stack = []
-        # for registering macro closing positions
-        self._bracket_stack = []
+        self._stack_registry = []
+        # register open bracket count at different positions
+        self._stack_bracket = []
         # index available on whole process
         self._index = 0
+        # the words list, which needs to be available during any tokenization.
+        self._words: Words = Words()
+        # the registry list
         self.registry = []
-        self.words: Words = Words()
         self.wordlist = self._wordlist()
 
     def _wordlist(self) -> Words:
@@ -192,19 +195,19 @@ class Tokenizer:
             if word.edtext_start:
                 count = len([m for m in word.macros if m.name == r'\edtext'])
                 while count > 0:
-                    self._registry_stack.append(len(self.registry))
+                    self._stack_registry.append(len(self.registry))
                     self.registry.append({'lvl': 0, 'data': [self._index]})
                     count -= 1
             if word.edtext_end:
                 while self._closures > 0:
-                    reg_index = self._registry_stack.pop()
+                    reg_index = self._stack_registry.pop()
                     self.registry[reg_index]['data'].append(self._index)
                     self.registry[reg_index]['lvl'] = self._edtext_lvl
                     self._closures -= 1
                     self._edtext_lvl -= 1
-            self.words.append(word)
+            self._words.append(word)
             self._index += 1
-        return self.words
+        return self._words
 
     def _tokenize(self, string: str, pos: int = 0) -> Tuple[Word, int]:
         """
@@ -244,21 +247,21 @@ class Tokenizer:
                 macro = Macro(string[pos:])
                 word.macros.append(macro)
                 # register position for later closing registration
-                self._bracket_stack.append(self._index)
+                self._stack_bracket.append(self._index)
                 pos += len(macro)
                 if macro.empty and not(string[pos].isspace()):
                     # Empty macros cannot have following chars (e.g. A\,B)
                     break
                 if macro.name == r'\edtext':
-                    self._edtext_stack.append(self._brackets)
+                    self._stack_edtext.append(self._brackets)
                     self._edtext_lvl += 1
                     word.edtext_start = True
                 self._brackets += 1
                 continue
             if c == '{':
                 # Determine of this is an app entry.
-                if (self._edtext_stack and
-                        self._edtext_stack[-1] == self._brackets):
+                if (self._stack_edtext and
+                        self._stack_edtext[-1] == self._brackets):
                     bracket_end = pos + len(Brackets(string, pos))
                     word.add_app_entry(string[pos:bracket_end])
                     pos = bracket_end
@@ -271,7 +274,7 @@ class Tokenizer:
                     except IndexError:
                         pass
                     word.edtext_end = True
-                    self._edtext_stack.pop()
+                    self._stack_edtext.pop()
                     self._closures += 1
                     continue
                 else:
@@ -281,15 +284,15 @@ class Tokenizer:
             if c == '}':
                 # try to register this closing where it opens.
                 try:
-                    open_idx = self._bracket_stack[-1]
-                    self.words[open_idx].close_macro(self._index - open_idx)
-                    self._bracket_stack.pop()
+                    open_idx = self._stack_bracket[-1]
+                    self._words[open_idx].close_macro(self._index - open_idx)
+                    self._stack_bracket.pop()
                 except IndexError:
                     # Word not entered in Words wordlist or it has no macro.
                     # Register on current word macro if it exists.
                     if word.macros:
                         word.close_macro(0)
-                        self._bracket_stack.pop()
+                        self._stack_bracket.pop()
                     pass
                 self._brackets -= 1
                 word.suffix += c
