@@ -40,6 +40,16 @@ class TestMatcher:
         expect = r'\sameword{a} b and \sameword{c} \edtext{\sameword[1]{a and c}}{\lemma{a \dots{} c}\Bfootnote{fnote}} and \sameword{c} and \sameword{c}'
         assert self.run_annotation(text) == expect
 
+    def test_three_close_nested_levels(self):
+        text = (r"so \edtext{\edtext{\edtext{so}{\lemma{so}\Bfootnote{lev "
+                r"3}}}{\lemma{so}\Bfootnote{lev 2}}}{\lemma{so}\Bfootnote{lev"
+                r" 1}}")
+        expect = (r"\sameword{so} \edtext{\edtext{\edtext{\sameword[1,2,"
+                  r"3]{so}}{\lemma{so}\Bfootnote{lev 3}}}{\lemma{"
+                  r"so}\Bfootnote{lev 2}}}{\lemma{so}\Bfootnote{lev "
+                  r"1}}")
+        assert self.run_annotation(text) == expect
+
 
 class TestSamewordWrapper:
 

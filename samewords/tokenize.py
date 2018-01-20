@@ -175,15 +175,18 @@ class Tokenizer:
             word, pos = self._tokenize(self.data, pos)
             index = len(words)
             if word.edtext_start:
-                self.open_stack.append(len(self.registry))
-                self.registry.append({'lvl': self.edtext_lvl, 'data': [index]})
+                count = len([m for m in word.macros if m.name == r'\edtext'])
+                while count > 0:
+                    self.open_stack.append(len(self.registry))
+                    self.registry.append({'lvl': 0, 'data': [index]})
+                    count -= 1
             if word.edtext_end:
                 while self.closures > 0:
-                    self.registry[self.open_stack[-1]]['data'].append(index)
-                    self.open_stack.pop()
+                    reg_index = self.open_stack.pop()
+                    self.registry[reg_index]['data'].append(index)
+                    self.registry[reg_index]['lvl'] = self.edtext_lvl
                     self.closures -= 1
                     self.edtext_lvl -= 1
-
             words.append(word)
         return words
 

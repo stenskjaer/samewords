@@ -75,6 +75,19 @@ class TestTokenize:
         assert tokenization.wordlist.write() == text
         assert tokenization.registry == registry
 
+    def test_registry_with_three_close_levels(self):
+        text = (r"so \edtext{\edtext{\edtext{so}{\lemma{so}\Bfootnote{lev "
+                r"3}}}{\lemma{so}\Bfootnote{lev 2}}}{\lemma{so}\Bfootnote{lev"
+                r" 1}}")
+        expect = ['so', 'so']
+        registry = [{'lvl': 0, 'data': [1, 1]},
+                    {'lvl': 1, 'data': [1, 1]},
+                    {'lvl': 2, 'data': [1, 1]}]
+        tokenization = Tokenizer(text)
+        assert tokenization.wordlist == expect
+        assert tokenization.registry == registry
+        assert tokenization.wordlist.write() == text
+
     def test_space_macros(self):
         thinspace1 = r'A\,B'
         thinspace2 = r'A\thinspace B'
