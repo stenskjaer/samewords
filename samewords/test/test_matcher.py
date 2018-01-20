@@ -25,6 +25,21 @@ class TestMatcher:
         expect = r'\sameword{emphasis} a \sameword{emphasis} \edtext{\sameword[1]{emphasis}}{\Bfootnote{fnote}} and \sameword{emphasis}'
         assert self.run_annotation(text) == expect
 
+    def test_match_single_level_multiword(self):
+        text = r'\sameword{a b} and a b \edtext{a b}{\Bfootnote{fnote}} a b and a b'
+        expect = r'\sameword{a b} and \sameword{a b} \edtext{\sameword[1]{a b}}{\Bfootnote{fnote}} \sameword{a b} and \sameword{a b}'
+        assert self.run_annotation(text) == expect
+
+    def test_match_single_level_multiword_lemma(self):
+        text = r'\sameword{a b} and a b \edtext{a b}{\lemma{a b}\Bfootnote{fnote}} a b and a b'
+        expect = r'\sameword{a b} and \sameword{a b} \edtext{\sameword[1]{a b}}{\lemma{a b}\Bfootnote{fnote}} \sameword{a b} and \sameword{a b}'
+        assert self.run_annotation(text) == expect
+
+    def test_match_single_level_multiword_lemma_ellipsis(self):
+        text = r'\sameword{a} b and c \edtext{a and c}{\lemma{a \dots{} c}\Bfootnote{fnote}} and c and c'
+        expect = r'\sameword{a} b and \sameword{c} \edtext{\sameword[1]{a and c}}{\lemma{a \dots{} c}\Bfootnote{fnote}} and \sameword{c} and \sameword{c}'
+        assert self.run_annotation(text) == expect
+
 
 class TestSamewordWrapper:
 

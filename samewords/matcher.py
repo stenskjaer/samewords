@@ -40,28 +40,37 @@ class Matcher:
             collected_context = context_before + context_after
 
             # Determine whether matcher function succeeds in either context.
-            if self._find_match(collected_context, searches.content) is not -1:
+            if self._find_match(collected_context, searches.content,
+                                searches.ellipsis) is not -1:
                 # If so, annotate the edtext element
                 self._add_sameword(edtext, edtext_lvl)
 
                 # Then annotate the two contexts
                 for context in [context_before, context_after]:
-                    match_start = self._find_match(context,
-                                                   searches.content)
-                    if match_start is not -1:
-                        pos = match_start
-                        # Annotate all matches
-                        while True:
-                            end_pos = pos + len(searches.content)
-                            self._add_sameword(context[pos:end_pos], level=0)
-                            new_pos = self._find_match(context,
-                                                       searches.content,
-                                                       start=end_pos+1)
-                            if new_pos is not -1:
-                                pos = new_pos
-                            else:
-                                break
+                    if searches.ellipsis:
+                        for word in searches.content:
+                            self._annotate_context(context, word,
+                                                   searches.ellipsis)
+                    else:
+                        self._annotate_context(context, searches.content,
+                                               searches.ellipsis)
         return self.words
+
+    def _annotate_context(self, context: List, searches: List,
+                          ellipsis: bool) -> None:
+        match_start = self._find_match(context, searches, ellipsis)
+        if match_start is not -1:
+            pos = match_start
+            # Annotate all matches
+            while True:
+                end_pos = pos + len(searches)
+                self._add_sameword(context[pos:end_pos], 0)
+                new_pos = self._find_match(context, searches,
+                                           ellipsis, start=end_pos + 1)
+                if new_pos is not -1:
+                    pos = new_pos
+                else:
+                    break
 
     def _add_sameword(self, chunk: Words, level: int):
         word = chunk[0]
@@ -115,17 +124,30 @@ class Matcher:
             chunk[-1].suffix += '}'
         chunk[0] = word
 
-    def _find_match(self, context: List, search_words: List, start: int = 0):
+    def _find_match(self, context: List, searches: List, ellipsis: bool,
+                    start: int = 0) -> int:
         """Return the position of the first match of search_words list in
         context. If no match is found, return -1 """
-        try:
-            match_start = context[start:].index(search_words[0]) + start
-            match_end = match_start + len(search_words)
-            if context[match_start:match_end] == search_words:
-                return match_start
-        except ValueError:
-            return -1
-        return -1
+        def one_word(context: List, searches: List, start: int = 0) -> int:
+            for word in searches:
+                try:
+                    return context[start:].index(word) + start
+                except ValueError:
+                    return -1
+
+        def multi_word(context: List, searches: List, start: int = 0) -> int:
+            try:
+                match_start = context[start:].index(searches[0]) + start
+                match_end = match_start + len(searches)
+                if context[match_start:match_end] == searches:
+                    return match_start
+            except ValueError:
+                return -1
+
+        if ellipsis:
+            return one_word(context, searches, start)
+        else:
+            return multi_word(context, searches, start)
 
     def _define_search_words(self, edtext: Words) -> SearchWords:
         """
@@ -148,10 +170,10 @@ class Matcher:
 
         if lemma_content:
             lemma_word_list = Tokenizer(lemma_content).wordlist
-            settings_pattern = '|'.join(['({})'.format(pat) for pat
+            settings_pat = '|'.join(['({})'.format(pat) for pat
                                          in settings.ellipsis_patterns])
-            ellipsis_pattern = re.compile(r'(\\l?dots({})?)' + settings_pattern)
-            if re.search(ellipsis_pattern, lemma_content):
+            ellipsis_pat = re.compile(r'(\\l?dots({})?)|' + settings_pat)
+            if re.search(ellipsis_pat, lemma_content):
                 # Covers ellipsis lemma.
                 words = SearchWords(content= [lemma_word_list[0].text] + \
                                              [lemma_word_list[-1].text],
