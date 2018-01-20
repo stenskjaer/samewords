@@ -109,6 +109,22 @@ class TestSamewordWrapper:
         matcher._add_sameword(matcher.words, level=0)
         assert matcher.words.write() == r'\sameword{one word and another}'
 
+    def test_wrap_multi_partially_wrapped(self):
+        text = r'input \sameword{material}'
+        expect = r'\sameword{input \sameword{material}}'
+        tokenization = Tokenizer(text)
+        matcher = Matcher(tokenization.wordlist, tokenization.registry)
+        matcher._add_sameword(matcher.words, level=0)
+        assert matcher.words.write() == expect
+
+    def test_wrap_multi_both_wrapped(self):
+        text = r'\sameword{input} \sameword{material}'
+        expect = r'\sameword[1]{\sameword{input} \sameword{material}}'
+        tokenization = Tokenizer(text)
+        matcher = Matcher(tokenization.wordlist, tokenization.registry)
+        matcher._add_sameword(matcher.words, level=1)
+        assert matcher.words.write() == expect
+
 
 class TestDefineSearchWords:
 

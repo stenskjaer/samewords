@@ -72,7 +72,14 @@ class Matcher:
                 else:
                     break
 
-    def _add_sameword(self, chunk: Words, level: int):
+    def _add_sameword(self, chunk: Words, level: int) -> None:
+        """
+        Wrap the `chunk` of words in a sameword macro with level indication,
+        depending on some circumstances. If it is already wrapped in its
+        entirety, we only update the sameword macro if necessary. If the
+        level of an existing wrap is the same as the current, no change is
+        made, otherwise that is updated.
+        """
         word: Word = chunk[0]
 
         # Should we handle the lemma level?
@@ -87,11 +94,16 @@ class Matcher:
         pat = re.compile(r'(\\sameword)([^{]+)?')
         sw_index = [i for i,val in enumerate(word.macros)
                     if re.search(pat, val.complete)]
-        if sw_index:
+
+        # If the first word is wrapped, and it is equal in length to the
+        # current chunk, then this chunk is already wrapped in its entirety,
+        # and should not be rewrapped. In that case we the wrap data.
+        if sw_index and word.macros[sw_index[0]].to_closing == len(chunk) - 1:
             sw_match = re.search(pat, word.macros[sw_index[0]].complete)
             sw_wrap = sw_match.group(0)
             lvl_match = sw_match.group(2)
 
+        # If the whole phrase is wrapped, get data from that wrap and update it.
         if sw_wrap:
             if lvl_match:
                 # Peel of the wrapping brackets
@@ -109,18 +121,29 @@ class Matcher:
             if this_lvl:
                 this_lvl = '[' + str(this_lvl) + ']'
             sw_macro = Macro(r'\sameword' + this_lvl + '{')
+            word.macros[sw_index[0]] = sw_macro
+
+        # Otherwise, build the macro and put correctly into first word's macros.
         else:
             if this_lvl:
                 sw_macro = Macro(r'\sameword[' + str(this_lvl) + ']{')
             else:
                 sw_macro = Macro(r'\sameword{')
 
-        if sw_wrap:
-            word.macros[sw_index[0]] = sw_macro
-        else:
-            word.macros.append(sw_macro)
+            # If the first word already has a sameword wrap, put new one first.
+            if sw_index:
+                word.macros.insert(0, sw_macro)
+            # Otherwise, put it at the end of macros (making it the innermost).
+            else:
+                word.macros.append(sw_macro)
+            # Add closing bracket to last word.
             chunk[-1].suffix += '}'
+            # And register its distance.
+            word.close_macro(len(chunk) - 1)
+
+        # Update the first word
         chunk[0] = word
+        return chunk
 
     def _find_match(self, context: List, searches: List, ellipsis: bool,
                     start: int = 0) -> int:

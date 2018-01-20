@@ -18,6 +18,7 @@ class Macro(UserString):
         self.name = self._identify_name()
         self.oarg = self._optional_argument()
         self.empty = self._is_empty()
+        self.to_closing = 0     # Distance in wordlist to closing bracket.
         self.complete = self._full()
 
     def __len__(self) -> int:
@@ -118,6 +119,16 @@ class Word(UserString):
         macros = ''.join(macro.complete for macro in self.macros)
         return pref + macros + self.text + suff + apps + self.spaces
 
+    def close_macro(self, distance):
+        """If there are any open macros on the word, close the last of those.
+        This means that we close inner macros first."""
+        if self.macros:
+            for macro in reversed(self.macros):
+                if not macro.to_closing:
+                    macro.to_closing = distance
+                    return True
+        raise IndexError('The word does not have any open macros.')
+
 
 class Words(UserList):
 
@@ -159,8 +170,14 @@ class Tokenizer:
         """
         self.data = input
         self.registry = []
-        self.edtext_brackets = []
-        self.open_stack = []
+        # open brackets when starting edtext, to identify apparatus start
+        self.edtext_stack = []
+        # for indexing into registry after tokenization
+        self.registry_stack = []
+        # for registering macro closing positions
+        self.bracket_stack = []
+        self.index = 0              # index available on whole process
+        self.words: Words = Words()
         self.wordlist = self._wordlist()
 
     def _wordlist(self) -> Words:
@@ -169,26 +186,25 @@ class Tokenizer:
         register the returned Word object if it either opens or closes an
         edtext element.
         """
-        words = Words()
         pos = 0
         while pos < len(self.data):
             word, pos = self._tokenize(self.data, pos)
-            index = len(words)
             if word.edtext_start:
                 count = len([m for m in word.macros if m.name == r'\edtext'])
                 while count > 0:
-                    self.open_stack.append(len(self.registry))
-                    self.registry.append({'lvl': 0, 'data': [index]})
+                    self.registry_stack.append(len(self.registry))
+                    self.registry.append({'lvl': 0, 'data': [self.index]})
                     count -= 1
             if word.edtext_end:
                 while self.closures > 0:
-                    reg_index = self.open_stack.pop()
-                    self.registry[reg_index]['data'].append(index)
+                    reg_index = self.registry_stack.pop()
+                    self.registry[reg_index]['data'].append(self.index)
                     self.registry[reg_index]['lvl'] = self.edtext_lvl
                     self.closures -= 1
                     self.edtext_lvl -= 1
-            words.append(word)
-        return words
+            self.words.append(word)
+            self.index += 1
+        return self.words
 
     def _tokenize(self, string: str, pos: int = 0) -> Tuple[Word, int]:
         """
@@ -227,20 +243,22 @@ class Tokenizer:
                     break
                 macro = Macro(string[pos:])
                 word.macros.append(macro)
+                # register position for later closing registration
+                self.bracket_stack.append(self.index)
                 pos += len(macro)
                 if macro.empty and not(string[pos].isspace()):
                     # Empty macros cannot have following chars (e.g. A\,B)
                     break
                 if macro.name == r'\edtext':
-                    self.edtext_brackets.append(self.brackets)
+                    self.edtext_stack.append(self.brackets)
                     self.edtext_lvl += 1
                     word.edtext_start = True
                 self.brackets += 1
                 continue
             if c == '{':
                 # Determine of this is an app entry.
-                if (self.edtext_brackets and
-                        self.edtext_brackets[-1] == self.brackets):
+                if (self.edtext_stack and
+                        self.edtext_stack[-1] == self.brackets):
                     bracket_end = pos + len(Brackets(string, pos))
                     word.add_app_entry(string[pos:bracket_end])
                     pos = bracket_end
@@ -253,7 +271,7 @@ class Tokenizer:
                     except IndexError:
                         pass
                     word.edtext_end = True
-                    self.edtext_brackets.pop()
+                    self.edtext_stack.pop()
                     self.closures += 1
                     continue
                 else:
@@ -261,6 +279,18 @@ class Tokenizer:
                     pos += 1
                     continue
             if c == '}':
+                # try to register this closing where it opens.
+                try:
+                    open_idx = self.bracket_stack[-1]
+                    self.words[open_idx].close_macro(self.index - open_idx)
+                    self.bracket_stack.pop()
+                except IndexError:
+                    # Word not entered in Words wordlist or it has no macro.
+                    # Register on current word macro if it exists.
+                    if word.macros:
+                        word.close_macro(0)
+                        self.bracket_stack.pop()
+                    pass
                 self.brackets -= 1
                 word.suffix += c
                 pos += 1
