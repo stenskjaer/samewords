@@ -151,13 +151,6 @@ class Words(UserList):
 
 
 class Tokenizer:
-    in_crit = False
-    in_app = False
-    edtext_lvl = -1     # zero index the levels
-    brackets = 0
-    punctuation = re.compile('[!"#$%&\'()*+,-./:;<=>?@\[\]^_`|~–—]+')
-    closures = 0
-
 
     def __init__(self, input: str = '') -> None:
         """
@@ -169,14 +162,21 @@ class Tokenizer:
         :param input: The input string that will be tokenized.
         """
         self.data = input
-        self.registry = []
+        self._in_crit = False
+        self._in_app = False
+        self._edtext_lvl = -1  # zero index the levels
+        self._brackets = 0
+        self._punctuation = re.compile('[!"#$%&\'()*+,-./:;<=>?@\[\]^_`|~–—]+')
+        self._closures = 0
         # open brackets when starting edtext, to identify apparatus start
-        self.edtext_stack = []
+        self._edtext_stack = []
         # for indexing into registry after tokenization
-        self.registry_stack = []
+        self._registry_stack = []
         # for registering macro closing positions
-        self.bracket_stack = []
-        self.index = 0              # index available on whole process
+        self._bracket_stack = []
+        # index available on whole process
+        self._index = 0
+        self.registry = []
         self.words: Words = Words()
         self.wordlist = self._wordlist()
 
@@ -192,18 +192,18 @@ class Tokenizer:
             if word.edtext_start:
                 count = len([m for m in word.macros if m.name == r'\edtext'])
                 while count > 0:
-                    self.registry_stack.append(len(self.registry))
-                    self.registry.append({'lvl': 0, 'data': [self.index]})
+                    self._registry_stack.append(len(self.registry))
+                    self.registry.append({'lvl': 0, 'data': [self._index]})
                     count -= 1
             if word.edtext_end:
-                while self.closures > 0:
-                    reg_index = self.registry_stack.pop()
-                    self.registry[reg_index]['data'].append(self.index)
-                    self.registry[reg_index]['lvl'] = self.edtext_lvl
-                    self.closures -= 1
-                    self.edtext_lvl -= 1
+                while self._closures > 0:
+                    reg_index = self._registry_stack.pop()
+                    self.registry[reg_index]['data'].append(self._index)
+                    self.registry[reg_index]['lvl'] = self._edtext_lvl
+                    self._closures -= 1
+                    self._edtext_lvl -= 1
             self.words.append(word)
-            self.index += 1
+            self._index += 1
         return self.words
 
     def _tokenize(self, string: str, pos: int = 0) -> Tuple[Word, int]:
@@ -225,7 +225,7 @@ class Tokenizer:
                 word.text += match
                 pos += len(match)
                 continue
-            if re.search(self.punctuation, c):
+            if re.search(self._punctuation, c):
                 # Exception: .5 is part of word, not punctuation.
                 if re.match('\.\d', string[pos:]):
                     word.text += c
@@ -244,21 +244,21 @@ class Tokenizer:
                 macro = Macro(string[pos:])
                 word.macros.append(macro)
                 # register position for later closing registration
-                self.bracket_stack.append(self.index)
+                self._bracket_stack.append(self._index)
                 pos += len(macro)
                 if macro.empty and not(string[pos].isspace()):
                     # Empty macros cannot have following chars (e.g. A\,B)
                     break
                 if macro.name == r'\edtext':
-                    self.edtext_stack.append(self.brackets)
-                    self.edtext_lvl += 1
+                    self._edtext_stack.append(self._brackets)
+                    self._edtext_lvl += 1
                     word.edtext_start = True
-                self.brackets += 1
+                self._brackets += 1
                 continue
             if c == '{':
                 # Determine of this is an app entry.
-                if (self.edtext_stack and
-                        self.edtext_stack[-1] == self.brackets):
+                if (self._edtext_stack and
+                        self._edtext_stack[-1] == self._brackets):
                     bracket_end = pos + len(Brackets(string, pos))
                     word.add_app_entry(string[pos:bracket_end])
                     pos = bracket_end
@@ -266,13 +266,13 @@ class Tokenizer:
                         if string[pos] == '}':
                             # Add possible closing of parent first edtext arg
                             word.add_app_entry(string[pos], -1)
-                            self.brackets -= 1
+                            self._brackets -= 1
                             pos += 1
                     except IndexError:
                         pass
                     word.edtext_end = True
-                    self.edtext_stack.pop()
-                    self.closures += 1
+                    self._edtext_stack.pop()
+                    self._closures += 1
                     continue
                 else:
                     word.suffix += c
@@ -281,17 +281,17 @@ class Tokenizer:
             if c == '}':
                 # try to register this closing where it opens.
                 try:
-                    open_idx = self.bracket_stack[-1]
-                    self.words[open_idx].close_macro(self.index - open_idx)
-                    self.bracket_stack.pop()
+                    open_idx = self._bracket_stack[-1]
+                    self.words[open_idx].close_macro(self._index - open_idx)
+                    self._bracket_stack.pop()
                 except IndexError:
                     # Word not entered in Words wordlist or it has no macro.
                     # Register on current word macro if it exists.
                     if word.macros:
                         word.close_macro(0)
-                        self.bracket_stack.pop()
+                        self._bracket_stack.pop()
                     pass
-                self.brackets -= 1
+                self._brackets -= 1
                 word.suffix += c
                 pos += 1
                 continue
