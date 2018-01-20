@@ -53,8 +53,12 @@ class Macro(UserString):
         """
         opening = re.match(r'\\[^ ]+{', self.data)
         if opening:
-            if not(self.data[len(opening.group(0))] == '}'):
+            try:
+                return self.data[len(opening.group(0))] == '}'
+            except IndexError:
+                # String ends after opening, so we assume it will have content.
                 return False
+        # It has no opening, so it has no content.
         return True
 
     def _full(self) -> str:
@@ -79,7 +83,7 @@ class Word(UserString):
         self.suffix = ''
         self.app_list = []      # List for later use in finding lemmas.
         self.app_string = ''    # String for returning the full word.
-        self.macro = Macro()
+        self.macros = []
         self.edtext_start = False
         self.edtext_end = False
 
@@ -111,8 +115,8 @@ class Word(UserString):
         pref = ''.join(self.prefix)
         suff = ''.join(self.suffix)
         apps = self.app_string
-        macro = self.macro.complete
-        return pref + macro + self.text + suff + apps + self.spaces
+        macros = ''.join(macro.complete for macro in self.macros)
+        return pref + macros + self.text + suff + apps + self.spaces
 
 
 class Words(UserList):
@@ -219,7 +223,7 @@ class Tokenizer:
                     # No appended macros
                     break
                 macro = Macro(string[pos:])
-                word.macro = macro
+                word.macros.append(macro)
                 pos += len(macro)
                 if macro.empty and not(string[pos].isspace()):
                     # Empty macros cannot have following chars (e.g. A\,B)

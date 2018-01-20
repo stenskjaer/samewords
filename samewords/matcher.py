@@ -1,7 +1,7 @@
 import re
 from collections import namedtuple
 
-from samewords.tokenize import Words, Registry, Word, Tokenizer
+from samewords.tokenize import Words, Registry, Word, Tokenizer, Macro
 from samewords.brackets import Brackets
 from samewords import settings
 
@@ -73,7 +73,7 @@ class Matcher:
                     break
 
     def _add_sameword(self, chunk: Words, level: int):
-        word = chunk[0]
+        word: Word = chunk[0]
 
         # Should we handle the lemma level?
         if level is not 0:
@@ -84,15 +84,13 @@ class Matcher:
         # Is the phrase wrapped?
         sw_wrap = None
         lvl_match = None
-        pre_sw = ''
-        post_sw = ''
-        sw_match = re.search(r'(\\sameword)([^{]+)?', word.macro.complete)
-        if sw_match:
+        pat = re.compile(r'(\\sameword)([^{]+)?')
+        sw_index = [i for i,val in enumerate(word.macros)
+                    if re.search(pat, val.complete)]
+        if sw_index:
+            sw_match = re.search(pat, word.macros[sw_index[0]].complete)
             sw_wrap = sw_match.group(0)
             lvl_match = sw_match.group(2)
-            pre_pos = word.macro.find(r'\sameword')
-            pre_sw = word.macro.complete[:pre_pos]
-            post_sw = word.macro.complete[pre_pos + len(sw_wrap) + 1:]
 
         if sw_wrap:
             if lvl_match:
@@ -110,17 +108,17 @@ class Matcher:
                     this_lvl = lvl_match
             if this_lvl:
                 this_lvl = '[' + str(this_lvl) + ']'
-            sw_macro = r'\sameword' + this_lvl + '{'
+            sw_macro = Macro(r'\sameword' + this_lvl + '{')
         else:
             if this_lvl:
-                sw_macro = r'\sameword[' + str(this_lvl) + ']{'
+                sw_macro = Macro(r'\sameword[' + str(this_lvl) + ']{')
             else:
-                sw_macro = r'\sameword{'
+                sw_macro = Macro(r'\sameword{')
 
-        if sw_match:
-            word.macro.complete = pre_sw + sw_macro + post_sw
+        if sw_wrap:
+            word.macros[sw_index[0]] = sw_macro
         else:
-            word.macro.complete += sw_macro
+            word.macros.append(sw_macro)
             chunk[-1].suffix += '}'
         chunk[0] = word
 
