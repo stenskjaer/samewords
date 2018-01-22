@@ -164,27 +164,28 @@ class TestDefineSearchWords:
     def run_wordlist(self, input_text):
         tokenization = Tokenizer(input_text)
         matcher = Matcher(tokenization.wordlist, tokenization.registry)
-        return matcher._define_search_words(tokenization.wordlist)
+        cont, _ = matcher._define_search_words(tokenization.wordlist)
+        return cont
 
     def test_single_lemma_word(self):
         text = '\edtext{item}{\lemma{item}\Bfootnote{fnote}}'
-        assert self.run_wordlist(text).content == ['item']
+        assert self.run_wordlist(text) == ['item']
 
     def test_multiword_lemma_first(self):
         text = '\edtext{item and more}{\lemma{item and more}\Bfootnote{fnote}}'
-        assert self.run_wordlist(text).content == ['item', 'and', 'more']
+        assert self.run_wordlist(text) == ['item', 'and', 'more']
 
     def test_ellipsis_lemma_first(self):
         text = '\edtext{one a b c more}{\lemma{one ... more}\Bfootnote{fnote}}'
-        assert self.run_wordlist(text).content == ['one', 'more']
+        assert self.run_wordlist(text) == ['one', 'more']
 
     def test_single_no_lemma(self):
         text = '\edtext{item}{\Bfootnote{fnote}}'
-        assert self.run_wordlist(text).content == ['item']
+        assert self.run_wordlist(text) == ['item']
 
     def test_multiword_no_lemma(self):
         text = '\edtext{item and more}{\Bfootnote{fnote}}'
-        assert self.run_wordlist(text).content == ['item', 'and', 'more']
+        assert self.run_wordlist(text) == ['item', 'and', 'more']
 
     def test_nested_multiwords_no_lemma(self):
         """Simulate the annotation procedure by getting the search word
@@ -204,7 +205,8 @@ class TestDefineSearchWords:
             edtext_end = entry['data'][1]
             edtext_lvl = entry['lvl']
             edtext = matcher.words[edtext_start:edtext_end + 1]
-            search_words.append(matcher._define_search_words(edtext).content)
+            words, _ = matcher._define_search_words(edtext)
+            search_words.append(words)
         assert search_words == expect
 
     def test_nested_multiwords_with_lemma(self):
@@ -224,7 +226,8 @@ class TestDefineSearchWords:
             edtext_end = entry['data'][1]
             edtext_lvl = entry['lvl']
             edtext = matcher.words[edtext_start:edtext_end + 1]
-            search_words.append(matcher._define_search_words(edtext).content)
+            words, _ = matcher._define_search_words(edtext)
+            search_words.append(words)
         assert search_words == expect
 
     def test_custom_ellipsis_dots(self):
@@ -242,14 +245,14 @@ class TestDefineSearchWords:
         ldots = r'\edtext{A B C D E}{\lemma{A \ldots E}\Afootnote{}}'
         ldots_brackets = r'\edtext{A B C D E}{\lemma{A \ldots{} E}\Afootnote{}}'
         expect = ['A', 'E']
-        assert self.run_wordlist(single_dash).content == expect
-        assert self.run_wordlist(double_dash).content == expect
-        assert self.run_wordlist(triple_dash).content == expect
-        assert self.run_wordlist(endash).content == expect
-        assert self.run_wordlist(emdash).content == expect
-        assert self.run_wordlist(comma_string).content == expect
-        assert self.run_wordlist(thin_space).content == expect
-        assert self.run_wordlist(dots).content == expect
-        assert self.run_wordlist(dots_brackets).content == expect
-        assert self.run_wordlist(ldots).content == expect
-        assert self.run_wordlist(ldots_brackets).content == expect
+        assert self.run_wordlist(single_dash) == expect
+        assert self.run_wordlist(double_dash) == expect
+        assert self.run_wordlist(triple_dash) == expect
+        assert self.run_wordlist(endash) == expect
+        assert self.run_wordlist(emdash) == expect
+        assert self.run_wordlist(comma_string) == expect
+        assert self.run_wordlist(thin_space) == expect
+        assert self.run_wordlist(dots) == expect
+        assert self.run_wordlist(dots_brackets) == expect
+        assert self.run_wordlist(ldots) == expect
+        assert self.run_wordlist(ldots_brackets) == expect
