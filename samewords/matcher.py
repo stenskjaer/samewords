@@ -1,7 +1,7 @@
 import re
 from collections import namedtuple
 
-from samewords.tokenize import Words, Registry, Word, Tokenizer, Macro
+from samewords.tokenize import Words, Registry, Word, Tokenizer, Macro, Element
 from samewords.brackets import Brackets
 from samewords import settings
 
@@ -67,7 +67,7 @@ class Matcher:
         while count < distance and end < len(complete):
             w: Word = complete[end]
             end += 1
-            if w.text:
+            if w.content:
                 count += 1
         return complete[start:end]
 
@@ -79,7 +79,7 @@ class Matcher:
         while count < distance and start > 0:
             w: Word = complete[start]
             start -= 1
-            if w.text:
+            if w.content:
                 count += 1
         return complete[start:end]
 
@@ -117,7 +117,7 @@ class Matcher:
         lvl_match = None
         pat = re.compile(r'(\\sameword)([^{]+)?')
         sw_index = [i for i,val in enumerate(word.macros)
-                    if re.search(pat, val.complete)]
+                    if re.search(pat, val.full())]
         try:
             sw_index = sw_index[0]
         except IndexError:
@@ -128,7 +128,7 @@ class Matcher:
         # current chunk, then this chunk is already wrapped in its entirety,
         # and should not be rewrapped. In that case we the wrap data.
         if sw_index is not -1 and word.macros[sw_index].to_closing == len(chunk) - 1:
-            sw_match = re.search(pat, word.macros[sw_index].complete)
+            sw_match = re.search(pat, word.macros[sw_index].full())
             sw_wrap = sw_match.group(0)
             lvl_match = sw_match.group(2)
 
@@ -150,7 +150,7 @@ class Matcher:
             if this_lvl:
                 this_lvl = '[' + str(this_lvl) + ']'
             sw_macro = Macro(r'\sameword' + this_lvl + '{')
-            word.macros[sw_index] = sw_macro
+            word.update_macro(sw_macro, sw_index)
 
         # Otherwise, build the macro and put correctly into first word's macros.
         else:
@@ -161,12 +161,13 @@ class Matcher:
 
             # If the first word already has a sameword wrap, put new one first.
             if sw_index is not -1:
-                word.macros.insert(sw_index, sw_macro)
+                word.add_macro(sw_macro, sw_index)
             # Otherwise, put it at the end of macros (making it the innermost).
             else:
-                word.macros.append(sw_macro)
+                word.add_macro(sw_macro)
+
             # Add closing bracket to last word.
-            chunk[-1].suffix += '}'
+            chunk[-1].append_suffix('}')
             # And register its distance.
             word.close_macro(len(chunk) - 1)
 
@@ -205,16 +206,16 @@ class Matcher:
         words based on either (1) the content of the lemma element in the
         apparatus note or (2) the content of the critical note.
 
-        :return: Cleaned list of search words (not Words, but their .text).
+        :return: Cleaned list of search words (not Words, but their .get_text())
         """
         # The apparatus note is the first item in app_entries of last Word
         app_note = edtext[-1].app_list.pop()
-        lemma_pos = app_note.find(r'\lemma')
+        lemma_pos = app_note.cont.find(r'\lemma')
         if lemma_pos is not -1:
             start = lemma_pos + len(r'\lemma')
-            end = start + len(Brackets(app_note, start=start))
+            end = start + len(Brackets(app_note.cont, start=start))
             # Content excluding the brackets
-            lemma_content = app_note[start + 1:end - 1]
+            lemma_content = app_note.cont[start + 1:end - 1]
         else:
             lemma_content = ''
 
@@ -225,11 +226,11 @@ class Matcher:
             ellipsis_pat = re.compile(r'(\\l?dots({})?)|' + settings_pat)
             if re.search(ellipsis_pat, lemma_content):
                 # Covers ellipsis lemma.
-                content = [lemma_word_list[0].text] + [lemma_word_list[-1].text]
+                content = [lemma_word_list[0].get_text()] + [lemma_word_list[-1].get_text()]
                 ellipsis = True
             elif len(lemma_word_list) == 1:
                 # Covers single word lemma
-                content = [lemma_word_list[0].text]
+                content = [lemma_word_list[0].get_text()]
                 ellipsis = False
             elif len(lemma_word_list) > 1:
                 # Covers multiword lemma

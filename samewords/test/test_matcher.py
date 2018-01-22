@@ -15,7 +15,7 @@ class TestMatcher:
         text = r'text \edtext{emphasis}{\Bfootnote{fnote}} is nice'
         assert self.run_annotation(text) == text
 
-    def test_no_match_emtpy_edtext(self):
+    def test_no_match_empty_edtext(self):
         text = (r'Christum est\edtext{}{\lemma{}\Bfootnote[nosep]{'
                 r'\emph{iter.} R SV; The double "est" in R and SV seems like '
                 r'a clear mistake, though good corroboration of the intimate '
@@ -286,6 +286,16 @@ class TestMatcher:
                   r'deducuntur}\Bfootnote{deducantur V; The choice of the '
                   r'subjunctive by V is unclear to us. Thus, follow the '
                   r'indicative reading supported by R, SV, and S}}.')
+        assert self.run_annotation(text) == expect
+
+    def test_custom_macros(self):
+        text = (r'Han var sonr \edtext{Hákon\emph{ar}\somemacro{Håkon II}}{'
+                r'\Afootnote{k\emph{on}gſ hakon\emph{ar} Sk}}, '
+                r'sons Hákonar\somemacro{Håkon I}')
+        expect = (r'Han var sonr \edtext{\sameword[1]{Hákon\emph{'
+                  r'ar}\somemacro{Håkon II}}}{\Afootnote{k\emph{on}gſ '
+                  r'hakon\emph{ar} Sk}}, sons \sameword{Hákonar}\somemacro{'
+                  r'Håkon I}')
         assert self.run_annotation(text) == expect
 
 class TestGetContext:

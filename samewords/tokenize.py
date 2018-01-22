@@ -2,37 +2,49 @@ import re
 
 from collections import UserString, UserList
 from typing import List, Tuple, Dict, Union
-from collections import namedtuple
 from operator import itemgetter
 
 from samewords.brackets import Brackets
 
 RegistryEntry = Dict[str, Union[List[int], int]]
 Registry = List[RegistryEntry]
-Element = namedtuple('Element', 'cont pos')
+
+
+class Element:
+    def __init__(self, cont: str, pos: int) -> None:
+        self.cont = cont
+        self.pos = pos
+
+    def __repr__(self) -> str:
+        return "{} (pos: {}}".format(self.cont, self.pos)
 
 
 class Macro(UserString):
     """A latex macro, holding information in its name and optional arguments.
+    TODO: Don't gobble up the whole following string in matching.
     """
 
-    def __init__(self, input_string: str = '') -> None:
+    def __init__(self, input_string: str = '',
+                 pos: int = None, end: int = None) -> None:
         self.data = input_string
         super().__init__(self)
         self.name = self._identify_name()
         self.oarg = self._optional_argument()
+        self.opening = re.match(r'[^ ]+?{', self.data)
         self.empty = self._is_empty()
-        self.to_closing = False   # Distance in wordlist to closing bracket.
-        self.complete = self._full()
+        self.pos = pos              # register start index in word
+        self.end = end
+        self.to_closing = False     # Distance in wordlist to closing bracket.
+        self.hidden_content = ''    # Content that won't count as words
 
     def __len__(self) -> int:
-        return len(self.complete)
+        return len(self.full())
 
     def __repr__(self) -> str:
-        return "'{}'".format(self.complete)
+        return "'{}'".format(self.full())
 
     def __str__(self) -> str:
-        return str(self.complete)
+        return str(self.full())
 
     def _identify_name(self) -> str:
         """
@@ -56,22 +68,23 @@ class Macro(UserString):
         If the macro contains an opening bracket that is not followed
         immediately by a closing bracket, it has some content.
         """
-        opening = re.match(r'\\[^ ]+?{', self.data)
-        if opening:
+        if self.opening:
             try:
-                return self.data[len(opening.group(0))] == '}'
+                return self.data[len(self.opening.group(0))] == '}'
             except IndexError:
                 # String ends after opening, so we assume it will have content.
                 return False
         # It has no opening, so it has no content.
         return True
 
-    def _full(self) -> str:
-        opening = re.match(r'[^ ]+?{', self.data)
+    def full(self) -> str:
         if self.data is '':
             return ''
-        elif opening:
-            return opening.group(0)
+        elif self.opening:
+            if self.hidden_content:
+                return self.opening.group(0) + self.hidden_content[1:]
+            else:
+                return self.opening.group(0)
         else:
             return self.name
 
@@ -86,23 +99,24 @@ class Word(UserString):
         self.content: List[Element] = []
         self.punctuation: List[Element] = []
         self.app_list: List[Element] = []
+        self.app_string: List[Element] = [Element('', 0)]
         self.macros: List[Macro] = []
         self.edtext_start = False
         self.edtext_end = False
 
     def __str__(self) -> str:
-        return str(self._get_text())
+        return str(self.get_text())
 
     def __repr__(self) -> str:
-        return "'{}'".format(self._get_text())
+        return "'{}'".format(self.get_text())
 
     def __eq__(self, other) -> bool:
-        return self._get_text() == other
+        return self.get_text() == other
 
     def __len__(self):
         return len(self.full())
 
-    def _get_text(self):
+    def get_text(self):
         return ''.join([c.cont for c in self.content])
 
     def add_app_entry(self, input_string: str, pos: int, index: int = None):
@@ -115,22 +129,27 @@ class Word(UserString):
         else:
             self.app_list.append(Element(input_string, pos))
 
+        if self.app_string[0].pos == 0:
+            self.app_string[0] = Element(input_string, pos)
+        else:
+            self.app_string[0].cont += input_string
+            self._increment_positions(pos, len(input_string))
+
     def full(self) -> str:
         """
         :return: full word including prefix and suffix.
         """
         elements = (
-                [(e.cont, e.pos) for e in self.content] +
-                [(e.full(), e.pos) for e in self.macros] +
-                [(e.cont, e.pos) for e in self.punctuation] +
-                [(e.cont, e.pos) for e in self.app_list] +
-                [(e.cont, e.pos) for e in self.suffices]
+                [[e.cont, e.pos] for e in self.content] +
+                [[e.full(), e.pos] for e in self.macros] +
+                [[e.cont, e.pos] for e in self.punctuation] +
+                [[e.cont, e.pos] for e in self.app_string] +
+                [[e.cont, e.pos] for e in self.suffices]
         )
-
         elements.sort(key=itemgetter(1))
         return ''.join([element[0] for element in elements]) + self.spaces
 
-    def close_macro(self, distance):
+    def close_macro(self, distance: int):
         """If there are any open macros on the word, close the last of those.
         This means that we close inner macros first."""
         if self.macros:
@@ -139,6 +158,62 @@ class Word(UserString):
                     macro.to_closing = distance
                     return True
         raise IndexError('The word does not have any open macros.')
+
+    def _increment_positions(self, start: int, increment: int) -> None:
+        elements = [self.macros, self.content, self.suffices,
+                    self.app_list, self.app_string, self.punctuation]
+        for el in elements:
+            for item in el:
+                if item.pos >= start:
+                    item.pos += increment
+
+    def update_macro(self, macro: Macro, index: int) -> None:
+        """Update the macro at index. """
+        old = self.macros[index]
+        macro.pos = old.pos
+        increment = len(macro) - len(old)
+        self._increment_positions(macro.pos, increment)
+        self.macros[index] = macro
+
+    def add_macro(self, macro: Macro, index: int = None) -> None:
+        """Wrap the word in a macro. If desired it can add the macro at the
+        given index and move the existing macro. The wrapping needs to update
+        the positions in the word. It must wrap the word, which means the
+        position of the macro must be less than the position of the content
+        start. """
+        if index is not None:
+            old = self.macros[index]
+            macro.pos = old.pos
+            increment = len(macro) - len(old)
+            self._increment_positions(macro.pos, increment)
+            self.macros[index] = macro
+            self.macros.append(old)
+        else:
+            positions = sorted([cont.pos for cont in self.content])
+            pos = positions[0]
+            macro.pos = pos
+            increment = len(macro)
+            self._increment_positions(macro.pos, increment)
+            self.macros.append(macro)
+
+    def append_suffix(self, content: str) -> None:
+        """This adds the suffix string to the list with a position after the
+        last. """
+        if self.suffices:
+            pos = sorted([i.pos for i in self.suffices], reverse=True)[0] + 1
+        elif self.app_list:
+            pos = sorted([i.pos for i in self.app_list])[0]
+        elif self.punctuation:
+            pos = sorted([i.pos for i in self.punctuation], reverse=True)[0] + 1
+        elif self.content:
+            content_start = sorted([i.pos for i in self.content])[0]
+            pos = len(self.get_text()) + content_start
+        else:
+            raise('The correct position for the suffix could not be determined'
+                  'Word: {}'.format(self.full()))
+        self._increment_positions(pos, len(content))
+        new = Element(content, pos)
+        self.suffices.append(new)
 
 
 class Words(UserList):
@@ -158,7 +233,7 @@ class Words(UserList):
 
     def clean(self) -> List:
         """A list strings of each Word.text item, i.e. a cleaned word list."""
-        return [w.text for w in self.data if w.text]
+        return [w.get_text() for w in self.data if w.content]
 
 
 class Tokenizer:
@@ -190,6 +265,9 @@ class Tokenizer:
         self._index = 0
         # the words list, which needs to be available during any tokenization.
         self._words: Words = Words()
+        # macros where the content contains word content.
+        self._content_macros = [r'\emph', r'\textbf', r'\edtext', r'\sameword',
+                                r'\name', r'\enquote']
         # the registry list
         self.registry = []
         self.wordlist = self._wordlist()
@@ -259,7 +337,7 @@ class Tokenizer:
                     break
                 # register position for later closing registration
                 self._stack_bracket.append(self._index)
-                if macro.name == r'\edtext':
+                if macro.name == r'\edtext' and not word.content:
                     self._stack_edtext.append(self._brackets)
                     self._edtext_lvl += 1
                     word.edtext_start = True
