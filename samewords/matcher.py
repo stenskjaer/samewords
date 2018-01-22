@@ -33,8 +33,8 @@ class Matcher:
             search_ws, ellipsis = self._define_search_words(edtext)
 
             # Establish the context
-            context_before = self.words[edtext_start - 30:edtext_start]
-            context_after = self.words[edtext_end + 1:edtext_end + 31]
+            context_before = self._get_context_before(self.words, edtext_start)
+            context_after = self._get_context_after(self.words, edtext_end + 1)
             contexts = context_before + context_after
 
             # Determine whether matcher function succeeds in either context.
@@ -58,6 +58,30 @@ class Matcher:
                     else:
                         self._annotate_context(context, search_ws)
         return self.words
+
+    def _get_context_after(self, complete: Words, boundary: int) -> Words:
+        distance = 30
+        start = boundary
+        end = start
+        count = 0
+        while count < distance and end < len(complete):
+            w: Word = complete[end]
+            end += 1
+            if w.text:
+                count += 1
+        return complete[start:end]
+
+    def _get_context_before(self, complete: Words, boundary: int) -> Words:
+        distance = 30
+        end = boundary
+        start = end
+        count = 0
+        while count < distance and start > 0:
+            w: Word = complete[start]
+            start -= 1
+            if w.text:
+                count += 1
+        return complete[start:end]
 
     def _annotate_context(self, context: List, searches: List) -> None:
         index: int = self._find_index(context, searches)

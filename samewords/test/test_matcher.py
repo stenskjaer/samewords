@@ -231,7 +231,7 @@ class TestMatcher:
                   r'consideranda \sameword{est} descriptio fidei quam ponit '
                   r'\name{Apostolus\index[persons]{}}, scilicet, \edtext{'
                   r'\enquote{fides \edtext{\sameword[2]{est}}{\lemma{'
-                  r'\sameword{est}}\Bfootnote{\emph{om.} R}} substantia rerum '
+                  r'est}\Bfootnote{\emph{om.} R}} substantia rerum '
                   r'sperandarum, argumentum non apparentium.}}{\lemma{'
                   r'}\Afootnote[nosep]{Hebrews 11:1}} Ubi secundum \edtext{'
                   r'\name{Altissiodorensis\index[persons]{}} \edtext{in}{'
@@ -287,6 +287,127 @@ class TestMatcher:
                   r'subjunctive by V is unclear to us. Thus, follow the '
                   r'indicative reading supported by R, SV, and S}}.')
         assert self.run_annotation(text) == expect
+
+class TestGetContext:
+
+    def run_get_context_after(self, input_text: str, boundary: int):
+        tokenization = Tokenizer(input_text)
+        matcher = Matcher(tokenization.wordlist, tokenization.registry)
+        return matcher._get_context_after(tokenization.wordlist, boundary)
+
+    def run_get_context_before(self, input_text: str, boundary: int):
+        tokenization = Tokenizer(input_text)
+        matcher = Matcher(tokenization.wordlist, tokenization.registry)
+        return matcher._get_context_before(tokenization.wordlist, boundary)
+
+    def test_get_from_long_context_after_without_empty(self):
+        text = (r"List comprehensions provide a concise a way to create "
+                r"lists. Common applications are to make new lists where each "
+                r"element is the result of some operations applied to each "
+                r"member of another sequence or iterable, or \edtext{to}{"
+                r"\lemma{to}\Bfootnote{note}} create a subsequence of those "
+                r"elements that satisfy a certain condition. List "
+                r"comprehensions provide a concise way to create lists. "
+                r"\edtext{Common}{\lemma{Common}\Bfootnote{note}} "
+                r"applications are to make new lists where each element is "
+                r"the result of some operations applied to each member of "
+                r"another sequence or iterable, or to create a subsequence of "
+                r"those elements that satisfy a certain condition. Start ")
+        expect = ['Common', 'applications', 'are', 'to', 'make', 'new',
+                  'lists', 'where', 'each', 'element', 'is', 'the', 'result',
+                  'of', 'some', 'operations', 'applied', 'to', 'each',
+                  'member', 'of', 'another', 'sequence', 'or', 'iterable',
+                  'or', 'to', 'create', 'a', 'subsequence']
+        assert self.run_get_context_after(text, 10) == expect
+
+    def test_get_from_long_context_after_with_empty(self):
+        text = (r"List comprehensions provide a concise a way to create "
+                r"lists. Common  ... applications \emph{} are to make new "
+                r"element is the result of some operations applied to each "
+                r"member of another sequence or iterable, or \edtext{to}{"
+                r"\lemma{to}\Bfootnote{note}} \emph{} , a subsequence of those "
+                r"element s that satisfy \index{} a certain condition. "
+                r"comprehensions provide a concise way to create lists. "
+                r"\edtext{Common}{\lemma{Common}\Bfootnote{note}} "
+                r"applications are to make new lists where each element is "
+                r"the result of some operations applied to each member of "
+                r"another sequence or iterable, or to create a subsequence of "
+                r"those elements that satisfy a certain condition. Start ")
+        expect = ['Common', '', 'applications', '', '', 'are', 'to', 'make',
+                  'new', 'element', 'is', 'the', 'result', 'of', 'some',
+                  'operations', 'applied', 'to', 'each', 'member', 'of',
+                  'another', 'sequence', 'or', 'iterable', 'or', 'to', '',
+                  '', '', 'a', 'subsequence', 'of', 'those', 'element', 's']
+        assert self.run_get_context_after(text, 10) == expect
+
+    def test_get_from_short_context_after_without_empty(self):
+        text = (r"another sequence or iterable, or to create a subsequence of "
+                r"those elements that satisfy a certain condition. Start ")
+        expect = ['those', 'elements', 'that', 'satisfy', 'a', 'certain',
+                  'condition', 'Start']
+        assert self.run_get_context_after(text, 10) == expect
+
+    def test_get_from_long_context_before_without_empty(self):
+        text = (r"List comprehensions provide a concise a way to create "
+                r"lists. Common applications are to make new lists where each "
+                r"element is the result of some operations applied to each "
+                r"member of another sequence or iterable, or \edtext{to}{"
+                r"\lemma{to}\Bfootnote{note}} create a subsequence of those "
+                r"elements that satisfy a certain condition. List "
+                r"comprehensions provide a concise way to create lists. "
+                r"\edtext{Common}{\lemma{Common}\Bfootnote{note}} "
+                r"applications are to make new lists where each element is "
+                r"the result of some operations applied to each member of "
+                r"another sequence or iterable, or to create a subsequence of "
+                r"those elements that satisfy a certain condition. Start ")
+        expect = ['new', 'lists', 'where', 'each', 'element', 'is', 'the',
+                  'result', 'of', 'some', 'operations', 'applied', 'to',
+                  'each', 'member', 'of', 'another', 'sequence', 'or',
+                  'iterable', 'or', 'to', 'create', 'a', 'subsequence', 'of',
+                  'those', 'elements', 'that', 'satisfy']
+        assert self.run_get_context_before(text, 45) == expect
+
+    def test_get_from_long_context_before_with_empty(self):
+        text = (r"List comprehensions provide a concise a way to create "
+                r"lists. Common  ... applications \emph{} are to make new "
+                r"element is the result of some operations applied to each "
+                r"member of another sequence or iterable, or \edtext{to}{"
+                r"\lemma{to}\Bfootnote{note}} \emph{} , a subsequence of those "
+                r"element s that satisfy \index{} a certain condition. "
+                r"comprehensions provide a concise way to create lists. "
+                r"\edtext{Common}{\lemma{Common}\Bfootnote{note}} "
+                r"applications are to make new lists where each element is "
+                r"the result of some operations applied to each member of "
+                r"another sequence or iterable, or to create a subsequence of "
+                r"those elements that satisfy a certain condition. Start ")
+        expect = ['lists', 'Common', '', 'applications', '', '', 'are', 'to',
+                  'make', 'new', 'element', 'is', 'the', 'result', 'of',
+                  'some', 'operations', 'applied', 'to', 'each', 'member',
+                  'of', 'another', 'sequence', 'or', 'iterable', 'or', 'to',
+                  '', '', '', 'a', 'subsequence', 'of', 'those', 'element']
+        assert self.run_get_context_before(text, 45) == expect
+
+    def test_get_from_short_context_before_without_empty(self):
+        text = (r"another sequence or iterable, or to create a subsequence of "
+                r"those elements that satisfy a certain condition. Start ")
+        expect = ['another', 'sequence', 'or', 'iterable', 'or', 'to',
+                  'create', 'a', 'subsequence', 'of']
+        assert self.run_get_context_before(text, 10) == expect
+
+    def test_get_from_end(self):
+        text = (r"another sequence or iterable, or to create a subsequence of "
+                r"those elements that satisfy a certain condition. Start ")
+        expect = ['another', 'sequence', 'or', 'iterable', 'or', 'to',
+                  'create', 'a', 'subsequence', 'of']
+        assert self.run_get_context_after(text, 18) == []
+
+    def test_et_backward_from_start(self):
+        text = (r"another sequence or iterable, or to create a subsequence of "
+                r"those elements that satisfy a certain condition. Start ")
+        expect = ['another', 'sequence', 'or', 'iterable', 'or', 'to',
+                  'create', 'a', 'subsequence', 'of']
+        assert self.run_get_context_before(text, 0) == []
+
 
 class TestSamewordWrapper:
 
