@@ -94,16 +94,17 @@ class TestTokenize:
         enspace = r'A\enspace B'
         negthinspace = r'A\negthinspace B'
         kern = r'A\kern{.5em}B'
-        result = ['A', '', 'B']
-        assert Tokenizer(thinspace1).wordlist == result
-        assert Tokenizer(thinspace2).wordlist == result
-        assert Tokenizer(enskip).wordlist == result
-        assert Tokenizer(quad).wordlist == result
-        assert Tokenizer(qquad).wordlist == result
-        assert Tokenizer(hskip).wordlist == ['A', '10pt', 'B']
-        assert Tokenizer(enspace).wordlist == result
-        assert Tokenizer(negthinspace).wordlist == result
-        assert Tokenizer(kern).wordlist == ['A', '.5em', 'B']
+        non_spaced_result = ['A', 'B']
+        spaced_result = ['A', '', 'B']
+        assert Tokenizer(thinspace1).wordlist == non_spaced_result
+        assert Tokenizer(thinspace2).wordlist == spaced_result
+        assert Tokenizer(enskip).wordlist == spaced_result
+        assert Tokenizer(quad).wordlist == spaced_result
+        assert Tokenizer(qquad).wordlist == spaced_result
+        assert Tokenizer(hskip).wordlist == ['A', 'B']
+        assert Tokenizer(enspace).wordlist == spaced_result
+        assert Tokenizer(negthinspace).wordlist == spaced_result
+        assert Tokenizer(kern).wordlist == ['A', 'B']
 
         assert Tokenizer(thinspace1).wordlist.write() == thinspace1
         assert Tokenizer(thinspace2).wordlist.write() == thinspace2
@@ -141,3 +142,11 @@ class TestTokenize:
         assert self.write_tokenization(mixed) == mixed
         assert self.write_tokenization(before_no_macro) == before_no_macro
         assert self.write_tokenization(after_no_macro) == after_no_macro
+
+    def test_words_with_integrated_macros(self):
+        text = (r'Hákon\emph{ar}')
+        assert self.write_tokenization(text) == text
+
+    def test_word_with_multiple_integrated_macros(self):
+        text = (r'Seg\emph{men}ta\emph{tion}')
+        assert self.write_tokenization(text) == text
