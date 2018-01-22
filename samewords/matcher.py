@@ -35,15 +35,15 @@ class Matcher:
             # Establish the context
             context_before = self.words[edtext_start - 30:edtext_start]
             context_after = self.words[edtext_end + 1:edtext_end + 31]
-            collected_context = context_before + context_after
+            contexts = context_before + context_after
 
             # Determine whether matcher function succeeds in either context.
-            if self._in_context(collected_context, search_ws, ellipsis):
+            if search_ws and self._in_context(contexts, search_ws, ellipsis):
                 # If so, annotate the edtext element, or parts of it, correctly.
                 if ellipsis:
-                    if search_ws[0] in collected_context:
+                    if search_ws[0] in contexts:
                         self._add_sameword(edtext[0:1], edtext_lvl)
-                    if search_ws[-1] in collected_context:
+                    if search_ws[-1] in contexts:
                         self._add_sameword(edtext[-1:], edtext_lvl)
                 else:
                     self._add_sameword(edtext, edtext_lvl)

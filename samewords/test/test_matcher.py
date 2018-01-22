@@ -15,6 +15,13 @@ class TestMatcher:
         text = r'text \edtext{emphasis}{\Bfootnote{fnote}} is nice'
         assert self.run_annotation(text) == text
 
+    def test_no_match_emtpy_edtext(self):
+        text = (r'Christum est\edtext{}{\lemma{}\Bfootnote[nosep]{'
+                r'\emph{iter.} R SV; The double "est" in R and SV seems like '
+                r'a clear mistake, though good corroboration of the intimate '
+                r'relationship between these two witnesses.}} fides faciens')
+        assert self.run_annotation(text) == text
+
     def test_match_single_level_single_item(self):
         text = r'emphasis \edtext{emphasis}{\Bfootnote{fnote}} is emphasis'
         expect = r'\sameword{emphasis} \edtext{\sameword[1]{emphasis}}{\Bfootnote{fnote}} is \sameword{emphasis}'
