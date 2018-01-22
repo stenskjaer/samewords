@@ -23,28 +23,40 @@ class TestMatcher:
         assert self.run_annotation(text) == text
 
     def test_match_single_level_single_item(self):
-        text = r'emphasis \edtext{emphasis}{\Bfootnote{fnote}} is emphasis'
-        expect = r'\sameword{emphasis} \edtext{\sameword[1]{emphasis}}{\Bfootnote{fnote}} is \sameword{emphasis}'
+        text = (r'emphasis \edtext{emphasis}{\Bfootnote{fnote}} is emphasis')
+        expect = (r'\sameword{emphasis} \edtext{\sameword[1]{emphasis}}{'
+                  r'\Bfootnote{fnote}} is \sameword{emphasis}')
         assert self.run_annotation(text) == expect
 
     def test_match_single_level_multiple_context_matches(self):
-        text = r'emphasis a emphasis \edtext{emphasis}{\Bfootnote{fnote}} and emphasis'
-        expect = r'\sameword{emphasis} a \sameword{emphasis} \edtext{\sameword[1]{emphasis}}{\Bfootnote{fnote}} and \sameword{emphasis}'
+        text = (r'emphasis a emphasis \edtext{emphasis}{\Bfootnote{fnote}} '
+                r'and emphasis')
+        expect = (r'\sameword{emphasis} a \sameword{emphasis} \edtext{'
+                  r'\sameword[1]{emphasis}}{\Bfootnote{fnote}} and \sameword{'
+                  r'emphasis}')
         assert self.run_annotation(text) == expect
 
     def test_match_single_level_multiword(self):
-        text = r'\sameword{a b} and a b \edtext{a b}{\Bfootnote{fnote}} a b and a b'
-        expect = r'\sameword{a b} and \sameword{a b} \edtext{\sameword[1]{a b}}{\Bfootnote{fnote}} \sameword{a b} and \sameword{a b}'
+        text = (r'\sameword{a b} and a b \edtext{a b}{\Bfootnote{fnote}} a b '
+                r'and a b')
+        expect = (r'\sameword{a b} and \sameword{a b} \edtext{\sameword[1]{a '
+                  r'b}}{\Bfootnote{fnote}} \sameword{a b} and \sameword{a b}')
         assert self.run_annotation(text) == expect
 
     def test_match_single_level_multiword_lemma(self):
-        text = r'\sameword{a b} and a b \edtext{a b}{\lemma{a b}\Bfootnote{fnote}} a b and a b'
-        expect = r'\sameword{a b} and \sameword{a b} \edtext{\sameword[1]{a b}}{\lemma{a b}\Bfootnote{fnote}} \sameword{a b} and \sameword{a b}'
+        text = (r'\sameword{a b} and a b \edtext{a b}{\lemma{a b}\Bfootnote{'
+                r'fnote}} a b and a b')
+        expect = (r'\sameword{a b} and \sameword{a b} \edtext{\sameword[1]{a '
+                  r'b}}{\lemma{a b}\Bfootnote{fnote}} \sameword{a b} and '
+                  r'\sameword{a b}')
         assert self.run_annotation(text) == expect
 
     def test_match_single_level_multiword_lemma_ellipsis(self):
-        text = r'\sameword{a} b and c \edtext{a and c}{\lemma{a \dots{} c}\Bfootnote{fnote}} and c and c'
-        expect = r'\sameword{a} b and \sameword{c} \edtext{\sameword[1]{a} and \sameword[1]{c}}{\lemma{a \dots{} c}\Bfootnote{fnote}} and \sameword{c} and \sameword{c}'
+        text = (r'\sameword{a} b and c \edtext{a and c}{\lemma{a \dots{} '
+                r'c}\Bfootnote{fnote}} and c and c')
+        expect = (r'\sameword{a} b and \sameword{c} \edtext{\sameword[1]{a} '
+                  r'and \sameword[1]{c}}{\lemma{a \dots{} c}\Bfootnote{'
+                  r'fnote}} and \sameword{c} and \sameword{c}')
         assert self.run_annotation(text) == expect
 
     def test_three_close_nested_levels(self):
@@ -81,6 +93,199 @@ class TestMatcher:
                   "\lemma{and}\Afootnote{lvl 3}} that's it}{\lemma{and \dots{"
                   "} it}\Afootnote{lvl 2}}}{\lemma{first \dots{} "
                   "it}\Afootnote{note lvl 1}} after")
+        assert self.run_annotation(text) == expect
+
+    def test_nested_ldots_lemma(self):
+        text = (r"sw and \edtext{sw so \edtext{\edtext{sw}{\lemma{"
+                "sw}\Bfootnote{lvl 3 note}} another thing \edtext{and more}{"
+                "\lemma{and more}\Bfootnote{lvl 3 note}}}{\lemma{sw another "
+                "thing and more}\Bfootnote{lvl 2 note}}}{\lemma{sw \ldots "
+                "more}\Afootnote{lvl 1 note}} and a sw after and one more "
+                "\edtext{flat}{\lemma{flat}\Bfootnote{note here}} entry.")
+        expect = (r"\sameword{sw} and \edtext{\sameword[1]{sw} so \edtext{"
+                  r"\edtext{\sameword[3]{sw}}{\lemma{"
+                  r"sw}\Bfootnote{lvl 3 note}} another thing \edtext{and "
+                  r"\sameword[1]{more}}{\lemma{and more}\Bfootnote{lvl 3 "
+                  r"note}}}{\lemma{sw another thing and more}\Bfootnote{lvl 2 "
+                  r"note}}}{\lemma{sw \ldots more}\Afootnote{lvl 1 note}} and "
+                  r"a \sameword{sw} after and one \sameword{more} \edtext{"
+                  r"flat}{\lemma{flat}\Bfootnote{note here}} entry.")
+        assert self.run_annotation(text) == expect
+
+    def test_multiword_lemma(self):
+        text = (r"per multa per causam tamen scire \edtext{causam}{\lemma{"
+                r"causam}\Bfootnote{fnote}} est \edtext{per causam}{\lemma{"
+                r"per causam}\Bfootnote{causam rei B}} cognoscere \edtext{"
+                r"causam}{\lemma{causam}\Bfootnote{fnote}}.")
+        expect = (r"per multa \sameword{per \sameword{causam}} tamen scire "
+                  r"\edtext{\sameword[1]{causam}}{\lemma{causam}\Bfootnote{"
+                  r"fnote}} est \edtext{\sameword[1]{per \sameword{causam}}}{"
+                  r"\lemma{per causam}\Bfootnote{causam rei B}} cognoscere "
+                  r"\edtext{\sameword[1]{causam}}{\lemma{causam}\Bfootnote{"
+                  r"fnote}}.")
+        assert self.run_annotation(text) == expect
+
+    def test_long_proximate_before_after(self):
+        text = (r"List comprehensions provide a concise a way to create "
+                r"lists. Common applications are to make new lists where each "
+                r"element is the result of some operations applied to each "
+                r"member of another sequence or iterable, or \edtext{to}{"
+                r"\lemma{to}\Bfootnote{note}} create a subsequence of those "
+                r"elements that satisfy a certain condition. List "
+                r"comprehensions provide a concise way to create lists. "
+                r"\edtext{Common}{\lemma{Common}\Bfootnote{note}} "
+                r"applications are to make new lists where each element is "
+                r"the result of some operations applied to each member of "
+                r"another sequence or iterable, or to create a subsequence of "
+                r"those elements that satisfy a certain condition. Start "
+                r"\edtext{a}{\lemma{a}\Bfootnote{lvl 1}} and another a List "
+                r"comprehensions provide a concise way to create lists. "
+                r"Common applications are to make new lists where each "
+                r"element is the result of some operations applied to each "
+                r"member of another sequence or iterable, or to create a "
+                r"subsequence \edtext{of}{\lemma{of}\Bfootnote{note}} those "
+                r"elements that satisfy a certain condition.")
+        expect = (r"List comprehensions provide a concise a way \sameword{to} "
+                  r"create lists. Common applications are \sameword{to} make "
+                  r"new lists where each element is the result of some "
+                  r"operations applied \sameword{to} each member of another "
+                  r"sequence or iterable, or \edtext{\sameword[1]{to}}{"
+                  r"\lemma{to}\Bfootnote{note}} create a "
+                  r"subsequence of those elements that satisfy a certain "
+                  r"condition. List comprehensions provide a concise way "
+                  r"\sameword{to} create lists. \edtext{Common}{\lemma{"
+                  r"Common}\Bfootnote{note}} applications are \sameword{to} "
+                  r"make new lists where each element is the result of some "
+                  r"operations applied to each member of another sequence or "
+                  r"iterable, or to create \sameword{a} subsequence of those "
+                  r"elements that satisfy \sameword{a} certain condition. Start"
+                  r" \edtext{\sameword[1]{a}}{\lemma{a}\Bfootnote{"
+                  r"lvl 1}} and another \sameword{a} List comprehensions "
+                  r"provide \sameword{a} concise way to create lists. Common "
+                  r"applications are to make new lists where each element is "
+                  r"the result \sameword{of} some operations applied to each "
+                  r"member \sameword{of} another sequence or iterable, "
+                  r"or to create a subsequence \edtext{\sameword[1]{of}}{"
+                  r"\lemma{of}\Bfootnote{note}} those elements that satisfy a "
+                  r"certain condition.")
+        assert self.run_annotation(text) == expect
+
+    def test_long_nested_real_world_example(self):
+        text = (r'Sed hic occurrunt arduae difficultates; et primo '
+                r'consideranda est descriptio fidei quam ponit \name{'
+                r'Apostolus\index[persons]{}}, scilicet, \edtext{\enquote{'
+                r'fides \edtext{est}{\lemma{est}\Bfootnote{\emph{om.} R}} '
+                r'substantia rerum sperandarum, argumentum non '
+                r'apparentium.}}{\lemma{}\Afootnote[nosep]{Hebrews 11:1}} Ubi '
+                r'secundum \edtext{\name{Altissiodorensis\index[persons]{}} '
+                r'\edtext{in}{\lemma{in}\Bfootnote{\emph{om.} R SV S}} '
+                r'principio suae \worktitle{Summae}\index[works]{}}{\lemma{'
+                r'}\Afootnote[nosep]{Guillelmus Auxerre \worktitle{Summa '
+                r'aurea}}} et \edtext{\name{\edtext{Guillelmum}{\lemma{'
+                r'Guillelmum}\Bfootnote{guillelmi R}} Parisiensis \index['
+                r'persons]{}} tractatu suo \worktitle{De fide et '
+                r'legibus}\index[works]{}}{\lemma{}\Afootnote[nosep]{'
+                r'Guillelmus Parisiensis, \worktitle{de fide et legibus}}} '
+                r'sit una comparatio fidei, respectu credendorum, '
+                r'et caritatis, respectu amandorum; unde imaginatur quod '
+                r'sicut caritas dirigit hominem ad diligendum Deum propter '
+                r'se, ita proportionaliter fides inclinat intellectum ad '
+                r'credendum primae veritati propter se et \edtext{super}{'
+                r'\lemma{super}\Bfootnote{supra V}} omnia sine alia '
+                r'apparentia. Ideo fides est argumentum, et non est '
+                r'consequens nec conclusio. Ideo sicut inquit \name{\edtext{'
+                r'Guillelmus}{\lemma{Guillelmus}\Bfootnote{\emph{om.} V}} '
+                r'Altissiodorensis\index[persons]{}} \edtext{\enquote{a '
+                r'quodam bene dictum est quod apud Aristotelem\index['
+                r'persons]{} argumentum est ratio rei dubiae faciens fidem, '
+                r'apud autem Christum est\edtext{}{\lemma{}\Bfootnote[nosep]{'
+                r'\emph{iter.} R SV; The double "est" in R and SV seems like '
+                r'a clear mistake, though good corroboration of the intimate '
+                r'relationship between these two witnesses.}} fides faciens '
+                r'rationem}}{\lemma{}\Afootnote[nosep]{Guillelmus Auxerre, '
+                r'\worktitle{Summa aurea}\index[works]{}, prologus.This '
+                r'formulation has been identified by Marie-dominique Chenu as '
+                r'originating with Simon de Tornai; Cf. Chenu, \worktitle{La '
+                r'théologie comme science au XIII siècle} (Paris: Vrin, '
+                r'1942), p. 35; Cf. Simon de Tornai, \worktitle{Expositio in '
+                r'symbolium Quicumque}, "Propter hoc dictum est a quodam, '
+                r'quoniam apud Aristotelem argumentum est ratio rei dubiae '
+                r'faciens fidem, apud Christum autem argumentum est fides '
+                r'faciens rationem."}}. Et hoc videtur esse contra \edtext{'
+                r'\name{Aureolem\index[persons]{}} prima quaestione Prologi '
+                r'\edtext{articulo}{\lemma{articulo}\Bfootnote{capitulo V}} '
+                r'primo}{\lemma{}\Afootnote[nosep]{Aureoli, Prologue, article '
+                r'1}}, qui tenet quod articuli fidei sunt conclusiones ex '
+                r'aliis deductae, ad quas \edtext{processus |\ledsidenote{S '
+                r'2rb} theologicus et}{\lemma{processus theologicus '
+                r'et}\Bfootnote{\emph{om.} V; While this phrase appears a bit '
+                r'redundant and therefore somewhat understandable that it is '
+                r'omitted by V, we include because it does not hurt the sense '
+                r'and it is supported by R, SV, and S}} processus theologici '
+                r'principaliter nituntur concludendas; et non sunt tamquam '
+                r'principia ex quibus alia theologice \edtext{deducuntur}{'
+                r'\lemma{deducuntur}\Bfootnote{deducantur V; The choice of '
+                r'the subjunctive by V is unclear to us. Thus, follow the '
+                r'indicative reading supported by R, SV, and S}}.')
+        expect = (r'Sed hic occurrunt arduae difficultates; et primo '
+                  r'consideranda \sameword{est} descriptio fidei quam ponit '
+                  r'\name{Apostolus\index[persons]{}}, scilicet, \edtext{'
+                  r'\enquote{fides \edtext{\sameword[2]{est}}{\lemma{'
+                  r'\sameword{est}}\Bfootnote{\emph{om.} R}} substantia rerum '
+                  r'sperandarum, argumentum non apparentium.}}{\lemma{'
+                  r'}\Afootnote[nosep]{Hebrews 11:1}} Ubi secundum \edtext{'
+                  r'\name{Altissiodorensis\index[persons]{}} \edtext{in}{'
+                  r'\lemma{in}\Bfootnote{\emph{om.} R SV S}} principio suae '
+                  r'\worktitle{Summae}\index[works]{}}{\lemma{}\Afootnote['
+                  r'nosep]{Guillelmus Auxerre \worktitle{Summa aurea}}} et '
+                  r'\edtext{\name{\edtext{Guillelmum}{\lemma{'
+                  r'Guillelmum}\Bfootnote{guillelmi R}} Parisiensis \index['
+                  r'persons]{}} tractatu suo \worktitle{De fide et '
+                  r'legibus}\index[works]{}}{\lemma{}\Afootnote[nosep]{'
+                  r'Guillelmus Parisiensis, \worktitle{de fide et legibus}}} '
+                  r'sit una comparatio fidei, respectu credendorum, '
+                  r'et caritatis, respectu amandorum; unde imaginatur quod '
+                  r'sicut caritas dirigit hominem ad diligendum Deum propter '
+                  r'se, ita proportionaliter fides inclinat intellectum ad '
+                  r'credendum primae veritati propter se et \edtext{super}{'
+                  r'\lemma{super}\Bfootnote{supra V}} omnia sine alia '
+                  r'apparentia. Ideo fides est argumentum, et non est '
+                  r'consequens nec conclusio. Ideo sicut inquit \name{'
+                  r'\edtext{Guillelmus}{\lemma{Guillelmus}\Bfootnote{\emph{'
+                  r'om.} V}} Altissiodorensis\index[persons]{}} \edtext{'
+                  r'\enquote{a quodam bene dictum est quod apud '
+                  r'Aristotelem\index[persons]{} argumentum est ratio rei '
+                  r'dubiae faciens fidem, apud autem Christum est\edtext{}{'
+                  r'\lemma{}\Bfootnote[nosep]{\emph{iter.} R SV; The double '
+                  r'"est" in R and SV seems like a clear mistake, though good '
+                  r'corroboration of the intimate relationship between these '
+                  r'two witnesses.}} fides faciens rationem}}{\lemma{'
+                  r'}\Afootnote[nosep]{Guillelmus Auxerre, \worktitle{Summa '
+                  r'aurea}\index[works]{}, prologus.This formulation has been '
+                  r'identified by Marie-dominique Chenu as originating with '
+                  r'Simon de Tornai; Cf. Chenu, \worktitle{La théologie comme '
+                  r'science au XIII siècle} (Paris: Vrin, 1942), p. 35; Cf. '
+                  r'Simon de Tornai, \worktitle{Expositio in symbolium '
+                  r'Quicumque}, "Propter hoc dictum est a quodam, quoniam '
+                  r'apud Aristotelem argumentum est ratio rei dubiae faciens '
+                  r'fidem, apud Christum autem argumentum est fides faciens '
+                  r'rationem."}}. Et hoc videtur esse contra \edtext{\name{'
+                  r'Aureolem\index[persons]{}} prima quaestione Prologi '
+                  r'\edtext{articulo}{\lemma{articulo}\Bfootnote{capitulo V}} '
+                  r'primo}{\lemma{}\Afootnote[nosep]{Aureoli, Prologue, '
+                  r'article 1}}, qui tenet quod articuli fidei sunt '
+                  r'conclusiones ex aliis deductae, ad quas \edtext{processus '
+                  r'|\ledsidenote{S 2rb} theologicus et}{\lemma{processus '
+                  r'theologicus et}\Bfootnote{\emph{om.} V; While this phrase '
+                  r'appears a bit redundant and therefore somewhat '
+                  r'understandable that it is omitted by V, we include '
+                  r'because it does not hurt the sense and it is supported by '
+                  r'R, SV, and S}} processus theologici principaliter '
+                  r'nituntur concludendas; et non sunt tamquam principia ex '
+                  r'quibus alia theologice \edtext{deducuntur}{\lemma{'
+                  r'deducuntur}\Bfootnote{deducantur V; The choice of the '
+                  r'subjunctive by V is unclear to us. Thus, follow the '
+                  r'indicative reading supported by R, SV, and S}}.')
         assert self.run_annotation(text) == expect
 
 class TestSamewordWrapper:
@@ -219,11 +424,10 @@ class TestDefineSearchWords:
     def test_nested_multiwords_with_lemma(self):
         """Simulate the annotation procedure by getting the search word
         results for each nested level """
-        text = r"""
-            \edtext{lvl1 \edtext{lvl2 \edtext{lvl3-1}{\lemma{l3}\Bfootnote{n3}} 
-            inter
-            \edtext{lvl3-2}{\lemma{l4}\Bfootnote{n4}}}{\lemma{l2}\Bfootnote{n2}}}{\lemma{l1}\Bfootnote{n1}}
-            """
+        text = (r"\edtext{lvl1 \edtext{lvl2 \edtext{lvl3-1}{\lemma{"
+                r"l3}\Bfootnote{n3}} inter \edtext{lvl3-2}{\lemma{"
+                r"l4}\Bfootnote{n4}}}{\lemma{l2}\Bfootnote{n2}}}{\lemma{"
+                r"l1}\Bfootnote{n1}}")
         expect = [['l1'], ['l2'], ['l3'], ['l4']]
         tokenization = Tokenizer(text)
         matcher = Matcher(tokenization.wordlist, tokenization.registry)
