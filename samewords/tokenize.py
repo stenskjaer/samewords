@@ -18,7 +18,7 @@ class Macro(UserString):
         self.name = self._identify_name()
         self.oarg = self._optional_argument()
         self.empty = self._is_empty()
-        self.to_closing = 0     # Distance in wordlist to closing bracket.
+        self.to_closing = False   # Distance in wordlist to closing bracket.
         self.complete = self._full()
 
     def __len__(self) -> int:
@@ -124,7 +124,7 @@ class Word(UserString):
         This means that we close inner macros first."""
         if self.macros:
             for macro in reversed(self.macros):
-                if not macro.to_closing:
+                if macro.to_closing is False:
                     macro.to_closing = distance
                     return True
         raise IndexError('The word does not have any open macros.')

@@ -37,7 +37,7 @@ class TestMatcher:
 
     def test_match_single_level_multiword_lemma_ellipsis(self):
         text = r'\sameword{a} b and c \edtext{a and c}{\lemma{a \dots{} c}\Bfootnote{fnote}} and c and c'
-        expect = r'\sameword{a} b and \sameword{c} \edtext{\sameword[1]{a and c}}{\lemma{a \dots{} c}\Bfootnote{fnote}} and \sameword{c} and \sameword{c}'
+        expect = r'\sameword{a} b and \sameword{c} \edtext{\sameword[1]{a} and \sameword[1]{c}}{\lemma{a \dots{} c}\Bfootnote{fnote}} and \sameword{c} and \sameword{c}'
         assert self.run_annotation(text) == expect
 
     def test_three_close_nested_levels(self):
@@ -50,11 +50,31 @@ class TestMatcher:
                   r"1}}")
         assert self.run_annotation(text) == expect
 
+    def test_flat_proximity_match(self):
+        text = (r"so sw \edtext{so}{\lemma{so}\Bfootnote{foot content}}  and "
+                r"again sw it is all and something after.")
+        expect = (r"\sameword{so} sw \edtext{\sameword[1]{so}}{\lemma{"
+                  r"so}\Bfootnote{foot content}}  and again sw it is all and "
+                  r"something after.")
+        assert self.run_annotation(text) == expect
+
     def test_false_positives(self):
         text = (r"\edtext{in}{\lemma{in}\Bfootnote{note content}} species "
                 r"intelligibilis imaginatur secundum Apostolum\index["
                 r"persons]{}.")
         assert self.run_annotation(text) == text
+
+    def test_nested_ambiguity(self):
+        text = (r"before and \edtext{first here \edtext{and another \edtext{"
+                r"and}{\lemma{and}\Afootnote{lvl 3}} that's it}{\lemma{and "
+                r"\dots{} it}\Afootnote{lvl 2}}}{\lemma{first \dots{} "
+                r"it}\Afootnote{note lvl 1}} after")
+        expect = ("before \sameword{and} \edtext{first here \edtext{"
+                  "\sameword[2]{and} another \edtext{\sameword[3]{and}}{"
+                  "\lemma{and}\Afootnote{lvl 3}} that's it}{\lemma{and \dots{"
+                  "} it}\Afootnote{lvl 2}}}{\lemma{first \dots{} "
+                  "it}\Afootnote{note lvl 1}} after")
+        assert self.run_annotation(text) == expect
 
 class TestSamewordWrapper:
 
@@ -99,6 +119,14 @@ class TestSamewordWrapper:
         matcher = Matcher(tokenization.wordlist, tokenization.registry)
         matcher._add_sameword(matcher.words, level=1)
         assert matcher.words.write() == r'\sameword[1,2]{one word and another}'
+
+    def test_wrap_wrapped_in_edtext(self):
+        text = r'\edtext{\sameword[1]{sw} with more}'
+        expect = r'\edtext{\sameword[2]{\sameword[1]{sw} with more}}'
+        tokenization = Tokenizer(text)
+        matcher = Matcher(tokenization.wordlist, tokenization.registry)
+        matcher._add_sameword(matcher.words, level=2)
+        assert matcher.words.write() == expect
 
     def test_wrap_no_lemma(self):
         text = r'sw'
