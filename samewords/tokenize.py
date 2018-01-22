@@ -82,6 +82,7 @@ class Word(UserString):
         self.spaces = ''
         self.prefix = ''
         self.suffix = ''
+        self.punctuation = ''
         self.app_list = []      # List for later use in finding lemmas.
         self.app_string = ''    # String for returning the full word.
         self.macros = []
@@ -117,7 +118,8 @@ class Word(UserString):
         suff = ''.join(self.suffix)
         apps = self.app_string
         macros = ''.join(macro.complete for macro in self.macros)
-        return pref + macros + self.text + suff + apps + self.spaces
+        punct = self.punctuation
+        return pref + macros + self.text + suff + apps + punct + self.spaces
 
     def close_macro(self, distance):
         """If there are any open macros on the word, close the last of those.
@@ -234,7 +236,7 @@ class Tokenizer:
                     word.text += c
                     pos += 1
                     continue
-                word.suffix += c
+                word.punctuation += c
                 pos += 1
                 continue
             if c == '\\':
