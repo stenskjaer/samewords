@@ -156,19 +156,10 @@ class Matcher:
         sequence or the first or last word in the sequence, in case it is an
         ellipsis.
         """
-        def multi_word(context: List, searches: List,
-                       start: int = 0) -> bool:
-            try:
-                match_start = context[start:].index(searches[0]) + start
-                match_end = match_start + len(searches)
-                return context[match_start:match_end] == searches
-            except ValueError:
-                return False
-
         if ellipsis:
             return searches[0] in context or searches[-1] in context
         else:
-            return multi_word(context, searches, start)
+            return self._find_index(context, searches, start) is not -1
 
     def _find_index(self, context: List, searches: List,
                       start: int = 0) -> int:
@@ -179,6 +170,8 @@ class Matcher:
             match_end = match_start + len(searches)
             if context[match_start:match_end] == searches:
                 return match_start
+            else:
+                return self._find_index(context, searches, start=match_end)
         except ValueError:
             return -1
 
