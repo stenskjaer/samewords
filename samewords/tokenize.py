@@ -52,7 +52,7 @@ class Macro(UserString):
         If the macro contains an opening bracket that is not followed
         immediately by a closing bracket, it has some content.
         """
-        opening = re.match(r'\\[^ ]+{', self.data)
+        opening = re.match(r'\\[^ ]+?{', self.data)
         if opening:
             try:
                 return self.data[len(opening.group(0))] == '}'
