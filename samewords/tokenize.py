@@ -78,11 +78,12 @@ class Word(UserString):
         self.data = chars
         super().__init__(self)
         self.text = ''
-        self.spaced = False
         self.spaces = ''
-        self.prefix = ''
+        self.pre_macro = ''
+        self.pre_word = ''
+        self.post_word = ''
+        self.post_macro = ''
         self.suffix = ''
-        self.punctuation = ''
         self.app_list = []      # List for later use in finding lemmas.
         self.app_string = ''    # String for returning the full word.
         self.macros = []
@@ -114,12 +115,15 @@ class Word(UserString):
         """
         :return: full word including prefix and suffix.
         """
-        pref = ''.join(self.prefix)
         suff = ''.join(self.suffix)
         apps = self.app_string
         macros = ''.join(macro.complete for macro in self.macros)
-        punct = self.punctuation
-        return pref + macros + self.text + suff + apps + punct + self.spaces
+        p_1 = self.pre_macro
+        p_2 = self.pre_word
+        p_3 = self.post_word
+        p_4 = self.post_macro
+        space = self.spaces
+        return p_1 + macros + p_2 + self.text + p_3 + suff + apps + p_4 + space
 
     def close_macro(self, distance):
         """If there are any open macros on the word, close the last of those.
@@ -214,12 +218,15 @@ class Tokenizer:
     def _tokenize(self, string: str, pos: int = 0) -> Tuple[Word, int]:
         """
         Idea: Run the string and build a Word object. Collect characters,
-        digits and hyphens into word.text property. Punctuation goes into
-        prefix and suffix properties. Macros enclosing the Word.text are put
-        in the Word.macro property. Opening and closing brackets are counted
-        to ensure the timely closing of app notes.
+        digits and hyphens into word.text property. Punctuation goes four
+        attributes, `pre_` and `post_` to word and macro. Macros enclosing
+        the Word.text are put in the Word.macro property. Opening and closing
+        brackets are counted to ensure the timely closing of app notes.
         """
         word = Word()
+        pre_macro = True  # before opening macro
+        pre_word = True  # before word start
+        post_macro = False  # after macro close
         while pos < len(string):
             c = string[pos]
             if re.match('[\w\d]', string[pos]):
@@ -229,6 +236,8 @@ class Tokenizer:
                 match = re.match('[\w\d\-\']+', string[pos:]).group(0)
                 word.text += match
                 pos += len(match)
+                pre_word = False
+                pre_macro = False
                 continue
             if re.search(self._punctuation, c):
                 # Exception: .5 is part of word, not punctuation.
@@ -236,7 +245,14 @@ class Tokenizer:
                     word.text += c
                     pos += 1
                     continue
-                word.punctuation += c
+                if pre_macro:
+                    word.pre_macro += c
+                elif pre_word and not pre_macro:
+                    word.pre_word += c
+                elif not pre_word and not post_macro:
+                    word.post_word += c
+                elif post_macro:
+                    word.post_macro += c
                 pos += 1
                 continue
             if c == '\\':
@@ -256,6 +272,7 @@ class Tokenizer:
                 if macro.empty and not(string[pos].isspace()):
                     # Empty macros cannot have following chars (e.g. A\,B)
                     break
+                pre_macro = False
                 continue
             if c == '{':
                 # Determine of this is an app entry.
@@ -275,6 +292,7 @@ class Tokenizer:
                     word.edtext_end = True
                     self._stack_edtext.pop()
                     self._closures += 1
+                    post_macro = True
                     continue
                 else:
                     word.suffix += c
@@ -296,9 +314,11 @@ class Tokenizer:
                 self._brackets -= 1
                 word.suffix += c
                 pos += 1
+                pre_macro = False
+                pre_word = False
+                post_macro = True
                 continue
             if c.isspace():
-                word.spaced = True
                 word.spaces = re.match('\s+', string[pos:]).group(0)
                 pos += len(word.spaces)
                 break

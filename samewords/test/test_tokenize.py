@@ -4,18 +4,14 @@ from pytest import mark
 
 class TestTokenize:
 
+    def write_tokenization(self, input_text):
+        return Tokenizer(input_text).wordlist.write()
+
     def test_whitespace(self):
         text = 'short text\t with    some\n space and stuff'
         expect = ['short', 'text', 'with', 'some', 'space', 'and', 'stuff']
         assert Tokenizer(text).wordlist == expect
         assert Tokenizer(text).wordlist.write() == text
-
-    def test_punctuation(self):
-        text = 'text, with. punctuation.-!"#$%&()*+,-./:;<=>?@[]^`|~ enough?!'
-        expect = ['text', 'with', 'punctuation', 'enough']
-        tokens = Tokenizer(text)
-        assert tokens.wordlist == expect
-        assert tokens.wordlist.write() == text
 
     def test_single_macro(self):
         text = 'text \emph{emphasis} is nice'
@@ -118,3 +114,30 @@ class TestTokenize:
         assert Tokenizer(enspace).wordlist.write() == enspace
         assert Tokenizer(negthinspace).wordlist.write() == negthinspace
         assert Tokenizer(kern).wordlist.write() == kern
+
+    def test_punctuation(self):
+        text = 'text, with. punctuation.-!"#$%&()*+,-./:;<=>?@[]^`|~ enough?!'
+        expect = ['text', 'with', 'punctuation', 'enough']
+        tokens = Tokenizer(text)
+        assert tokens.wordlist == expect
+        assert tokens.wordlist.write() == text
+
+    def test_punctuation_location(self):
+        before_macro = r'.,|\macro{Content}'
+        before_word = r'\macro{.,|Content}'
+        after_word = r'\macro{Content.,|}'
+        after_simple_macro = r'\macro{Content}.,|'
+        after_empty_macro = r'Apostolus\index[persons]{}},'
+        after_edtext_macro = r'\edtext{Content}{\Bfoofnote{xxx}}.,|'
+        mixed = r'|\edtext{.Content|}{\Bfoofnote{xxx}}.,|'
+        before_no_macro = r'.Hello'
+        after_no_macro = r'Hello|'
+        assert self.write_tokenization(before_macro) == before_macro
+        assert self.write_tokenization(before_word) == before_word
+        assert self.write_tokenization(after_word) == after_word
+        assert self.write_tokenization(after_simple_macro) == after_simple_macro
+        assert self.write_tokenization(after_empty_macro) == after_empty_macro
+        assert self.write_tokenization(after_edtext_macro) == after_edtext_macro
+        assert self.write_tokenization(mixed) == mixed
+        assert self.write_tokenization(before_no_macro) == before_no_macro
+        assert self.write_tokenization(after_no_macro) == after_no_macro
