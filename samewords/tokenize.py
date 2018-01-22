@@ -224,7 +224,7 @@ class Tokenizer:
                 if '}' in word.suffix:
                     #  Word already has closing brackets, so start a new word
                     break
-                match = re.match('[\w\d-]+', string[pos:]).group(0)
+                match = re.match('[\w\d\-\']+', string[pos:]).group(0)
                 word.text += match
                 pos += len(match)
                 continue
