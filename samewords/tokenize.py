@@ -248,14 +248,14 @@ class Tokenizer:
                 # register position for later closing registration
                 self._stack_bracket.append(self._index)
                 pos += len(macro)
-                if macro.empty and not(string[pos].isspace()):
-                    # Empty macros cannot have following chars (e.g. A\,B)
-                    break
                 if macro.name == r'\edtext':
                     self._stack_edtext.append(self._brackets)
                     self._edtext_lvl += 1
                     word.edtext_start = True
                 self._brackets += 1
+                if macro.empty and not(string[pos].isspace()):
+                    # Empty macros cannot have following chars (e.g. A\,B)
+                    break
                 continue
             if c == '{':
                 # Determine of this is an app entry.
@@ -278,6 +278,7 @@ class Tokenizer:
                     continue
                 else:
                     word.suffix += c
+                    self._brackets += 1
                     pos += 1
                     continue
             if c == '}':
@@ -292,7 +293,6 @@ class Tokenizer:
                     if word.macros:
                         word.close_macro(0)
                         self._stack_bracket.pop()
-                    pass
                 self._brackets -= 1
                 word.suffix += c
                 pos += 1
