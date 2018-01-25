@@ -84,6 +84,15 @@ class TestTokenize:
         assert tokenization.registry == registry
         assert tokenization.wordlist.write() == text
 
+    def test_edtext_by_another_edtext_are_separated(self):
+        text = r"\edtext{a}{\Bfootnote{b}},\edtext{c}{\Bfootnote{d}}"
+        wordlist = ['a', 'c']
+        registry = [{'lvl': 0, 'data': [0, 0]}, {'lvl': 0, 'data': [1, 1]}]
+        tokenization = Tokenizer(text)
+        assert tokenization.wordlist == wordlist
+        assert tokenization.registry == registry
+        assert tokenization.wordlist.write() == text
+
     def test_space_macros(self):
         thinspace1 = r'A\,B'
         thinspace2 = r'A\thinspace B'

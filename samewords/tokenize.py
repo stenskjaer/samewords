@@ -324,11 +324,17 @@ class Tokenizer:
                 pos += 1
                 continue
             if c == '\\':
+                if word.app_list:
+                    # If we run into a macro for a word that already has one
+                    # or more app elements, we should start a new word.
+                    break
                 macro = Macro(string[pos:])
                 macro.pos = pos
                 word.macros.append(macro)
                 pos += len(macro)
                 if macro.name not in self._content_macros:
+                    # If we hit a macro that is not a registered content
+                    # macro, skip it (including its content, if any).
                     if macro.opening:
                         pos -= 1    # subtract the opening {
                         bracket_end = pos + len(Brackets(string, pos))
