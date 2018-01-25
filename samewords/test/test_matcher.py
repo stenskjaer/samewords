@@ -665,6 +665,13 @@ class TestSamewordWrapper:
         matcher._add_sameword(matcher.words, level=1)
         assert matcher.words.write() == expect
 
+    def test_reg(self):
+        text = "per causam,"
+        tokenization = Tokenizer(text)
+        matcher = Matcher(tokenization.wordlist, tokenization.registry)
+        matcher._add_sameword(matcher.words, level=1)
+        assert matcher.words.write() == r"\sameword[1]{per causam},"
+
 
 class TestDefineSearchWords:
 

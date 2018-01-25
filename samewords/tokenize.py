@@ -203,11 +203,11 @@ class Word(UserString):
             pos = sorted([i.pos for i in self.suffices], reverse=True)[0] + 1
         elif self.app_list:
             pos = sorted([i.pos for i in self.app_list])[0]
-        elif self.punctuation:
-            pos = sorted([i.pos for i in self.punctuation], reverse=True)[0] + 1
         elif self.content:
             content_start = sorted([i.pos for i in self.content])[0]
             pos = len(self.get_text()) + content_start
+        elif self.punctuation:
+            pos = sorted([i.pos for i in self.punctuation], reverse=True)[0] + 1
         else:
             raise('The correct position for the suffix could not be determined'
                   'Word: {}'.format(self.full()))
