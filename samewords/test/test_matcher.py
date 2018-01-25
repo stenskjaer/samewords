@@ -298,6 +298,25 @@ class TestMatcher:
                   r'Håkon I}')
         assert self.run_annotation(text) == expect
 
+    def test_custom_multiword(self):
+        text = (r'Han var sonr \edtext{Hákon\emph{ar}\somemacro{Håkon II} '
+                r'konungs}{\Afootnote{k\emph{on}gſ hakon\emph{ar} Sk}}, '
+                r'sons Hákonar\somemacro{Håkon I} konungs')
+        expect = (r'Han var sonr \edtext{\sameword[1]{Hákon\emph{'
+                  r'ar}\somemacro{Håkon II} konungs}}{\Afootnote{k\emph{on}gſ '
+                  r'hakon\emph{ar} Sk}}, sons \sameword{Hákonar\somemacro{'
+                  r'Håkon I} konungs}')
+        assert self.run_annotation(text) == expect
+
+    def test_multiword_with_interveening_macro(self):
+        text = (r'per \sidenote{1rb O} causam scire est \edtext{per causam}{'
+                r'\lemma{per causam}\Bfootnote{causam rei B}} cognoscere')
+        expect = (r'\sameword{per \sidenote{1rb O} causam} scire est \edtext{'
+                  r'\sameword[1]{per causam}}{\lemma{per causam}\Bfootnote{'
+                  r'causam rei B}} cognoscere')
+        assert self.run_annotation(text) == expect
+
+
 class TestGetContext:
 
     def run_get_context_after(self, input_text: str, boundary: int):

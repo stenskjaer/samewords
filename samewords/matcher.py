@@ -5,7 +5,7 @@ from samewords.tokenize import Words, Registry, Word, Tokenizer, Macro, Element
 from samewords.brackets import Brackets
 from samewords import settings
 
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 class Matcher:
     """
@@ -83,16 +83,17 @@ class Matcher:
                 count += 1
         return complete[start:end]
 
-    def _annotate_context(self, context: List, searches: List) -> None:
-        index: int = self._find_index(context, searches)
-        if index is not -1:
+    def _annotate_context(self, context: Words, searches: List) -> None:
+        indices = self._find_index(context, searches)
+        if indices:
             # Annotate all matches
             while True:
-                end_pos = index + len(searches)
-                self._add_sameword(context[index:end_pos], 0)
-                new_pos = self._find_index(context, searches, start=end_pos + 1)
-                if new_pos is not -1:
-                    index = new_pos
+                start = indices[0]
+                end = indices[1]
+                self._add_sameword(context[start:end], 0)
+                new_indices = self._find_index(context, searches, start=end + 1)
+                if new_indices:
+                    indices = new_indices
                 else:
                     break
 
@@ -175,7 +176,7 @@ class Matcher:
         chunk[0] = word
         return chunk
 
-    def _in_context(self, context: List, searches: List, ellipsis: bool,
+    def _in_context(self, context: Words, searches: List, ellipsis: bool,
                     start: int = 0) -> bool:
         """Determine whether there is a match, either of a one- or multiword
         sequence or the first or last word in the sequence, in case it is an
@@ -184,21 +185,46 @@ class Matcher:
         if ellipsis:
             return searches[0] in context or searches[-1] in context
         else:
-            return self._find_index(context, searches, start) is not -1
+            return self._find_index(context, searches)
 
-    def _find_index(self, context: List, searches: List,
-                      start: int = 0) -> int:
-        """Return the position of the first match of search_words list in
-        context. If no match is found, return -1 """
-        try:
-            match_start = context[start:].index(searches[0]) + start
-            match_end = match_start + len(searches)
-            if context[match_start:match_end] == searches:
-                return match_start
-            else:
-                return self._find_index(context, searches, start=match_end)
-        except ValueError:
-            return -1
+    def _find_index(self, context: Words, searches: List,
+                      start: int = 0) -> Union[Tuple[int, int], bool]:
+        """Return the position of the start and end of a match of
+        search_words list in context. If no match is made, return -1 in both
+        tuple values.
+
+        Procedure: If the first word of the searches is matched, start from
+        that. While there are items in the search word list, see if the next
+        item (that has content) in the context matches the next item in the
+        search words list. """
+
+        if searches[0] not in context[start:]:
+            return False
+
+        context_start = context[start:].index(searches[0]) + start
+        context_index = context_start
+        search_index = 0
+
+        if context_index is not -1:
+            while len(searches) > search_index:
+                try:
+                    # We only match non-empty Word objects. This makes it
+                    # match across non-text macros.
+                    if context[context_index].content:
+                        if context[context_index] == searches[search_index]:
+                            search_index += 1
+                        else:
+                            return self._find_index(context, searches, context_index)
+                    context_index += 1
+
+                except IndexError:
+                    # If there is an index error in the context lookup,
+                    # the list has ended, so there is not full match.
+                    return False
+
+            # We +1 the last index to make it useable in a list slice
+            return (context_start, context_index)
+        return False
 
     def _define_search_words(self, edtext: Words) -> Tuple[List, bool]:
         """
@@ -226,7 +252,8 @@ class Matcher:
             ellipsis_pat = re.compile(r'(\\l?dots({})?)|' + settings_pat)
             if re.search(ellipsis_pat, lemma_content):
                 # Covers ellipsis lemma.
-                content = [lemma_word_list[0].get_text()] + [lemma_word_list[-1].get_text()]
+                content = ([lemma_word_list[0].get_text()] +
+                           [lemma_word_list[-1].get_text()])
                 ellipsis = True
             elif len(lemma_word_list) == 1:
                 # Covers single word lemma
