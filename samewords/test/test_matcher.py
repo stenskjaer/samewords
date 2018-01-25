@@ -316,6 +316,50 @@ class TestMatcher:
                   r'causam rei B}} cognoscere')
         assert self.run_annotation(text) == expect
 
+    def test_two_multi_words(self):
+        text = (r"\edtext{nobis apparentes}{\lemma{nobis "
+                r"apparentes}\Bfootnote{\emph{om.} B}} \edtext{nobis "
+                r"apparentes}{\lemma{nobis apparentes}\Bfootnote{\emph{om.} "
+                r"B}}")
+        expect = (r"\edtext{\sameword[1]{nobis apparentes}}{\lemma{nobis "
+                  r"apparentes}\Bfootnote{\emph{om.} B}} \edtext{\sameword["
+                  r"1]{nobis apparentes}}{\lemma{nobis apparentes}\Bfootnote{"
+                  r"\emph{om.} B}}")
+        assert self.run_annotation(text) == expect
+
+    def test_neutrality_on_already_wrapped(self):
+        text = (r"Praeterea intellectus intelligit se: \edtext{\sameword[1]{"
+                r"aut}}{\lemma{aut}\Bfootnote{aliter Aguin.}} ergo per suam "
+                r"essentiam, \edtext{\sameword[1]{aut}}{\lemma{"
+                r"aut}\Bfootnote{aliter Aguin.}} per speciem, \edtext{"
+                r"\sameword[1]{aut}}{\lemma{aut}}\Bfootnote{aliter Aguin.}} "
+                r"per suum actum; sed \edtext{\sameword[1]{nec}}{\lemma{"
+                r"nec}}\Bfootnote{non Aguin.}} per speciem |\ledsidenote{B "
+                r"174vb} \sameword{nec} per suum actum;")
+        assert self.run_annotation(text) == text
+
+    def test_text_with_arbitrary_commands(self):
+        text = (r"\edlabelS{da-49-l1q1-ysmgk1}% \no{1.1} Illud de quo est "
+                r"scientia est intelligibile, quia cum scientia sit habitus "
+                r"intellectus, de quo est scientia oportet esse "
+                r"intelligibile; sed anima non est intelligibile, quia omnis "
+                r"nostra cognitio ortum habet a sensu, \edtext{unde ipsum "
+                r"intelligere non est}{\lemma{unde \dots{} est}\Bfootnote{"
+                r"quia nihil intelligimus B}} sine phantasmate, sed anima sub "
+                r"sensu non cadit, nec phantasma facit; ergo et "
+                r"cetera.\edlabelE{da-49-l1q1-ysmgk1}")
+        expect = (r"\edlabelS{da-49-l1q1-ysmgk1}% \no{1.1} Illud de quo "
+                  r"\sameword{est} scientia \sameword{est} intelligibile, "
+                  r"quia cum scientia sit habitus intellectus, de quo "
+                  r"\sameword{est} scientia oportet esse intelligibile; sed "
+                  r"anima non \sameword{est} intelligibile, quia omnis nostra "
+                  r"cognitio ortum habet a sensu, \edtext{unde ipsum "
+                  r"intelligere non \sameword[1]{est}}{\lemma{unde \dots{} "
+                  r"est}\Bfootnote{quia nihil intelligimus B}} sine "
+                  r"phantasmate, sed anima sub sensu non cadit, nec phantasma "
+                  r"facit; ergo et cetera.\edlabelE{da-49-l1q1-ysmgk1}")
+        assert self.run_annotation(text) == expect
+
 
 class TestGetContext:
 
