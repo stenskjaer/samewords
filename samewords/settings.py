@@ -25,9 +25,10 @@ include_macros = []
 #  in `\lemma{}`. These are used in a regular expression match, so any valid
 # python regular expression will work.
 ellipsis_patterns = [
-    '-+',  # one or more dashes
-    '–',  # en-dash
-    '—'  # em-dash
+    r'\\l?dots({})?',   # \dots, \dots{}, \ldots, \ldots{}
+    '-+',               # one or more dashes
+    '–',                # one or more en-dash
+    '—'                 # em-dash
 ]
 
 # Should the proximity search be case sensitive? That would mean that the

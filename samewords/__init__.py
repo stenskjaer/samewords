@@ -4,8 +4,8 @@
 Package for annotating references to potentially ambiguous words in critical
 editions made with LaTeX and reledmac.
 """
-
-__version__ = '0.1.3'
-__all__ = ['core', 'document', 'annotate', 'cli']
+__all__ = ['core', 'document', 'matcher', 'cli', 'settings', 'tokenize',
+           'brackets']
+__version__ = '0.2.0'
 
 import samewords.core

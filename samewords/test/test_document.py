@@ -1,55 +1,58 @@
-import pickle
-
-import pytest
-
 from samewords.document import *
 
 
-class TestDocumentOpening:
-    def test_ensure_unicode(self, tmpdir):
-        f_name = tmpdir.mkdir('sub').join('cp1252.txt')
-        f_content = 'Cœur ‰'
-        with open(f_name, encoding='cp1252', mode='w') as f:
-            f.write(f_content)
+def test_document_content():
+    with open('./samewords/test/assets/da-49-l1q1.tex', 'rb') as f:
+        content = f.read().decode('utf-8')
+    assert doc_content('./samewords/test/assets/da-49-l1q1.tex') == content
 
-        assert open(f_name, encoding='cp1252').encoding == 'cp1252'
-        assert open(f_name, mode='rb').read() == b'C\x9cur \x89'
-        with pytest.raises(ValueError):
-            document_content(f_name)
+multi_begins = doc_content('./samewords/test/assets/multi_begins.tex')
 
-    def test_normalization(self, tmpdir):
-        decomp_content = unicodedata.normalize(
-            'NFD', 'μῆνιν ἄειδε, θεά, Πηληϊάδεω Ἀχιλῆος')
-        comp_content = unicodedata.normalize(
-            'NFC', 'μῆνιν ἄειδε, θεά, Πηληϊάδεω Ἀχιλῆος')
+class TestDocumentChunking:
 
-        p = tmpdir.mkdir("sub").join("decomp.txt")
-        p.write(decomp_content)
-        assert p.read() == decomp_content
-        assert len(unicodedata.normalize('NFD', p.read())) == 43
-        assert document_content(p) == comp_content
+    def test_multiple_begin_numbers(self):
 
+        content = [
+            multi_begins[0:666],
+            multi_begins[666:1734],
+            multi_begins[1734:1797],
+            multi_begins[1797:2865],
+            multi_begins[2865:2928],
+            multi_begins[2928:3996],
+            multi_begins[3996:4077]
+        ]
+        # indices to numbered chunks in the content field
+        assert chunk_doc(multi_begins) == content
 
-class TestParagraphHandling:
+    def test_no_numbered_text(self):
+        document = doc_content('./samewords/test/assets/no_numbers.tex')
+        assert chunk_doc(document) == [document]
 
-    pickle_jar = 'samewords/test/assets/pickles/'
-    document = document_content('./samewords/test/assets/da-49-l1q1.tex')
-    numbered = document_content(
-        './samewords/test/assets/da-49-l1q1-numbered.tex')
-    numbered_autopar = document_content(
-        './samewords/test/assets/da-49-l1q1-numbered-autopar.tex')
+class TestChunkParagraphs:
 
-    def test_chunk_document(self):
-        chunked_dict = pickle.load(open(self.pickle_jar + 'chunked_document.pickle', 'rb'))
-        assert chunk_document(self.document) == chunked_dict
+    chunks = chunk_doc(multi_begins)
 
-    def test_get_numbered_paragraphs(self):
-        assert chunk_document(self.document)['inside'] == self.numbered
-
-    def test_chunk_pstart_paragraph(self):
-        pstart_list = pickle.load(open(self.pickle_jar + 'pstart_list.pickle', 'rb'))
-        assert chunk_paragraphs(self.numbered) == pstart_list
-
-    def test_chunk_autopar_paragraph(self):
-        autopars = pickle.load(open(self.pickle_jar + 'autopar_list.pickle', 'rb'))
-        assert chunk_paragraphs(self.numbered_autopar) == autopars
+    def test_single_chunk(self):
+        pars = [
+            '\\beginnumbering\n\n',
+            '\\pstart[\\subsection*{\\metatext{De scientia}}]\n\\edlabelS{'
+            'da-49-l1q1-274hkz}%\n\\ledsidenote{B 148va}\\ledsidenote{O '
+            '164rb}%\n\\edtext{Item}{\\lemma{Item}\\Bfootnote{\\emph{om.} '
+            'B}}\nquaeratur\\edtext{}{\\lemma{}\\Bfootnote[nosep]{nunc '
+            '\\emph{post} quaeratur B}}\nprimo utrum de anima possit nobis '
+            'acquiri scientia.\n\\edlabelE{da-49-l1q1-274hkz}\n\\pend\n\n',
+            '\\pstart\n\\edlabelS{da-49-l1q1-mjzkyp}%\n\\no{1.2}\nPraeterea, '
+            'unum et idem non potest esse simul movens et motum,'
+            '\nquia\\edtext{}{\\lemma{}\\Bfootnote[nosep]{si \\emph{post} '
+            'quia B}} sic \\edtext{idem\n  esset}{\\lemma{idem '
+            'esset}\\Bfootnote{\\emph{inv.} B}} actu et potentia '
+            'respectu\neiusdem; sed cognitum est movens respectu cognocentis; '
+            'ergo unum et idem non\npotest esse \\edtext{cognoscens}{\\lemma{'
+            'cognoscens}\\Bfootnote{movens B}} et\n\\edtext{cognitum}{'
+            '\\lemma{cognitum}\\Bfootnote{motum\n    B}},\\edtext{}{\\lemma{'
+            '}\\Bfootnote[nosep]{sed \\emph{post} motum B}} hoc '
+            'tamen\ncontingeret si de anima \\edtext{esset scientia}{\\lemma{'
+            'esset\n    scientia}\\Bfootnote{cognitionem haberemus '
+            'B}}.\n\\edlabelE{da-49-l1q1-mjzkyp}\n\\pend\n\n\\endnumbering'
+        ]
+        assert chunk_pars(self.chunks[1]) == pars
