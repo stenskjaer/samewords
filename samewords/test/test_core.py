@@ -3,7 +3,7 @@ import samewords.document as document
 
 class TestMainProcessing:
     filename = './samewords/test/assets/da-49-l1q1.tex'
-    processed_content = document.document_content(
+    processed_content = document.doc_content(
         './samewords/test/assets/da-49-l1q1-processed.tex')
 
     def test_process_document(self):

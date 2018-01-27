@@ -3,7 +3,7 @@
 
 from samewords.matcher import Matcher
 from samewords.tokenize import Tokenizer
-import samewords.document as document
+from samewords.document import chunk_pars, chunk_doc, doc_content
 
 
 def run_annotation(input_text: str) -> str:
@@ -17,11 +17,13 @@ def process_document(filename: str) -> str:
     """The function directing the processing of a document. Return updated
     document as string. """
 
-    document_content = document.document_content(filename)
-    chunked_document = document.chunk_document(document_content)
-    paragraphs = document.chunk_paragraphs(chunked_document['inside'])
-    updated_paragraphs = [run_annotation(par) for par in paragraphs]
+    content = doc_content(filename)
+    chunked_document = chunk_doc(content)
+    updated = []
+    for i, chunk in enumerate(chunked_document):
+        # Only unequal indices contain numbered reledmac paragraphs
+        if not i % 2 == 0:
+            chunk = ''.join([run_annotation(par) for par in chunk_pars(chunk)])
+        updated.append(chunk)
 
-    return (chunked_document['before'] +
-            ''.join(updated_paragraphs) +
-            chunked_document['after'])
+    return ''.join(updated)
