@@ -459,6 +459,9 @@ class TestMatcher:
                   r"\sameword{test}")
         assert self.run_annotation(text) == expect
 
+    def test_spaced_index_command(self):
+        text = r'\edtext{A}{\Afootnote{a}}\index{A, A}'
+        assert self.run_annotation(text) == text
 
 
 
