@@ -126,7 +126,7 @@ class TestTokenize:
         assert Tokenizer(kern).wordlist.write() == kern
 
     def test_punctuation(self):
-        text = 'text, with. punctuation.-!"#$%&()*+,-./:;<=>?@[]^`|~ enough?!'
+        text = 'text, with. punctuation.-!"#$&()*+,-./:;<=>?@[]^`|~ enough?!'
         expect = ['text', 'with', 'punctuation', 'enough']
         tokens = Tokenizer(text)
         assert tokens.wordlist == expect

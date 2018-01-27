@@ -250,7 +250,7 @@ class Tokenizer:
         :param input_str: The input string that will be tokenized.
         """
         self.data = input_str
-        self._punctuation = re.compile('[!"#$%&\'()*+,-./:;<=>?@\[\]^_`|~–—]+')
+        self._punctuation = re.compile('[!"#$&\'()*+,-./:;<=>?@\[\]^_`|~–—]+')
         # keep track of current nesting level (zero indexed, so we start at -1)
         self._edtext_lvl = -1
         # keep track of opened brackets at any point
@@ -322,18 +322,18 @@ class Tokenizer:
                     word.content.append(Element(c, pos))
                     pos += 1
                     continue
-                elif c == '%':
-                    lb = string[pos:].find('\n')
-                    if lb is not -1:
-                        line = string[pos:pos+lb+1]
-                    else:
-                        line = string[pos:]
-                    word.comment.append(Element(line, pos))
-                    pos += len(line)
-                    break
                 word.punctuation.append(Element(c, pos))
                 pos += 1
                 continue
+            if c == '%':
+                lb = string[pos:].find('\n')
+                if lb is not -1:
+                    line = string[pos:pos + lb + 1]
+                else:
+                    line = string[pos:]
+                word.comment.append(Element(line, pos))
+                pos += len(line)
+                break
             if c == '\\':
                 if word.app_list:
                     # If we run into a macro for a word that already has one
