@@ -743,7 +743,7 @@ class TestDefineSearchWords:
             search_words.append(words)
         assert search_words == expect
 
-    def test_custom_ellipsis_dots(self):
+    def test_custom_ellipses_with_space(self):
         fname = './samewords/test/assets/sample_config.json'
         cli.parse_config_file(fname)
         single_dash = r'\edtext{A B C D E}{\lemma{A - E}\Afootnote{}}'
@@ -768,4 +768,24 @@ class TestDefineSearchWords:
         assert self.run_wordlist(dots) == expect
         assert self.run_wordlist(dots_brackets) == expect
         assert self.run_wordlist(ldots) == expect
+        assert self.run_wordlist(ldots_brackets) == expect
+
+    def test_custom_ellipses_without_space(self):
+        single_dash = r'\edtext{A B C D E}{\lemma{A-E}\Afootnote{}}'
+        double_dash = r'\edtext{A B C D E}{\lemma{A--E}\Afootnote{}}'
+        triple_dash = r'\edtext{A B C D E}{\lemma{A---E}\Afootnote{}}'
+        endash = r'\edtext{A B C D E}{\lemma{A–E}\Afootnote{}}'
+        emdash = r'\edtext{A B C D E}{\lemma{A—E}\Afootnote{}}'
+        comma_string = r'\edtext{A B C D E}{\lemma{A,-,E}\Afootnote{}}'
+        dots = r'\edtext{A B C D E}{\lemma{A\dots{}E}\Afootnote{}}'
+        ldots_brackets = r'\edtext{A B C D E}{\lemma{A\ldots{}E}\Afootnote{}}'
+        expect = ['A', 'E']
+
+        assert self.run_wordlist(single_dash) == expect
+        assert self.run_wordlist(double_dash) == expect
+        assert self.run_wordlist(triple_dash) == expect
+        assert self.run_wordlist(endash) == expect
+        assert self.run_wordlist(emdash) == expect
+        assert self.run_wordlist(comma_string) == expect
+        assert self.run_wordlist(dots) == expect
         assert self.run_wordlist(ldots_brackets) == expect

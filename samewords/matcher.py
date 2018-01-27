@@ -246,23 +246,29 @@ class Matcher:
             lemma_content = ''
 
         if lemma_content:
-            lemma_word_list = Tokenizer(lemma_content).wordlist
-            settings_pat = '|'.join(['({})'.format(pat) for pat
-                                         in settings.ellipsis_patterns])
-            ellipsis_pat = re.compile(r'(\\l?dots({})?)|' + settings_pat)
-            if re.search(ellipsis_pat, lemma_content):
+            settings_pat = '|'.join([pat for pat in settings.ellipsis_patterns])
+            ellipsis_pat = re.compile('(' + settings_pat + ')')
+            ellipsis_search = re.search(ellipsis_pat, lemma_content)
+            if ellipsis_search:
+                spos = ellipsis_search.span()[0]
+                epos = ellipsis_search.span()[1]
+                lemma_word_list = (Tokenizer(lemma_content[:spos]).wordlist +
+                                   Tokenizer(lemma_content[epos:]).wordlist)
+                ellipsis = True
+            else:
+                lemma_word_list = Tokenizer(lemma_content).wordlist
+                ellipsis = False
+
+            if ellipsis:
                 # Covers ellipsis lemma.
                 content = ([lemma_word_list[0].get_text()] +
                            [lemma_word_list[-1].get_text()])
-                ellipsis = True
             elif len(lemma_word_list) == 1:
                 # Covers single word lemma
                 content = [lemma_word_list[0].get_text()]
-                ellipsis = False
             elif len(lemma_word_list) > 1:
                 # Covers multiword lemma
                 content = lemma_word_list.clean()
-                ellipsis = False
             else:
                 content = []
                 ellipsis = False
