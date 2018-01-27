@@ -339,7 +339,7 @@ class TestMatcher:
         assert self.run_annotation(text) == text
 
     def test_text_with_arbitrary_commands(self):
-        text = (r"\edlabelS{da-49-l1q1-ysmgk1}% \no{1.1} Illud de quo est "
+        text = ("\\edlabelS{da-49-l1q1-ysmgk1}% \n\\no{1.1} Illud de quo est "
                 r"scientia est intelligibile, quia cum scientia sit habitus "
                 r"intellectus, de quo est scientia oportet esse "
                 r"intelligibile; sed anima non est intelligibile, quia omnis "
@@ -348,7 +348,7 @@ class TestMatcher:
                 r"quia nihil intelligimus B}} sine phantasmate, sed anima sub "
                 r"sensu non cadit, nec phantasma facit; ergo et "
                 r"cetera.\edlabelE{da-49-l1q1-ysmgk1}")
-        expect = (r"\edlabelS{da-49-l1q1-ysmgk1}% \no{1.1} Illud de quo "
+        expect = ("\\edlabelS{da-49-l1q1-ysmgk1}% \n\\no{1.1} Illud de quo "
                   r"\sameword{est} scientia \sameword{est} intelligibile, "
                   r"quia cum scientia sit habitus intellectus, de quo "
                   r"\sameword{est} scientia oportet esse intelligibile; sed "
@@ -461,6 +461,10 @@ class TestMatcher:
 
     def test_spaced_index_command(self):
         text = r'\edtext{A}{\Afootnote{a}}\index{A, A}'
+        assert self.run_annotation(text) == text
+
+    def test_on_comments(self):
+        text = r'\edtext{A}{\Afootnote{a}}     %A'
         assert self.run_annotation(text) == text
 
 

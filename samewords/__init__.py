@@ -5,5 +5,6 @@ Package for annotating references to potentially ambiguous words in critical edi
 """
 __all__ = ['core', 'document', 'matcher', 'cli', 'settings', 'tokenize',
            'brackets']
+__version__ = '0.2.0'
 
 import samewords.core

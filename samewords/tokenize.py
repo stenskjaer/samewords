@@ -95,6 +95,7 @@ class Word(UserString):
         self.data = chars
         super().__init__(self)
         self.spaces = ''
+        self.comment: List[Element] = []
         self.suffices: List[Element] = []
         self.content: List[Element] = []
         self.punctuation: List[Element] = []
@@ -140,6 +141,7 @@ class Word(UserString):
         :return: full word including prefix and suffix.
         """
         elements = (
+                [[e.cont, e.pos] for e in self.comment] +
                 [[e.cont, e.pos] for e in self.content] +
                 [[e.full(), e.pos] for e in self.macros] +
                 [[e.cont, e.pos] for e in self.punctuation] +
@@ -160,7 +162,7 @@ class Word(UserString):
         raise IndexError('The word does not have any open macros.')
 
     def _increment_positions(self, start: int, increment: int) -> None:
-        elements = [self.macros, self.content, self.suffices,
+        elements = [self.comment, self.macros, self.content, self.suffices,
                     self.app_list, self.app_string, self.punctuation]
         for el in elements:
             for item in el:
@@ -320,6 +322,15 @@ class Tokenizer:
                     word.content.append(Element(c, pos))
                     pos += 1
                     continue
+                elif c == '%':
+                    lb = string[pos:].find('\n')
+                    if lb is not -1:
+                        line = string[pos:pos+lb+1]
+                    else:
+                        line = string[pos:]
+                    word.comment.append(Element(line, pos))
+                    pos += len(line)
+                    break
                 word.punctuation.append(Element(c, pos))
                 pos += 1
                 continue
