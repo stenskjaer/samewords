@@ -1,6 +1,7 @@
 from samewords.matcher import Matcher
 from samewords.tokenize import Tokenizer
 from samewords import cli
+from samewords import settings
 
 
 class TestMatcher:
@@ -489,6 +490,27 @@ class TestMatcher:
         text = r'\edtext{A}{\Afootnote{a}}     %A'
         assert self.run_annotation(text) == text
 
+    def test_case_insensitive_context_no_match_lemma(self):
+        settings.sensitive_context_match = False
+        text = r'\edtext{A}{\lemma{A}\Afootnote{x}} a'
+        expect = r'\edtext{\sameword[1]{A}}{\lemma{A}\Afootnote{x}} \sameword{a}'
+        assert self.run_annotation(text) == expect
+        settings.sensitive_context_match = True
+
+    def test_case_insensitive_context_no_match_edtext(self):
+        settings.sensitive_context_match = False
+        text = r'\edtext{A}{\Afootnote{x}} a'
+        expect = r'\edtext{\sameword[1]{A}}{\Afootnote{x}} \sameword{a}'
+        assert self.run_annotation(text) == expect
+        settings.sensitive_context_match = True
+
+    def test_case_sensitive_context_match_lemma(self):
+        text = r'\edtext{A}{\lemma{A}\Afootnote{x}} a'
+        assert self.run_annotation(text) == text
+
+    def test_case_sensitive_context_match_edtext(self):
+        text = r'\edtext{A}{\Afootnote{x}} a'
+        assert self.run_annotation(text) == text
 
 
 class TestGetContext:

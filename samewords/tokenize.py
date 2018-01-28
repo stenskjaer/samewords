@@ -118,7 +118,10 @@ class Word(UserString):
     def __len__(self):
         return len(self.full())
 
-    def get_text(self):
+    def lower(self):
+        return ''.join([w.cont.lower() for w in self.content])
+
+    def get_text(self) -> str:
         return ''.join([c.cont for c in self.content])
 
     def add_app_entry(self, input_string: str, pos: int, index: int = None):

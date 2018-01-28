@@ -35,7 +35,8 @@ class Matcher:
             # Establish the context
             context_before = self._get_context_before(self.words, edtext_start)
             context_after = self._get_context_after(self.words, edtext_end + 1)
-            contexts = context_before + context_after
+            contexts = ([w.get_text() for w in context_before]
+                        + [w.get_text() for w in context_after])
 
             # Determine whether matcher function succeeds in either context.
             if search_ws and self._in_context(contexts, search_ws, ellipsis):
@@ -177,7 +178,7 @@ class Matcher:
         chunk[0] = word
         return chunk
 
-    def _in_context(self, context: Words, searches: List, ellipsis: bool,
+    def _in_context(self, context: List[str], searches: List, ellipsis: bool,
                     start: int = 0) -> bool:
         """Determine whether there is a match, either of a one- or multiword
         sequence or the first or last word in the sequence, in case it is an
@@ -188,7 +189,7 @@ class Matcher:
         else:
             return self._find_index(context, searches)
 
-    def _find_index(self, context: Words, searches: List,
+    def _find_index(self, context: Union[List[str], Words], searches: List,
                       start: int = 0) -> Union[Tuple[int, int], bool]:
         """Return the position of the start and end of a match of
         search_words list in context. If no match is made, return -1 in both
@@ -198,6 +199,10 @@ class Matcher:
         that. While there are items in the search word list, see if the next
         item (that has content) in the context matches the next item in the
         search words list. """
+        if not settings.sensitive_context_match:
+            context = [w.lower() for w in context]
+        else:
+            context = [str(w) for w in context]
 
         if searches[0] not in context[start:]:
             return False
@@ -211,7 +216,7 @@ class Matcher:
                 try:
                     # We only match non-empty Word objects. This makes it
                     # match across non-text macros.
-                    if context[context_index].content:
+                    if context[context_index]:
                         if context[context_index] == searches[search_index]:
                             search_index += 1
                         else:
@@ -233,7 +238,8 @@ class Matcher:
         words based on either (1) the content of the lemma element in the
         apparatus note or (2) the content of the critical note.
 
-        :return: Cleaned list of search words (not Words, but their .get_text())
+        :return: Cleaned list of search words in lower case if we have a case
+            insensitive search (not Words, but their .get_text())
         """
         # The apparatus note is the first item in app_entries of last Word
         app_note = edtext[-1].app_list.pop()
@@ -276,4 +282,6 @@ class Matcher:
         else:
             content = edtext.clean()
             ellipsis = False
+        if not settings.sensitive_context_match:
+            content = [w.lower() for w in content]
         return content, ellipsis
