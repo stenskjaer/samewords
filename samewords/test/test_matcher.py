@@ -1,6 +1,5 @@
 from samewords.matcher import Matcher
 from samewords.tokenize import Tokenizer
-from samewords import cli
 from samewords import settings
 
 
@@ -292,7 +291,8 @@ class TestMatcher:
     def test_custom_macros(self):
         """Macro `\exclude` is explicitly excluded, so what is compared is
         'Sortes' and 'Sortes' which is then matched and annotated. """
-        cli.parse_config_file('./samewords/test/assets/custom_exclude.json')
+        old_exclude = settings.exclude_macros
+        settings.exclude_macros += [r'\exclude']
         text = (r'Han var sonr \edtext{Hákon\emph{ar}\exclude{Håkon II}}{'
                 r'\Afootnote{k\emph{on}gſ hakon\emph{ar} Sk}}, '
                 r'sons Hákonar\exclude{Håkon I}')
@@ -301,11 +301,13 @@ class TestMatcher:
                   r'hakon\emph{ar} Sk}}, sons \sameword{Hákonar}\exclude{'
                   r'Håkon I}')
         assert self.run_annotation(text) == expect
+        settings.exclude_macros = old_exclude
 
     def test_custom_multiword(self):
         """Macro `\exclude` is explicitly excluded, so what is compared is
         'Hákonar' and 'Hákonar' which is then matched and annotated. """
-        cli.parse_config_file('./samewords/test/assets/custom_exclude.json')
+        old_exclude = settings.exclude_macros
+        settings.exclude_macros += [r'\exclude']
         text = (r'Han var sonr \edtext{Hákon\emph{ar}\exclude{Håkon II} '
                 r'konungs}{\Afootnote{k\emph{on}gſ hakon\emph{ar} Sk}}, '
                 r'sons Hákonar\exclude{Håkon I} konungs')
@@ -314,6 +316,7 @@ class TestMatcher:
                   r'hakon\emph{ar} Sk}}, sons \sameword{Hákonar\exclude{'
                   r'Håkon I} konungs}')
         assert self.run_annotation(text) == expect
+        settings.exclude_macros = old_exclude
 
     def test_custom_not_excluded_macro_with_match(self):
         """Macro is not explicitly excluded, which means that the
@@ -795,8 +798,13 @@ class TestDefineSearchWords:
         assert search_words == expect
 
     def test_custom_ellipses_with_space(self):
-        fname = './samewords/test/assets/sample_config.json'
-        cli.parse_config_file(fname)
+        old_exclude = settings.exclude_macros
+        settings.exclude_macros += [
+            "\\.\\.\\.",
+            "-+",
+            "\\,-\\,",
+            "\\\\,-+\\\\,"
+        ]
         single_dash = r'\edtext{A B C D E}{\lemma{A - E}\Afootnote{}}'
         double_dash = r'\edtext{A B C D E}{\lemma{A -- E}\Afootnote{}}'
         triple_dash = r'\edtext{A B C D E}{\lemma{A --- E}\Afootnote{}}'
@@ -820,8 +828,16 @@ class TestDefineSearchWords:
         assert self.run_wordlist(dots_brackets) == expect
         assert self.run_wordlist(ldots) == expect
         assert self.run_wordlist(ldots_brackets) == expect
+        settings.exclude_macros = old_exclude
 
     def test_custom_ellipses_without_space(self):
+        old_exclude = settings.exclude_macros
+        settings.exclude_macros += [
+            "\\.\\.\\.",
+            "-+",
+            "\\,-\\,",
+            "\\\\,-+\\\\,"
+        ]
         single_dash = r'\edtext{A B C D E}{\lemma{A-E}\Afootnote{}}'
         double_dash = r'\edtext{A B C D E}{\lemma{A--E}\Afootnote{}}'
         triple_dash = r'\edtext{A B C D E}{\lemma{A---E}\Afootnote{}}'
@@ -840,3 +856,4 @@ class TestDefineSearchWords:
         assert self.run_wordlist(comma_string) == expect
         assert self.run_wordlist(dots) == expect
         assert self.run_wordlist(ldots_brackets) == expect
+        settings.exclude_macros = old_exclude
