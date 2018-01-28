@@ -1,11 +1,11 @@
 import re
-from collections import namedtuple
 
-from samewords.tokenize import Words, Registry, Word, Tokenizer, Macro, Element
+from samewords.tokenize import Words, Registry, Word, Tokenizer, Macro
 from samewords.brackets import Brackets
 from samewords import settings
 
 from typing import List, Tuple, Union
+
 
 class Matcher:
     """
@@ -99,15 +99,15 @@ class Matcher:
                 else:
                     break
 
-    def _add_sameword(self, chunk: Words, level: int) -> Words:
+    def _add_sameword(self, part: Words, level: int) -> Words:
         """
-        Wrap the `chunk` of words in a sameword macro with level indication,
+        Wrap the `part` of words in a sameword macro with level indication,
         depending on some circumstances. If it is already wrapped in its
         entirety, we only update the sameword macro if necessary. If the
         level of an existing wrap is the same as the current, no change is
         made, otherwise that is updated.
         """
-        word: Word = chunk[0]
+        word: Word = part[0]
 
         # Should we handle the lemma level?
         if level is not 0:
@@ -119,19 +119,18 @@ class Matcher:
         sw_wrap = None
         lvl_match = None
         pat = re.compile(r'(\\sameword)([^{]+)?')
-        sw_index = [i for i,val in enumerate(word.macros)
-                    if re.search(pat, val.full())]
+        sw_idx = [i for i, val in enumerate(word.macros)
+                  if re.search(pat, val.full())]
         try:
-            sw_index = sw_index[0]
+            sw_idx = sw_idx[0]
         except IndexError:
-            sw_index = -1
-
+            sw_idx = -1
 
         # If the first word is wrapped, and it is equal in length to the
         # current chunk, then this chunk is already wrapped in its entirety,
-        # and should not be rewrapped. In that case we the wrap data.
-        if sw_index is not -1 and word.macros[sw_index].to_closing == len(chunk) - 1:
-            sw_match = re.search(pat, word.macros[sw_index].full())
+        # and should not be rewrapped. In that case we update the wrap data.
+        if sw_idx is not -1 and word.macros[sw_idx].to_closing == len(part) - 1:
+            sw_match = re.search(pat, word.macros[sw_idx].full())
             sw_wrap = sw_match.group(0)
             lvl_match = sw_match.group(2)
 
@@ -153,7 +152,7 @@ class Matcher:
             if this_lvl:
                 this_lvl = '[' + str(this_lvl) + ']'
             sw_macro = Macro(r'\sameword' + this_lvl + '{')
-            word.update_macro(sw_macro, sw_index)
+            word.update_macro(sw_macro, sw_idx)
 
         # Otherwise, build the macro and put correctly into first word's macros.
         else:
@@ -163,23 +162,23 @@ class Matcher:
                 sw_macro = Macro(r'\sameword{')
 
             # If the first word already has a sameword wrap, put new one first.
-            if sw_index is not -1:
-                word.add_macro(sw_macro, sw_index)
+            if sw_idx is not -1:
+                word.add_macro(sw_macro, sw_idx)
             # Otherwise, put it at the end of macros (making it the innermost).
             else:
                 word.add_macro(sw_macro)
 
             # Add closing bracket to last word.
-            chunk[-1].append_suffix('}')
+            part[-1].append_suffix('}')
             # And register its distance.
-            word.close_macro(len(chunk) - 1)
+            word.close_macro(len(part) - 1)
 
         # Update the first word
-        chunk[0] = word
-        return chunk
+        part[0] = word
+        return part
 
-    def _in_context(self, context: List[str], searches: List, ellipsis: bool,
-                    start: int = 0) -> bool:
+    def _in_context(self, context: Union[List[str], Words], searches: List,
+                    ellipsis: bool) -> bool:
         """Determine whether there is a match, either of a one- or multiword
         sequence or the first or last word in the sequence, in case it is an
         ellipsis.
@@ -187,10 +186,10 @@ class Matcher:
         if ellipsis:
             return searches[0] in context or searches[-1] in context
         else:
-            return self._find_index(context, searches)
+            return self._find_index(context, searches) and True
 
-    def _find_index(self, context: Union[List[str], Words], searches: List,
-                      start: int = 0) -> Union[Tuple[int, int], bool]:
+    def _find_index(self, ctxt: Union[List[str], Words], searches: List,
+                    start: int = 0) -> Union[Tuple[int, int], bool]:
         """Return the position of the start and end of a match of
         search_words list in context. If no match is made, return -1 in both
         tuple values.
@@ -200,28 +199,28 @@ class Matcher:
         item (that has content) in the context matches the next item in the
         search words list. """
         if not settings.sensitive_context_match:
-            context = [w.lower() for w in context]
+            ctxt = [w.lower() for w in ctxt]
         else:
-            context = [str(w) for w in context]
+            ctxt = [str(w) for w in ctxt]
 
-        if searches[0] not in context[start:]:
+        if searches[0] not in ctxt[start:]:
             return False
 
-        context_start = context[start:].index(searches[0]) + start
-        context_index = context_start
+        context_start = ctxt[start:].index(searches[0]) + start
+        ctxt_index = context_start
         search_index = 0
 
-        if context_index is not -1:
+        if ctxt_index is not -1:
             while len(searches) > search_index:
                 try:
                     # We only match non-empty Word objects. This makes it
                     # match across non-text macros.
-                    if context[context_index]:
-                        if context[context_index] == searches[search_index]:
+                    if ctxt[ctxt_index]:
+                        if ctxt[ctxt_index] == searches[search_index]:
                             search_index += 1
                         else:
-                            return self._find_index(context, searches, context_index)
-                    context_index += 1
+                            return self._find_index(ctxt, searches, ctxt_index)
+                    ctxt_index += 1
 
                 except IndexError:
                     # If there is an index error in the context lookup,
@@ -229,7 +228,7 @@ class Matcher:
                     return False
 
             # We +1 the last index to make it useable in a list slice
-            return (context_start, context_index)
+            return context_start, ctxt_index
         return False
 
     def _define_search_words(self, edtext: Words) -> Tuple[List, bool]:

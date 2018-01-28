@@ -17,7 +17,7 @@ class Element:
         self.pos = pos
 
     def __repr__(self) -> str:
-        return "{} (pos: {}}".format(self.cont, self.pos)
+        return "({}, {})".format(self.cont, self.pos)
 
 
 class Macro(UserString):
@@ -97,7 +97,7 @@ class Word(UserString):
         super().__init__(self)
         self.spaces = ''
         self.comment: List[Element] = []
-        self.suffices: List[Element] = []
+        self.suffixes: List[Element] = []
         self.content: List[Element] = []
         self.punctuation: List[Element] = []
         self.app_list: List[Element] = []
@@ -150,7 +150,7 @@ class Word(UserString):
                 [[e.full(), e.pos] for e in self.macros] +
                 [[e.cont, e.pos] for e in self.punctuation] +
                 [[e.cont, e.pos] for e in self.app_string] +
-                [[e.cont, e.pos] for e in self.suffices]
+                [[e.cont, e.pos] for e in self.suffixes]
         )
         elements.sort(key=itemgetter(1))
         return ''.join([element[0] for element in elements]) + self.spaces
@@ -166,7 +166,7 @@ class Word(UserString):
         raise IndexError('The word does not have any open macros.')
 
     def _increment_positions(self, start: int, increment: int) -> None:
-        elements = [self.comment, self.macros, self.content, self.suffices,
+        elements = [self.comment, self.macros, self.content, self.suffixes,
                     self.app_list, self.app_string, self.punctuation]
         for el in elements:
             for item in el:
@@ -205,8 +205,8 @@ class Word(UserString):
     def append_suffix(self, content: str) -> None:
         """This adds the suffix string to the list with a position after the
         last. """
-        if self.suffices:
-            pos = sorted([i.pos for i in self.suffices], reverse=True)[0] + 1
+        if self.suffixes:
+            pos = sorted([i.pos for i in self.suffixes], reverse=True)[0] + 1
         elif self.app_list:
             pos = sorted([i.pos for i in self.app_list])[0]
         elif self.content:
@@ -215,11 +215,13 @@ class Word(UserString):
         elif self.punctuation:
             pos = sorted([i.pos for i in self.punctuation], reverse=True)[0] + 1
         else:
-            raise('The correct position for the suffix could not be determined'
-                  'Word: {}'.format(self.full()))
+            raise ValueError(
+                'The correct position for the suffix could not be determined'
+                'Word: {}'.format(self.full())
+            )
         self._increment_positions(pos, len(content))
         new = Element(content, pos)
-        self.suffices.append(new)
+        self.suffixes.append(new)
 
 
 class Words(UserList):
@@ -389,7 +391,7 @@ class Tokenizer:
                     self._closures += 1
                     continue
                 else:
-                    word.suffices.append(Element(c, pos))
+                    word.suffixes.append(Element(c, pos))
                     self._brackets += 1
                     pos += 1
                     continue
@@ -406,7 +408,7 @@ class Tokenizer:
                         word.close_macro(0)
                         self._stack_bracket.pop()
                 self._brackets -= 1
-                word.suffices.append(Element(c, pos))
+                word.suffixes.append(Element(c, pos))
                 pos += 1
             if c.isspace():
                 word.spaces = re.match('\s+', string[pos:]).group(0)
