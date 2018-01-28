@@ -17,9 +17,6 @@ exclude_macros = [
     r'\kern'
 ]
 
-# Macros that should be included when identifying matches
-include_macros = []
-
 # List of patterns that should be included when matching for ellipsis symbols
 #  in `\lemma{}`. These are used in a regular expression match, so any valid
 # python regular expression will work.

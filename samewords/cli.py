@@ -46,13 +46,11 @@ def load_config(filename):
 
 def parse_config_file(filename: str) -> object:
     """Parse the config file and update the global settings.
-
     If successful, return settings, otherwise return None."""
     filename = os.path.expanduser(filename)
     if os.path.isfile(filename):
         user_conf = load_config(filename)
         settings.ellipsis_patterns += user_conf.get('ellipsis_patterns', [])
-        settings.include_macros += user_conf.get('include_macros', [])
         settings.exclude_macros += user_conf.get('exclude_macros', [])
         return settings
     return None
