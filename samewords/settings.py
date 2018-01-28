@@ -4,18 +4,17 @@ runtime (as command line arguments), but can also be modified manually in
 here.
 """
 
-
 exclude_macros = [
-    '\\Afootnote',
-    '\\Bfootnote',
-    '\\Cfootnote',
-    '\\Dfootnote',
-    '\\Efootnote',
-    '\\lemma',
-    '\\applabel',
-    '\\sidenote',
-    '\\index',
-    '\\edindex',
+    r'\sidenote',
+    r'\index',
+    r'\thinspace',
+    r'\enspace',
+    r'\enskip',
+    r'\quad',
+    r'\qquad',
+    r'\hskip',
+    r'\negthinspace',
+    r'\kern'
 ]
 
 # Macros that should be included when identifying matches

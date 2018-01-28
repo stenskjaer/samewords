@@ -5,6 +5,7 @@ from typing import List, Tuple, Dict, Union
 from operator import itemgetter
 
 from samewords.brackets import Brackets
+from samewords import settings
 
 RegistryEntry = Dict[str, Union[List[int], int]]
 Registry = List[RegistryEntry]
@@ -267,9 +268,8 @@ class Tokenizer:
         self._index = 0
         # the words list, which needs to be available during any tokenization.
         self._words: Words = Words()
-        # macros where the content contains word content.
-        self._content_macros = [r'\emph', r'\textbf', r'\edtext', r'\sameword',
-                                r'\name', r'\enquote']
+        # non-content macros that should be ignored.
+        self._exclude_macros = settings.exclude_macros
         # the registry list
         self.registry = []
         self.wordlist = self._wordlist()
@@ -343,7 +343,7 @@ class Tokenizer:
                 macro.pos = pos
                 word.macros.append(macro)
                 pos += len(macro)
-                if macro.name not in self._content_macros:
+                if macro.name in self._exclude_macros:
                     # If we hit a macro that is not a registered content
                     # macro, skip it (including its content, if any).
                     if macro.opening:
@@ -359,8 +359,11 @@ class Tokenizer:
                     self._edtext_lvl += 1
                     word.edtext_start = True
                 self._brackets += 1
-                if macro.empty and not(string[pos].isspace()):
+                try:
                     # Empty macros cannot have following chars (e.g. A\,B)
+                    if macro.empty and not(string[pos].isspace()):
+                        break
+                except IndexError:
                     break
                 continue
             if c == '{':

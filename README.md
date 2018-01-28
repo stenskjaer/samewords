@@ -152,9 +152,6 @@ A complete configuration file could contain the following content:
     "--",
     "–"
   ],
-  "include_macros": [
-    "\\includedMacro"
-  ],
   "exclude_macros": [
     "\\excludedMacro"
   ]
@@ -163,10 +160,32 @@ A complete configuration file could contain the following content:
 
 For details, see below.
 
-#### `include_macros`
-The script searches for words or phrases identical to those in the `\edtext{}{}`
-macros to identify possible conflicts. By default the content of practically
-all macros are included in this comparison.
+#### `exclude_macros`
+You might want to define some macros which are entirely ignored in the
+comparison of text segments. That will typically be macros that *do not* contain
+text content.
+
+For example, you might use a custom macro called `\msbreak{}` to indicate a
+pagebreak in your edition. The content of that is not printed in the text, but
+in the margin. So you don't want the comparison to figure in the content of this
+macro. Take this example phrase:
+
+```latex
+I\msbreak{23v} know that \edtext{I know}{\Afootnote{I don't know B}} nothing.
+```
+
+Since the content of (almost) all macros is included by default, this would give
+the comparison of the phrase `I know` (`\edtext` content) with `I23v know that`
+(context). It will not match, and hence not annotate the phrase.
+
+If we add the macro to the `excluded_macros` field in a settings file and pass
+that to the script, `\msbreak` will be ignored in processing, and we will get a
+comparison between `I know` (`\edtext` content) with `I know that` (context).
+This will match and hence correctly annotate the phrase.
+
+*Another example:* The script searches for words or phrases identical to those
+in the `\edtext{}{}` macros to identify possible conflicts. By default the
+content of practically all macros are included in this comparison.
 
 Take this passage:
 ```latex
@@ -182,46 +201,10 @@ On the other hand, this passage:
 ```
 
 Will result in a search for "Sortes1" in the string "dicit Sortes1 probus",
-which will succeed and therefore annotate the instances.
+which will succeed and therefore annotate the instances. 
 
-You might want to distinguish some phrases based on their contained macros. For
-instance you might want to let `Hákon\emph{ar}` and `Hákonar` be two different
-strings. In that case you use the `include_macros` argument.
-
-`include_macros` must be a list of strings that each specify a macro
-that you want to keep in the comparison algorithm. So to distinguish
-`Hákon\emph{ar}` from `Hákonar`, the configuration file must contain the
-following key-value pair:
-
-```json
-{
-  "include_macros": "\\emph"
-}
-```
-
-
-#### `exclude_macros`
-
-This is the inverse feature of the above. You might want to define some macros
-which are entirely ignored in the comparison of text segments. 
-
-For example, you might use a custom macro called `\pagebreak{}` to indicate a
-pagebreak in your edition. Take this example phrase:
-
-```latex
-I\pagebreak{23v} know that \edtext{I know}{\Afootnote{I don't know B}} nothing.
-```
-
-Since the content of (almost) all macros is included by default, this would give
-the comparison of the phrase `I know` (`\edtext` content) with `I23v know that`
-(context). It will not match, and hence not annotate the phrase.
-
-If we pass a file to the `exclude_macros` argument which contains a line with
-the command `\pagebreak`, that will be ignored in processing, and we will get a
-comparison between `I know` (`\edtext` content) with `I know that`
-(context). This will match and hence correctly annotate the phrase.
-
-To see the details of this, see the `Words` object in the `annotate` module.
+If you add `\test` to the `excluded_macros` field, both examples above will
+compare "Sortes" with "Sortes" and hence give a positive match.
 
 #### `ellipsis_patterns` ####
 
@@ -244,8 +227,8 @@ the key the following list (but you shouldn't, really. Use `\dots{}`):
 
 This looks complicated, but don't worry. The "..." is matched with a regex
 pattern, which requires us to escape the regular "." – that would normally look
-like this `\.\.\.`. But since we also need to escape the backslashes in the JSON
-regex string format, they are doubly escaped.
+like this `\.\.\.`. But since we also need to escape the backslashes, they are
+doubly escaped.
 
 The second is a lot simpler, it is just a regex that will match one or more
 regular dashes in your text. Note that this comes with some danger as it will

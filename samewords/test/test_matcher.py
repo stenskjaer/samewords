@@ -289,24 +289,46 @@ class TestMatcher:
         assert self.run_annotation(text) == expect
 
     def test_custom_macros(self):
-        text = (r'Han var sonr \edtext{Hákon\emph{ar}\somemacro{Håkon II}}{'
+        """Macro `\exclude` is explicitly excluded, so what is compared is
+        'Sortes' and 'Sortes' which is then matched and annotated. """
+        cli.parse_config_file('./samewords/test/assets/custom_exclude.json')
+        text = (r'Han var sonr \edtext{Hákon\emph{ar}\exclude{Håkon II}}{'
                 r'\Afootnote{k\emph{on}gſ hakon\emph{ar} Sk}}, '
-                r'sons Hákonar\somemacro{Håkon I}')
+                r'sons Hákonar\exclude{Håkon I}')
         expect = (r'Han var sonr \edtext{\sameword[1]{Hákon\emph{'
-                  r'ar}\somemacro{Håkon II}}}{\Afootnote{k\emph{on}gſ '
-                  r'hakon\emph{ar} Sk}}, sons \sameword{Hákonar}\somemacro{'
+                  r'ar}}\exclude{Håkon II}}{\Afootnote{k\emph{on}gſ '
+                  r'hakon\emph{ar} Sk}}, sons \sameword{Hákonar}\exclude{'
                   r'Håkon I}')
         assert self.run_annotation(text) == expect
 
     def test_custom_multiword(self):
-        text = (r'Han var sonr \edtext{Hákon\emph{ar}\somemacro{Håkon II} '
+        """Macro `\exclude` is explicitly excluded, so what is compared is
+        'Hákonar' and 'Hákonar' which is then matched and annotated. """
+        cli.parse_config_file('./samewords/test/assets/custom_exclude.json')
+        text = (r'Han var sonr \edtext{Hákon\emph{ar}\exclude{Håkon II} '
                 r'konungs}{\Afootnote{k\emph{on}gſ hakon\emph{ar} Sk}}, '
-                r'sons Hákonar\somemacro{Håkon I} konungs')
+                r'sons Hákonar\exclude{Håkon I} konungs')
         expect = (r'Han var sonr \edtext{\sameword[1]{Hákon\emph{'
-                  r'ar}\somemacro{Håkon II} konungs}}{\Afootnote{k\emph{on}gſ '
-                  r'hakon\emph{ar} Sk}}, sons \sameword{Hákonar\somemacro{'
+                  r'ar}\exclude{Håkon II} konungs}}{\Afootnote{k\emph{on}gſ '
+                  r'hakon\emph{ar} Sk}}, sons \sameword{Hákonar\exclude{'
                   r'Håkon I} konungs}')
         assert self.run_annotation(text) == expect
+
+    def test_custom_not_excluded_macro_with_match(self):
+        """Macro is not explicitly excluded, which means that the
+        search-words are 'Sortes1' and 'Sortes1', which matche"""
+        text = (r'\edtext{Sortes\test{1}}{\Afootnote{Socrates B}} dicit: '
+                r'Sortes\test{1} probus')
+        expect = (r'\edtext{\sameword[1]{Sortes\test{1}}}{\Afootnote{Socrates '
+                  r'B}} dicit: \sameword{Sortes\test{1}} probus')
+        assert self.run_annotation(text) == expect
+
+    def test_custom_not_excluded_macro_without_match(self):
+        """Macro is not explicitly excluded, which means that the
+        search-words are 'Sortes1' and 'Sortes2', which don't match"""
+        text = (r'\edtext{Sortes\test{1}}{\Afootnote{Socrates B}} dicit: '
+                r'Sortes\test{2} probus')
+        assert self.run_annotation(text) == text
 
     def test_multiword_with_interveening_macro(self):
         text = (r'per \sidenote{1rb O} causam scire est \edtext{per causam}{'

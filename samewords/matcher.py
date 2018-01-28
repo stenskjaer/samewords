@@ -46,7 +46,8 @@ class Matcher:
                     if search_ws[-1] in contexts:
                         self._add_sameword(edtext[-1:], edtext_lvl)
                 else:
-                    self._add_sameword(edtext, edtext_lvl)
+                    sidx, eidx = self._find_index(edtext, search_ws)
+                    self._add_sameword(edtext[sidx:eidx], edtext_lvl)
 
                 # Then annotate the two contexts
                 for context in [context_before, context_after]:
