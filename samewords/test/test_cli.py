@@ -1,5 +1,3 @@
-import subprocess
-
 from samewords import cli
 
 
@@ -9,6 +7,8 @@ class TestConfigFileContent:
         settings = cli.parse_config_file(fname)
         assert "\\.\\.\\." in settings.ellipsis_patterns
         assert "-+" in settings.ellipsis_patterns
+        assert "\\anotherMacro" in settings.exclude_macros
+        assert settings.sensitive_context_match == True
 
 
 # class TestCustomIncludeExclude:

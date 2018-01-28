@@ -52,6 +52,8 @@ def parse_config_file(filename: str) -> object:
         user_conf = load_config(filename)
         settings.ellipsis_patterns += user_conf.get('ellipsis_patterns', [])
         settings.exclude_macros += user_conf.get('exclude_macros', [])
+        settings.sensitive_context_match = user_conf.get(
+            'sensitive_context_match', False)
         return settings
     return None
 

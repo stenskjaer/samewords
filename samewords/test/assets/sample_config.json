@@ -1,0 +1,12 @@
+{
+  "ellipsis_patterns": [
+    "\\.\\.\\.",
+    "-+",
+    "\\,-\\,",
+    "\\\\,-+\\\\,"
+  ],
+  "exclude_macros": [
+    "\\anotherMacro"
+  ],
+  "sensitive_context_match": true
+}
