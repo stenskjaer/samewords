@@ -5,6 +5,9 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
 
 ## [Unreleased 0.2.0]
 ### Added
+- Context length matching *exactly* 30 content words rather than *at least*.
+- Completely rewritten underlying system with significantly simplified
+  tokenization and matching approach. 
 - Add configuration option for enabling case sensitive proximity matching.
 - Ensure that the user submits a unicode encoded file.
 - Ensure that all characters are unicode composed characters. This means that
@@ -25,7 +28,14 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
   patterns.
 - CHANGELOG.md!
 
+### Fixed
+- Sameword matches in `\lemma{}`-macros were incorrectly annotated
+
+
 ### Removed
+- `include_macros` is no longer a config file option as it corresponds to not
+  adding a macro to the `exclude_macros` list. Almost all macros are included by
+  default.
 - `--include-macros` and `--exclude-macros` are no longer supported as command
   line arguments. The configuration file setup should be used in stead. The
   arguments are used as keys in JSON file (`include_macros` and
