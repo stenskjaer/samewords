@@ -256,7 +256,10 @@ class Tokenizer:
         :param input_str: The input string that will be tokenized.
         """
         self.data = input_str
+        # Recognized punctuation characters
         self._punctuation = re.compile('[!"#$&\'()*+,-./:;<=>?@\[\]^_`|~–—]+')
+        # Characters that need to be escaped in LaTeX
+        self._escape_chars = '\\&%$#_{}~^'
         # keep track of current nesting level (zero indexed, so we start at -1)
         self._edtext_lvl = -1
         # keep track of opened brackets at any point
@@ -344,6 +347,10 @@ class Tokenizer:
                     # If we run into a macro for a word that already has one
                     # or more app elements, we should start a new word.
                     break
+                if string[pos+1] in self._escape_chars:
+                    word.content.append(Element(string[pos:pos+2], pos))
+                    pos += 2
+                    continue
                 macro = Macro(string[pos:])
                 macro.pos = pos
                 word.macros.append(macro)

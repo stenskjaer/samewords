@@ -515,6 +515,20 @@ class TestMatcher:
         text = r'\edtext{A}{\Afootnote{x}} a'
         assert self.run_annotation(text) == text
 
+    def test_latex_expression_escaping(self):
+        text = r'\\ \& \% \$ \# \_ \{ \} \~ \^'
+        assert self.run_annotation(text) == text
+
+    def test_latex_expression_escaped_not_matching(self):
+        text = r'\edtext{a and b}{\Afootnote{x}} a \& b'
+        assert self.run_annotation(text) == text
+
+    def test_latex_expression_escaped_matching(self):
+        text = r'\edtext{a \& b}{\Afootnote{x}} a \& b'
+        expect = (r'\edtext{\sameword[1]{a \& b}}{\Afootnote{x}} \sameword{a '
+                  r'\& b}')
+        assert self.run_annotation(text) == expect
+
 
 class TestGetContext:
 
