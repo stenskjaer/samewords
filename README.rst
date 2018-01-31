@@ -16,13 +16,12 @@ more than once in a line. For example:
 
 It is very unclear which of three instances of “a” the note refers to.
 
-`Reledmac <https://www.ctan.org/pkg/reledmac>`__ is a great LaTeX
-package that facilitates typesetting critical editions of prime quality.
-It already provides facilities for disambiguating identical words, but
-it requires the creator of the critical text to manually mark all
-potential instances of ambiguous references manually (see the *reledmac*
-handbook for the details on that). *Samewords* automates this step for
-the editor.
+`Reledmac <https://www.ctan.org/pkg/reledmac>`__ is a great LaTeX package that
+facilitates typesetting critical editions of prime quality. It already provides
+facilities for disambiguating identical words, but it requires the creator of
+the critical text to mark all potential instances of ambiguous references
+manually (see the *reledmac* handbook for the details on that). *Samewords*
+automates this step for the editor.
 
 Installation
 ============
