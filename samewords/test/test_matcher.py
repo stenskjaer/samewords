@@ -650,6 +650,36 @@ class TestGetContext:
                   'create', 'a', 'subsequence', 'of']
         assert self.run_get_context_before(text, 0) == []
 
+    def test_get_context_modified_range(self):
+        text = (r"List comprehensions provide a concise a way to create "
+                r"lists. Common applications are to make new lists where each "
+                r"element is the result of some operations applied to each "
+                r"member of another sequence or iterable, or \edtext{to}{"
+                r"\lemma{to}\Bfootnote{note}} create a subsequence of those "
+                r"elements that satisfy a certain condition.")
+        expect = ['List', 'comprehensions', 'provide', 'a', 'concise', 'a',
+                  'way', 'to', 'create', 'lists']
+        old_dist = settings.context_distance
+        settings.context_distance = 10
+        assert self.run_get_context_after(text, 0) == expect
+        assert len(self.run_get_context_after(text, 0)) == 10
+        settings.context_distance = old_dist
+
+    def test_get_context_before_modified_range(self):
+        text = (r"List comprehensions provide a concise a way to create "
+                r"lists. Common applications are to make new lists where each "
+                r"element is the result of some operations applied to each "
+                r"member of another sequence or iterable, or \edtext{to}{"
+                r"\lemma{to}\Bfootnote{note}} create a subsequence of those "
+                r"elements that satisfy a certain condition.")
+        expect = ['Common', 'applications', 'are', 'to', 'make', 'new',
+                  'lists', 'where', 'each', 'element']
+        old_dist = settings.context_distance
+        settings.context_distance = 10
+        assert self.run_get_context_before(text, 20) == expect
+        assert len(self.run_get_context_before(text, 20)) == 10
+        settings.context_distance = old_dist
+
 
 class TestSamewordWrapper:
 

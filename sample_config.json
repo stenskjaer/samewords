@@ -1,12 +1,13 @@
 {
-  "ellipsis_patterns": [
-    "\\.\\.\\.",
-    "-+",
-    "\\,-\\,",
-    "\\\\,-+\\\\,"
-  ],
-  "exclude_macros": [
-    "\\anotherMacro"
-  ],
-  "sensitive_context_match": true
+    "ellipsis_patterns": [
+        "\\.\\.\\.",
+        "-+",
+        "\\,-\\,",
+        "\\\\,-+\\\\,"
+    ],
+    "exclude_macros": [
+        "\\anotherMacro"
+    ],
+    "sensitive_context_match": true,
+    "context_distance": 25
 }

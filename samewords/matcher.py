@@ -62,7 +62,7 @@ class Matcher:
         return self.words
 
     def _get_context_after(self, complete: Words, boundary: int) -> Words:
-        distance = 30
+        distance = settings.context_distance
         start = boundary
         end = start
         count = 0
@@ -74,7 +74,7 @@ class Matcher:
         return complete[start:end]
 
     def _get_context_before(self, complete: Words, boundary: int) -> Words:
-        distance = 30
+        distance = settings.context_distance
         end = boundary
         start = end
         count = 0

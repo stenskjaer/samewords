@@ -299,6 +299,18 @@ That would mean that the search for “an” in the context string “An
 example” would not match. This is a sensible setting when lemma words
 are not lower cased in the critical apparatus.
 
+``context_distance``
+^^^^^^^^^^^^^^^^^^^^
+
+This determines the amount of words that will be compared with a match phrase at
+either side of an ``\edtext{}{}`` entry. A normal length line rarely contains more
+than 15 words, so the default of 20 should often be enough. If a layout with
+every long lines is used, it may be necessary to increase it, while it may make
+sense to reduce the distance if maybe a two column setup is used. But a bit too
+many ``\sameword{}`` annotations really does no harm.
+
+
+
 Issue reporting and testing
 ===========================
 
