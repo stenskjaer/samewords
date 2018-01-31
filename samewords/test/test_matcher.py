@@ -145,16 +145,16 @@ class TestMatcher:
                 r"member of another sequence or iterable, or to create a "
                 r"subsequence \edtext{of}{\lemma{of}\Bfootnote{note}} those "
                 r"elements that satisfy a certain condition.")
-        expect = (r"List comprehensions provide a concise a way \sameword{to} "
-                  r"create lists. Common applications are \sameword{to} make "
-                  r"new lists where each element is the result of some "
-                  r"operations applied \sameword{to} each member of another "
-                  r"sequence or iterable, or \edtext{\sameword[1]{to}}{"
-                  r"\lemma{to}\Bfootnote{note}} create a "
-                  r"subsequence of those elements that satisfy a certain "
+        expect = (r"List comprehensions provide a concise a way to create "
+                  r"lists. Common applications are to make new lists where "
+                  r"each element is the result of some operations applied "
+                  r"\sameword{to} each member of another sequence or "
+                  r"iterable, or \edtext{\sameword[1]{to}}{\lemma{"
+                  r"to}\Bfootnote{note}} create a subsequence of those "
+                  r"elements that satisfy a certain "
                   r"condition. List comprehensions provide a concise way "
                   r"\sameword{to} create lists. \edtext{Common}{\lemma{"
-                  r"Common}\Bfootnote{note}} applications are \sameword{to} "
+                  r"Common}\Bfootnote{note}} applications are to "
                   r"make new lists where each element is the result of some "
                   r"operations applied to each member of another sequence or "
                   r"iterable, or to create \sameword{a} subsequence of those "
@@ -375,8 +375,8 @@ class TestMatcher:
                 r"sensu non cadit, nec phantasma facit; ergo et "
                 r"cetera.\edlabelE{da-49-l1q1-ysmgk1}")
         expect = ("\\edlabelS{da-49-l1q1-ysmgk1}% \n\\no{1.1} Illud de quo "
-                  r"\sameword{est} scientia \sameword{est} intelligibile, "
-                  r"quia cum scientia sit habitus intellectus, de quo "
+                  r"est scientia est intelligibile, quia cum scientia sit "
+                  r"habitus intellectus, de quo "
                   r"\sameword{est} scientia oportet esse intelligibile; sed "
                   r"anima non \sameword{est} intelligibile, quia omnis nostra "
                   r"cognitio ortum habet a sensu, \edtext{unde ipsum "
@@ -402,87 +402,58 @@ class TestMatcher:
         assert self.run_annotation(text) == text
 
     def test_match_word_boundary_match_inside_at_start(self):
-        text = (r"test twenty-ninth twenty-eighth twenty-seventh "
-                r"twenty-sixth twenty-fifth twenty-fourth twenty-third "
-                r"twenty-second twenty-first twentieth nineteenth eighteenth "
+        text = (r"test nineteenth eighteenth "
                 r"seventeenth sixteenth fifteenth fourteenth thirteenth "
                 r"twelfth eleventh tenth ninth eighth seventh sixth fifth "
                 r"fourth third second first \edtext{test}{\Afootnote{check}} "
                 r"first second third fourth fifth sixth seventh eighth ninth "
                 r"tenth eleventh twelfth thirteenth fourteenth fifteenth "
                 r"sixteenth seventeenth eighteenth nineteenth twentieth "
-                r"twenty-first twenty-second twenty-third twenty-fourth "
-                r"twenty-fifth twenty-sixth twenty-seventh twenty-eighth "
-                r"twenty-ninth thirtieth test")
-        expect = (r"\sameword{test} twenty-ninth twenty-eighth twenty-seventh "
-                  r"twenty-sixth twenty-fifth twenty-fourth twenty-third "
-                  r"twenty-second twenty-first twentieth nineteenth "
+                r"test")
+        expect = (r"\sameword{test} nineteenth "
                   r"eighteenth seventeenth sixteenth fifteenth fourteenth "
                   r"thirteenth twelfth eleventh tenth ninth eighth seventh "
                   r"sixth fifth fourth third second first \edtext{\sameword["
                   r"1]{test}}{\Afootnote{check}} first second third fourth "
                   r"fifth sixth seventh eighth ninth tenth eleventh twelfth "
                   r"thirteenth fourteenth fifteenth sixteenth seventeenth "
-                  r"eighteenth nineteenth twentieth twenty-first "
-                  r"twenty-second twenty-third twenty-fourth twenty-fifth "
-                  r"twenty-sixth twenty-seventh twenty-eighth twenty-ninth "
-                  r"thirtieth test")
+                  r"eighteenth nineteenth twentieth test")
         assert self.run_annotation(text) == expect
 
     def test_match_word_boundary_match_inside_at_end(self):
-        text = (r"test thirtieth twenty-ninth twenty-eighth twenty-seventh "
-                r"twenty-sixth twenty-fifth twenty-fourth twenty-third "
-                r"twenty-second twenty-first twentieth nineteenth eighteenth "
+        text = (r"test twentieth nineteenth eighteenth "
                 r"seventeenth sixteenth fifteenth fourteenth thirteenth "
                 r"twelfth eleventh tenth ninth eighth seventh sixth fifth "
                 r"fourth third second first \edtext{test}{\Afootnote{check}} "
                 r"first second third fourth fifth sixth seventh eighth ninth "
                 r"tenth eleventh twelfth thirteenth fourteenth fifteenth "
-                r"sixteenth seventeenth eighteenth nineteenth twentieth "
-                r"twenty-first twenty-second twenty-third twenty-fourth "
-                r"twenty-fifth twenty-sixth twenty-seventh twenty-eighth "
-                r"twenty-ninth test")
-        expect = (r"test thirtieth twenty-ninth twenty-eighth twenty-seventh "
-                  r"twenty-sixth twenty-fifth twenty-fourth twenty-third "
-                  r"twenty-second twenty-first twentieth nineteenth "
+                r"sixteenth seventeenth eighteenth nineteenth test")
+        expect = (r"test twentieth nineteenth "
                   r"eighteenth seventeenth sixteenth fifteenth fourteenth "
                   r"thirteenth twelfth eleventh tenth ninth eighth seventh "
                   r"sixth fifth fourth third second first \edtext{\sameword["
                   r"1]{test}}{\Afootnote{check}} first second third fourth "
                   r"fifth sixth seventh eighth ninth tenth eleventh twelfth "
                   r"thirteenth fourteenth fifteenth sixteenth seventeenth "
-                  r"eighteenth nineteenth twentieth twenty-first "
-                  r"twenty-second twenty-third twenty-fourth twenty-fifth "
-                  r"twenty-sixth twenty-seventh twenty-eighth twenty-ninth "
-                  r"\sameword{test}")
+                  r"eighteenth nineteenth \sameword{test}")
         assert self.run_annotation(text) == expect
 
     def test_match_word_boundary_match_both_ends(self):
-        text = (r"test twenty-ninth twenty-eighth twenty-seventh "
-                r"twenty-sixth twenty-fifth twenty-fourth twenty-third "
-                r"twenty-second twenty-first twentieth nineteenth eighteenth "
+        text = (r"test nineteenth eighteenth "
                 r"seventeenth sixteenth fifteenth fourteenth thirteenth "
                 r"twelfth eleventh tenth ninth eighth seventh sixth fifth "
                 r"fourth third second first \edtext{test}{\Afootnote{check}} "
                 r"first second third fourth fifth sixth seventh eighth ninth "
                 r"tenth eleventh twelfth thirteenth fourteenth fifteenth "
-                r"sixteenth seventeenth eighteenth nineteenth twentieth "
-                r"twenty-first twenty-second twenty-third twenty-fourth "
-                r"twenty-fifth twenty-sixth twenty-seventh twenty-eighth "
-                r"twenty-ninth test")
-        expect = (r"\sameword{test} twenty-ninth twenty-eighth twenty-seventh "
-                  r"twenty-sixth twenty-fifth twenty-fourth twenty-third "
-                  r"twenty-second twenty-first twentieth nineteenth "
+                r"sixteenth seventeenth eighteenth nineteenth test")
+        expect = (r"\sameword{test} nineteenth "
                   r"eighteenth seventeenth sixteenth fifteenth fourteenth "
                   r"thirteenth twelfth eleventh tenth ninth eighth seventh "
                   r"sixth fifth fourth third second first \edtext{\sameword["
                   r"1]{test}}{\Afootnote{check}} first second third fourth "
                   r"fifth sixth seventh eighth ninth tenth eleventh twelfth "
                   r"thirteenth fourteenth fifteenth sixteenth seventeenth "
-                  r"eighteenth nineteenth twentieth twenty-first "
-                  r"twenty-second twenty-third twenty-fourth twenty-fifth "
-                  r"twenty-sixth twenty-seventh twenty-eighth twenty-ninth "
-                  r"\sameword{test}")
+                  r"eighteenth nineteenth \sameword{test}")
         assert self.run_annotation(text) == expect
 
     def test_spaced_index_command(self):
@@ -558,8 +529,7 @@ class TestGetContext:
         expect = ['Common', 'applications', 'are', 'to', 'make', 'new',
                   'lists', 'where', 'each', 'element', 'is', 'the', 'result',
                   'of', 'some', 'operations', 'applied', 'to', 'each',
-                  'member', 'of', 'another', 'sequence', 'or', 'iterable',
-                  'or', 'to', 'create', 'a', 'subsequence']
+                  'member']
         assert self.run_get_context_after(text, 10) == expect
 
     def test_get_from_long_context_after_with_empty(self):
@@ -578,8 +548,7 @@ class TestGetContext:
         expect = ['Common', '', 'applications', '', '', 'are', 'to', 'make',
                   'new', 'element', 'is', 'the', 'result', 'of', 'some',
                   'operations', 'applied', 'to', 'each', 'member', 'of',
-                  'another', 'sequence', 'or', 'iterable', 'or', 'to', '',
-                  '', '', 'a', 'subsequence', 'of', 'those', 'element', 's']
+                  'another', 'sequence']
         assert self.run_get_context_after(text, 10) == expect
 
     def test_get_from_short_context_after_without_empty(self):
@@ -602,11 +571,10 @@ class TestGetContext:
                 r"the result of some operations applied to each member of "
                 r"another sequence or iterable, or to create a subsequence of "
                 r"those elements that satisfy a certain condition. Start ")
-        expect = ['new', 'lists', 'where', 'each', 'element', 'is', 'the',
-                  'result', 'of', 'some', 'operations', 'applied', 'to',
-                  'each', 'member', 'of', 'another', 'sequence', 'or',
-                  'iterable', 'or', 'to', 'create', 'a', 'subsequence', 'of',
-                  'those', 'elements', 'that', 'satisfy']
+        expect = ['operations', 'applied', 'to', 'each', 'member', 'of',
+                  'another', 'sequence', 'or', 'iterable', 'or', 'to',
+                  'create', 'a', 'subsequence', 'of', 'those', 'elements',
+                  'that', 'satisfy']
         assert self.run_get_context_before(text, 45) == expect
 
     def test_get_from_long_context_before_with_empty(self):
@@ -622,11 +590,10 @@ class TestGetContext:
                 r"the result of some operations applied to each member of "
                 r"another sequence or iterable, or to create a subsequence of "
                 r"those elements that satisfy a certain condition. Start ")
-        expect = ['lists', 'Common', '', 'applications', '', '', 'are', 'to',
-                  'make', 'new', 'element', 'is', 'the', 'result', 'of',
-                  'some', 'operations', 'applied', 'to', 'each', 'member',
-                  'of', 'another', 'sequence', 'or', 'iterable', 'or', 'to',
-                  '', '', '', 'a', 'subsequence', 'of', 'those', 'element']
+        expect = ['result', 'of', 'some', 'operations', 'applied', 'to',
+                  'each', 'member', 'of', 'another', 'sequence', 'or',
+                  'iterable', 'or', 'to', '', '', '', 'a', 'subsequence',
+                  'of', 'those', 'element']
         assert self.run_get_context_before(text, 45) == expect
 
     def test_get_from_short_context_before_without_empty(self):
@@ -639,15 +606,11 @@ class TestGetContext:
     def test_get_from_end(self):
         text = (r"another sequence or iterable, or to create a subsequence of "
                 r"those elements that satisfy a certain condition. Start ")
-        expect = ['another', 'sequence', 'or', 'iterable', 'or', 'to',
-                  'create', 'a', 'subsequence', 'of']
         assert self.run_get_context_after(text, 18) == []
 
-    def test_et_backward_from_start(self):
+    def test_get_backward_from_start(self):
         text = (r"another sequence or iterable, or to create a subsequence of "
                 r"those elements that satisfy a certain condition. Start ")
-        expect = ['another', 'sequence', 'or', 'iterable', 'or', 'to',
-                  'create', 'a', 'subsequence', 'of']
         assert self.run_get_context_before(text, 0) == []
 
     def test_get_context_modified_range(self):

@@ -36,4 +36,4 @@ sensitive_context_match = False
 # entry should be compared. A normal length line rarely contains more than 15
 #  words, so the default of 20 should often be enough. If a layout with every
 #  long lines is used, it may be necessary to increase it.
-context_distance = 30
+context_distance = 20
