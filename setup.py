@@ -18,14 +18,6 @@ setup(name='samewords',
           'Programming Language :: Python :: 3.6',
           'Topic :: Text Processing :: Markup :: LaTeX',
       ],
-      data_files=[
-          ('samewords/test/assets', ['samewords/test/assets/da-49-l1q1.tex',
-                                     'samewords/test/assets/da-49-l1q1-processed.tex',
-                                     'samewords/test/assets/multi_begins.tex',
-                                     'samewords/test/assets/no_numbers.tex',
-                                     'samewords/test/assets/sample_config.json',
-                                     'samewords/test/assets/simple.tex'])
-      ],
       description='Package for disambiguation of identical terms in critical '
                   'editions in LaTeX with reledmac.',
       url='https://github.com/stenskjaer/samewords',

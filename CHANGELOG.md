@@ -3,6 +3,13 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [0.2.7] -- UNRELEASED
+### Changed
+- Reverse the change from 0.2.6. I have realized that I don't want to include
+  test assets in the binary distribution that you get from pypi because it's not
+  the idea that you run tests on that. If you download the source distribution,
+  either from pypi or Github of course you get the test assets there too.
+
 ## [0.2.6]
 ### Changed
 - Updated `setyp.py` with `data_files` to actually include what has already been
