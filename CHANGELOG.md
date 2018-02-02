@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [0.2.5]
+### Changed
+- Updated the MANIFEST to actually include the assets.
+
 ## [0.2.4]
 ### Added
 - The amount of words compared in the context is now configurable.

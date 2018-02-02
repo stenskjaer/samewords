@@ -1,2 +1,2 @@
-include samewords/test/assets *
+include samewords/test/assets/*
 include README.rst
