@@ -3,19 +3,24 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [0.2.3] - UNRELEASED
+## [0.2.4]
 ### Added
 - The amount of words compared in the context is now configurable.
+
+### Changed
+- The default context comparison distance is reduced from 30 to 20.
+
+## [0.2.3]
+### Added
 - Proper handling of escaped LaTeX characters.
 
 ### Removed
 - Dependecy on Docopt.
 
 ### Changed
-- The default context comparison distance is reduced from 30 to 20.
 - Use reStructuredText for the README.
 
-## [0.2.0] - 2018-01-27
+## [0.2.0]
 ### Added
 - Context length matching *exactly* 30 content words rather than *at least*.
 - Completely rewritten underlying system with significantly simplified
