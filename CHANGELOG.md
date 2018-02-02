@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [0.2.6]
+### Changed
+- Updated `setyp.py` with `data_files` to actually include what has already been
+  included in the MANIFEST in bdist build too(!)
+
 ## [0.2.5]
 ### Changed
 - Updated the MANIFEST to actually include the assets.
