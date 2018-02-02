@@ -36,3 +36,10 @@ class TestMacro:
         assert m.full() == r'\macro{'
         assert m.name == r'\macro'
         assert m.empty == True
+
+    def test_close_macro_with_linebreak(self):
+        text = '\\pstart\ntest\nthirtieth'
+        m = Macro(text)
+        assert m.full() == r'\pstart'
+        assert m.name == r'\pstart'
+        assert m.empty == True

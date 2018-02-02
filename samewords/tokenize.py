@@ -31,7 +31,7 @@ class Macro(UserString):
         super().__init__(self)
         self.name = self._identify_name()
         self.oarg = self._optional_argument()
-        self.opening = re.match(r'[^ ]+?{', self.data)
+        self.opening = re.match(r'[^\s]+?{', self.data)
         self.empty = self._is_empty()
         self.pos = pos              # register start index in word
         self.end = end

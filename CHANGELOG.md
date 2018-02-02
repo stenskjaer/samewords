@@ -9,6 +9,7 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
   test assets in the binary distribution that you get from pypi because it's not
   the idea that you run tests on that. If you download the source distribution,
   either from pypi or Github of course you get the test assets there too.
+- Determination of Macro.name includes all types of whitespace [#19].
 
 ## [0.2.6]
 ### Changed
