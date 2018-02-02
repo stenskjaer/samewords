@@ -6,6 +6,7 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
 ## [0.2.4]
 ### Added
 - The amount of words compared in the context is now configurable.
+- MANIFEST.in file for including test assets.
 
 ### Changed
 - The default context comparison distance is reduced from 30 to 20.
