@@ -93,7 +93,7 @@ the script again, remove the directory of the environment (possibly with
 ``rmvirtualenv`` if you have installed ``virtualenvwrapper``) and remove
 the directory created by the ``git clone`` command.
 
-Remember the tests
+If you want to make a pull request
 ~~~~~~~~~~~~~~~~~~
 
 Before you start making any changes, run the test suite and make sure
@@ -364,19 +364,23 @@ in pull requests, this is also the approach you should use.
 -  Check out the branch that you want to test. If that is called
    ``issue-13`` run ``git checkout issue-13``.
 
-After either of the above processes, the rest is identical: - Create a
-*virtual environment* for testing by running ``python3 -m venv .env``,
-and then activate it with ``source .env/bin/activate`` (this is based on
-a Unix environment, if you run Windows, check out `the Python
-documentation <https://docs.python.org/3.6/library/venv.html>`__). -
-Install the script in the virtual environment with ``pip install -e .``.
+After either of the above processes, the rest is identical:
+- Create a *virtual environment* for testing by running ``python3 -m venv
+  .env``, and then activate it with ``source .env/bin/activate`` (this is based
+  on a Unix environment, if you run Windows, check out `the Python documentation
+  <https://docs.python.org/3.6/library/venv.html>`__).
+- Install the script in the virtual environment with ``pip install -e .``.
 - To make sure you run the version in the *virtual environment*, run
-``.env/bin/samewords`` from the directory (to avoid using a global
-version of the script, if you have that). - Run your supplied MWE (or
-other material provided by me in the issue report) and inspect whether
-the problem is solved and report back in the issue report. - When you
-are done testing, deactivate the virtual environment by running
-``deactivate`` (Bash on Unix) or ``deactivate.bat`` (Windows).
+  ``.env/bin/samewords`` from the directory (to avoid using a global version of
+  the script, if you have that).
+- Run your supplied MWE (or other material provided by me in the issue report)
+  and inspect whether the problem is solved and report back in the issue
+  report.
+- When you are done testing, deactivate the virtual environment by running
+  ``deactivate`` (Bash on Unix) or ``deactivate.bat`` (Windows).
+
+Notice that if you are asked to test a branch it is not necessary to run any of
+the automated tests.
 
 If you have downloaded a branch zip, you can delete the unzipped
 directory, and everything should be back to normal.
