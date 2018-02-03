@@ -475,6 +475,45 @@ class TestMatcher:
         text = r'\edtext{A}{\Afootnote{a}}     %A'
         assert self.run_annotation(text) == text
 
+    def test_annotation_around_comments(self):
+        text = """
+word % some word commented out
+word
+w%
+%something commented out
+%something else commented out
+o% some letter commented out
+r% another word just to see what will happen
+d
+word wo% check whether "o" or "ø"
+rd
+\edtext{w%
+%
+ord}{\Afootnote{statement}} %A
+w% "W" or "w"?
+ord
+word
+"""
+        expect = """
+\sameword{word} % some word commented out
+\sameword{word}
+\sameword{w%
+%something commented out
+%something else commented out
+o% some letter commented out
+r% another word just to see what will happen
+d}
+\sameword{word} \sameword{wo% check whether "o" or "ø"
+rd}
+\edtext{\sameword[1]{w%
+%
+ord}}{\Afootnote{statement}} %A
+\sameword{w% "W" or "w"?
+ord}
+\sameword{word}
+"""
+        assert self.run_annotation(text) == expect
+
     def test_case_insensitive_context_no_match_lemma(self):
         settings.sensitive_context_match = False
         text = r'\edtext{A}{\lemma{A}\Afootnote{x}} a'

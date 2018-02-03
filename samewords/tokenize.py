@@ -210,8 +210,9 @@ class Word(UserString):
         elif self.app_list:
             pos = sorted([i.pos for i in self.app_list])[0]
         elif self.content:
-            content_start = sorted([i.pos for i in self.content])[0]
-            pos = len(self.get_text()) + content_start
+            end_pos = sorted([i.pos for i in self.content])[-1]
+            end_len = len(sorted([i.cont for i in self.content])[-1])
+            pos = end_pos + end_len
         elif self.punctuation:
             pos = sorted([i.pos for i in self.punctuation], reverse=True)[0] + 1
         else:
@@ -341,7 +342,7 @@ class Tokenizer:
                     line = string[pos:]
                 word.comment.append(Element(line, pos))
                 pos += len(line)
-                break
+                continue
             if c == '\\':
                 if word.app_list:
                     # If we run into a macro for a word that already has one
