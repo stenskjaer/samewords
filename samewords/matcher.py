@@ -2,7 +2,7 @@ import re
 
 from samewords.tokenize import Words, Registry, Word, Tokenizer, Macro
 from samewords.brackets import Brackets
-from samewords import settings
+from samewords.settings import settings
 
 from typing import List, Tuple, Union
 
@@ -62,7 +62,7 @@ class Matcher:
         return self.words
 
     def _get_context_after(self, complete: Words, boundary: int) -> Words:
-        distance = settings.context_distance
+        distance = settings['context_distance']
         start = boundary
         end = start
         count = 0
@@ -74,7 +74,7 @@ class Matcher:
         return complete[start:end]
 
     def _get_context_before(self, complete: Words, boundary: int) -> Words:
-        distance = settings.context_distance
+        distance = settings['context_distance']
         end = boundary
         start = end
         count = 0
@@ -198,7 +198,7 @@ class Matcher:
         that. While there are items in the search word list, see if the next
         item (that has content) in the context matches the next item in the
         search words list. """
-        if not settings.sensitive_context_match:
+        if not settings['sensitive_context_match']:
             ctxt = [w.lower() for w in ctxt]
         else:
             ctxt = [str(w) for w in ctxt]
@@ -252,7 +252,8 @@ class Matcher:
             lemma_content = ''
 
         if lemma_content:
-            settings_pat = '|'.join([pat for pat in settings.ellipsis_patterns])
+            settings_pat = '|'.join([pat for pat in
+                                     settings['ellipsis_patterns']])
             ellipsis_pat = re.compile('(' + settings_pat + ')')
             ellipsis_search = re.search(ellipsis_pat, lemma_content)
             if ellipsis_search:
@@ -281,6 +282,6 @@ class Matcher:
         else:
             content = edtext.clean()
             ellipsis = False
-        if not settings.sensitive_context_match:
+        if not settings['sensitive_context_match']:
             content = [w.lower() for w in content]
         return content, ellipsis

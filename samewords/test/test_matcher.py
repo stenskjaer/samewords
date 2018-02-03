@@ -1,6 +1,6 @@
 from samewords.matcher import Matcher
 from samewords.tokenize import Tokenizer
-from samewords import settings
+from samewords.settings import settings
 
 
 class TestMatcher:
@@ -302,8 +302,8 @@ class TestMatcher:
     def test_custom_macros(self):
         """Macro `\exclude` is explicitly excluded, so what is compared is
         'Sortes' and 'Sortes' which is then matched and annotated. """
-        old_exclude = settings.exclude_macros
-        settings.exclude_macros += [r'\exclude']
+        old_exclude = settings['exclude_macros']
+        settings['exclude_macros'] += [r'\exclude']
         text = (r'Han var sonr \edtext{Hákon\emph{ar}\exclude{Håkon II}}{'
                 r'\Afootnote{k\emph{on}gſ hakon\emph{ar} Sk}}, '
                 r'sons Hákonar\exclude{Håkon I}')
@@ -312,13 +312,13 @@ class TestMatcher:
                   r'hakon\emph{ar} Sk}}, sons \sameword{Hákonar}\exclude{'
                   r'Håkon I}')
         assert self.run_annotation(text) == expect
-        settings.exclude_macros = old_exclude
+        settings['exclude_macros'] = old_exclude
 
     def test_custom_multiword(self):
         """Macro `\exclude` is explicitly excluded, so what is compared is
         'Hákonar' and 'Hákonar' which is then matched and annotated. """
-        old_exclude = settings.exclude_macros
-        settings.exclude_macros += [r'\exclude']
+        old_exclude = settings['exclude_macros']
+        settings['exclude_macros'] += [r'\exclude']
         text = (r'Han var sonr \edtext{Hákon\emph{ar}\exclude{Håkon II} '
                 r'konungs}{\Afootnote{k\emph{on}gſ hakon\emph{ar} Sk}}, '
                 r'sons Hákonar\exclude{Håkon I} konungs')
@@ -327,7 +327,7 @@ class TestMatcher:
                   r'hakon\emph{ar} Sk}}, sons \sameword{Hákonar\exclude{'
                   r'Håkon I} konungs}')
         assert self.run_annotation(text) == expect
-        settings.exclude_macros = old_exclude
+        settings['exclude_macros'] = old_exclude
 
     def test_custom_not_excluded_macro_with_match(self):
         """Macro is not explicitly excluded, which means that the
@@ -515,18 +515,18 @@ ord}
         assert self.run_annotation(text) == expect
 
     def test_case_insensitive_context_no_match_lemma(self):
-        settings.sensitive_context_match = False
+        settings['sensitive_context_match'] = False
         text = r'\edtext{A}{\lemma{A}\Afootnote{x}} a'
         expect = r'\edtext{\sameword[1]{A}}{\lemma{A}\Afootnote{x}} \sameword{a}'
         assert self.run_annotation(text) == expect
-        settings.sensitive_context_match = True
+        settings['sensitive_context_match'] = True
 
     def test_case_insensitive_context_no_match_edtext(self):
-        settings.sensitive_context_match = False
+        settings['sensitive_context_match'] = False
         text = r'\edtext{A}{\Afootnote{x}} a'
         expect = r'\edtext{\sameword[1]{A}}{\Afootnote{x}} \sameword{a}'
         assert self.run_annotation(text) == expect
-        settings.sensitive_context_match = True
+        settings['sensitive_context_match'] = True
 
     def test_case_sensitive_context_match_lemma(self):
         text = r'\edtext{A}{\lemma{A}\Afootnote{x}} a'
@@ -672,11 +672,11 @@ class TestGetContext:
                 r"elements that satisfy a certain condition.")
         expect = ['List', 'comprehensions', 'provide', 'a', 'concise', 'a',
                   'way', 'to', 'create', 'lists']
-        old_dist = settings.context_distance
-        settings.context_distance = 10
+        old_dist = settings['context_distance']
+        settings['context_distance'] = 10
         assert self.run_get_context_after(text, 0) == expect
         assert len(self.run_get_context_after(text, 0)) == 10
-        settings.context_distance = old_dist
+        settings['context_distance'] = old_dist
 
     def test_get_context_before_modified_range(self):
         text = (r"List comprehensions provide a concise a way to create "
@@ -687,11 +687,11 @@ class TestGetContext:
                 r"elements that satisfy a certain condition.")
         expect = ['Common', 'applications', 'are', 'to', 'make', 'new',
                   'lists', 'where', 'each', 'element']
-        old_dist = settings.context_distance
-        settings.context_distance = 10
+        old_dist = settings['context_distance']
+        settings['context_distance'] = 10
         assert self.run_get_context_before(text, 20) == expect
         assert len(self.run_get_context_before(text, 20)) == 10
-        settings.context_distance = old_dist
+        settings['context_distance'] = old_dist
 
 
 class TestSamewordWrapper:
@@ -855,8 +855,8 @@ class TestDefineSearchWords:
         assert search_words == expect
 
     def test_custom_ellipses_with_space(self):
-        old_exclude = settings.exclude_macros
-        settings.exclude_macros += [
+        old_exclude = settings['exclude_macros']
+        settings['exclude_macros'] += [
             "\\.\\.\\.",
             "-+",
             "\\,-\\,",
@@ -885,11 +885,11 @@ class TestDefineSearchWords:
         assert self.run_wordlist(dots_brackets) == expect
         assert self.run_wordlist(ldots) == expect
         assert self.run_wordlist(ldots_brackets) == expect
-        settings.exclude_macros = old_exclude
+        settings['exclude_macros'] = old_exclude
 
     def test_custom_ellipses_without_space(self):
-        old_exclude = settings.exclude_macros
-        settings.exclude_macros += [
+        old_exclude = settings['exclude_macros']
+        settings['exclude_macros'] += [
             "\\.\\.\\.",
             "-+",
             "\\,-\\,",
@@ -913,4 +913,4 @@ class TestDefineSearchWords:
         assert self.run_wordlist(comma_string) == expect
         assert self.run_wordlist(dots) == expect
         assert self.run_wordlist(ldots_brackets) == expect
-        settings.exclude_macros = old_exclude
+        settings['exclude_macros'] = old_exclude

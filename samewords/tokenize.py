@@ -5,7 +5,7 @@ from typing import List, Tuple, Dict, Union
 from operator import itemgetter
 
 from samewords.brackets import Brackets
-from samewords import settings
+from samewords.settings import settings
 
 RegistryEntry = Dict[str, Union[List[int], int]]
 Registry = List[RegistryEntry]
@@ -278,7 +278,7 @@ class Tokenizer:
         # the words list, which needs to be available during any tokenization.
         self._words: Words = Words()
         # non-content macros that should be ignored.
-        self._exclude_macros = settings.exclude_macros
+        self._exclude_macros = settings['exclude_macros']
         # the registry list
         self.registry = []
         self.wordlist = self._wordlist()

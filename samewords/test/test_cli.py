@@ -1,14 +1,24 @@
 from samewords import cli
+from samewords.settings import settings
 
 
 class TestConfigFileContent:
+
     def test_config_file_parsing(self):
         fname = './samewords/test/assets/sample_config.json'
-        settings = cli.parse_config_file(fname)
-        assert "\\.\\.\\." in settings.ellipsis_patterns
-        assert "-+" in settings.ellipsis_patterns
-        assert "\\anotherMacro" in settings.exclude_macros
-        assert settings.sensitive_context_match == True
+        old = {
+            'ellipsis_patterns': settings['ellipsis_patterns'],
+            'exclude_macros': settings['exclude_macros'],
+            'sensitive_context_match': settings['sensitive_context_match'],
+            'context_distance': settings['context_distance']
+        }
+        cli.parse_config_file(fname)
+        assert "\\.\\.\\." in settings['ellipsis_patterns']
+        assert "-+" in settings['ellipsis_patterns']
+        assert "\\anotherMacro" in settings['exclude_macros']
+        assert settings['sensitive_context_match'] == True
+        assert settings['context_distance'] == 25
+        settings.update(old)
 
 
 # class TestCustomIncludeExclude:

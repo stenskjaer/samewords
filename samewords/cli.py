@@ -9,10 +9,11 @@ import samewords
 import argparse
 import os
 
-from samewords import settings
+from typing import Dict
+from samewords.settings import settings
 
 
-def load_config(filename):
+def load_config(filename) -> Dict:
     """Load and read in configuration from local config file.
 
     :return Dictionary of the configuration."""
@@ -22,22 +23,22 @@ def load_config(filename):
         return conf
     except json.decoder.JSONDecodeError as e:
         raise
-    except FileNotFoundError:
-        return {}
 
 
-def parse_config_file(filename: str) -> object:
+def parse_config_file(filename: str) -> bool:
     """Parse the config file and update the global settings.
-    If successful, return settings, otherwise return None."""
+    If successful, True, otherwise return False."""
     filename = os.path.expanduser(filename)
     if os.path.isfile(filename):
         user_conf = load_config(filename)
-        settings.ellipsis_patterns += user_conf.get('ellipsis_patterns', [])
-        settings.exclude_macros += user_conf.get('exclude_macros', [])
-        settings.sensitive_context_match = user_conf.get(
-            'sensitive_context_match', False)
-        return settings
-    return None
+        settings['ellipsis_patterns'] += user_conf.get('ellipsis_patterns', [])
+        settings['exclude_macros'] += user_conf.get('exclude_macros', [])
+        settings['sensitive_context_match'] = user_conf.get(
+            'sensitive_context_match', settings['sensitive_context_match'])
+        settings['context_distance'] = user_conf.get(
+            'context_distance', settings['context_distance'])
+        return True
+    return False
 
 def parse_arguments():
     parser = argparse.ArgumentParser(
