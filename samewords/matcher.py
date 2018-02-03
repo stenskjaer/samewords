@@ -93,7 +93,7 @@ class Matcher:
                 start = indices[0]
                 end = indices[1]
                 self._add_sameword(context[start:end], 0)
-                new_indices = self._find_index(context, searches, start=end + 1)
+                new_indices = self._find_index(context, searches, start=end)
                 if new_indices:
                     indices = new_indices
                 else:

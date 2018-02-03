@@ -11,6 +11,17 @@ class TestMatcher:
         words = matcher.annotate()
         return words.write()
 
+    def test_consequtive_context_matches_are_annotated(self):
+        text = (r'word word word word \edtext{word}{\Afootnote{statement}} '
+                r'word word word \edtext{word}{\Afootnote{statement}} word '
+                r'word')
+        expect = (r'\sameword{word} \sameword{word} \sameword{word} '
+                  r'\sameword{word} \edtext{\sameword[1]{word}}{\Afootnote{'
+                  r'statement}} \sameword{word} \sameword{word} \sameword{'
+                  r'word} \edtext{\sameword[1]{word}}{\Afootnote{statement}} '
+                  r'\sameword{word} \sameword{word}')
+        assert self.run_annotation(text) == expect
+
     def test_no_match_single_level(self):
         text = r'text \edtext{emphasis}{\Bfootnote{fnote}} is nice'
         assert self.run_annotation(text) == text

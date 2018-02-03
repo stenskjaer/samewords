@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [0.2.7] -- UNRELEASED
+### Solved
+- Consecutive sameword context matches now actually all get annotated [#20]. 
+
 ### Changed
 - Reverse the change from 0.2.6. I have realized that I don't want to include
   test assets in the binary distribution that you get from pypi because it's not
