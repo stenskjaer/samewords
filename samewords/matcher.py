@@ -23,13 +23,13 @@ class Matcher:
         the edtext lemma content for each entry and annotate accordingly.
         """
         for entry in self.registry:
-            # Get data points for phrase start and end
+            # Get data points for phrase and its start and end
             edtext_start = entry['data'][0]
             edtext_end = entry['data'][1]
             edtext_lvl = entry['lvl'] + 1   # Reledmac 1-indexes the levels.
             edtext = self.words[edtext_start:edtext_end + 1]
 
-            # Identify search words
+            # Identify search words and ellipsis
             search_ws, ellipsis = self._define_search_words(edtext)
 
             # Establish the context
@@ -38,9 +38,11 @@ class Matcher:
             contexts = ([w.get_text() for w in context_before]
                         + [w.get_text() for w in context_after])
 
-            # Determine whether matcher function succeeds in either context.
+            # Is there a match in either context?
             if search_ws and self._in_context(contexts, search_ws, ellipsis):
-                # If so, annotate the edtext element, or parts of it, correctly.
+
+                # Annotate the edtext
+                # -------------------
                 if ellipsis:
                     if self._in_context(contexts, search_ws[0:1], ellipsis):
                         self._add_sameword(edtext[0:1], edtext_lvl)
@@ -50,29 +52,42 @@ class Matcher:
                     sidx, eidx = self._find_index(edtext, search_ws)
                     self._add_sameword(edtext[sidx:eidx], edtext_lvl)
 
-                # Then annotate the two contexts
+                # Annotate the lemma if relevant
+                # ------------------
+                if r'\lemma' in edtext[-1].ann_apps[-1].cont:
+                    # get the relevant app Element
+                    app_note = edtext[-1].ann_apps[-1]
+                    # split up the apparatus note into before, lem, after
+                    s, e = self._find_lemma_pos(app_note)
+                    if ellipsis:
+                        # Tokenize the lemma words and ellipsis
+                        lem_words = self._find_ellipsis_words(
+                            app_note.cont[s:e])
+                        # Annotate the lemma word where the context matches
+                        if self._in_context(contexts, search_ws[0:1], ellipsis):
+                            lem_words[0] = self._add_sameword(
+                                lem_words[0:1], level=0)[0]
+                        if self._in_context(contexts, search_ws[-1:], ellipsis):
+                            lem_words[-1] = self._add_sameword(
+                                lem_words[-1:], level=0)[0]
+                    else:
+                        lem_words = Tokenizer(app_note.cont[s:e]).wordlist
+                        lem_words = self._add_sameword(lem_words, level=0)
+                    # patch app note up again with new lemma content
+                    bef = app_note.cont[:s]
+                    after = app_note.cont[e:]
+                    new = bef + lem_words.write() + after
+                    # update the app note Element with the new content
+                    edtext[-1].update_element(app_note, new)
+
+                # Then annotate the contexts
+                # ------------------------------
                 for context in [context_before, context_after]:
                     if ellipsis:
-                        # get the relevant app Element
-                        app_note = edtext[-1].ann_apps[-1]
-                        # split up the apparatus notes into before, lem, after
-                        s, e = self._find_lemma_pos(app_note)
-                        # Tokenize the lemma words and ellipsis
-                        lem_ws = self._find_ellipsis_words(app_note.cont[s:e])
-                        # annotate context and the specific lemma word where
-                        # there are context matches
                         if self._in_context(context, search_ws[0:1], ellipsis):
                             self._annotate_context(context, search_ws[0:1])
-                            lem_ws[0] = self._add_sameword(lem_ws[0:1], 0)[0]
                         if self._in_context(context, search_ws[-1:], ellipsis):
                             self._annotate_context(context, search_ws[-1:])
-                            lem_ws[-1] = self._add_sameword(lem_ws[-1:], 0)[0]
-                        # patch app note up again with new lemma content
-                        bef = app_note.cont[:s]
-                        after = app_note.cont[e:]
-                        new = bef + lem_ws.write() + after
-                        # update the app note Element with the new content
-                        edtext[-1].update_element(app_note, new)
                     else:
                         self._annotate_context(context, search_ws)
         return self.words
