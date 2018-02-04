@@ -1,6 +1,6 @@
 import re
 
-from samewords.tokenize import Words, Registry, Word, Tokenizer, Macro
+from samewords.tokenize import Words, Registry, Word, Tokenizer, Macro, Element
 from samewords.brackets import Brackets
 from samewords.settings import settings
 
@@ -42,9 +42,9 @@ class Matcher:
             if search_ws and self._in_context(contexts, search_ws, ellipsis):
                 # If so, annotate the edtext element, or parts of it, correctly.
                 if ellipsis:
-                    if search_ws[0] in contexts:
+                    if self._in_context(contexts, search_ws[0:1], ellipsis):
                         self._add_sameword(edtext[0:1], edtext_lvl)
-                    if search_ws[-1] in contexts:
+                    if self._in_context(contexts, search_ws[-1:], ellipsis):
                         self._add_sameword(edtext[-1:], edtext_lvl)
                 else:
                     sidx, eidx = self._find_index(edtext, search_ws)
@@ -53,10 +53,26 @@ class Matcher:
                 # Then annotate the two contexts
                 for context in [context_before, context_after]:
                     if ellipsis:
-                        if search_ws[0] in context:
+                        # get the relevant app Element
+                        app_note = edtext[-1].ann_apps[-1]
+                        # split up the apparatus notes into before, lem, after
+                        s, e = self._find_lemma_pos(app_note)
+                        # Tokenize the lemma words and ellipsis
+                        lem_ws = self._find_ellipsis_words(app_note.cont[s:e])
+                        # annotate context and the specific lemma word where
+                        # there are context matches
+                        if self._in_context(context, search_ws[0:1], ellipsis):
                             self._annotate_context(context, search_ws[0:1])
-                        if search_ws[-1] in context:
+                            lem_ws[0] = self._add_sameword(lem_ws[0:1], 0)[0]
+                        if self._in_context(context, search_ws[-1:], ellipsis):
                             self._annotate_context(context, search_ws[-1:])
+                            lem_ws[-1] = self._add_sameword(lem_ws[-1:], 0)[0]
+                        # patch app note up again with new lemma content
+                        bef = app_note.cont[:s]
+                        after = app_note.cont[e:]
+                        new = bef + lem_ws.write() + after
+                        # update the app note Element with the new content
+                        edtext[-1].update_element(app_note, new)
                     else:
                         self._annotate_context(context, search_ws)
         return self.words
@@ -177,18 +193,24 @@ class Matcher:
         part[0] = word
         return part
 
+    def _apply_sensitivity(self, input_list: Union[List[str], Words]) -> List:
+        if not settings['sensitive_context_match']:
+            return [w.lower() for w in input_list]
+        return [str(w) for w in input_list]
+
     def _in_context(self, context: Union[List[str], Words], searches: List,
                     ellipsis: bool) -> bool:
         """Determine whether there is a match, either of a one- or multiword
         sequence or the first or last word in the sequence, in case it is an
         ellipsis.
         """
+        context = self._apply_sensitivity(context)
         if ellipsis:
             return searches[0] in context or searches[-1] in context
         else:
             return self._find_index(context, searches) and True
 
-    def _find_index(self, ctxt: Union[List[str], Words], searches: List,
+    def _find_index(self, context: Union[List[str], Words], searches: List,
                     start: int = 0) -> Union[Tuple[int, int], bool]:
         """Return the position of the start and end of a match of
         search_words list in context. If no match is made, return -1 in both
@@ -198,15 +220,12 @@ class Matcher:
         that. While there are items in the search word list, see if the next
         item (that has content) in the context matches the next item in the
         search words list. """
-        if not settings['sensitive_context_match']:
-            ctxt = [w.lower() for w in ctxt]
-        else:
-            ctxt = [str(w) for w in ctxt]
+        context = self._apply_sensitivity(context)
 
-        if searches[0] not in ctxt[start:]:
+        if searches[0] not in context[start:]:
             return False
 
-        context_start = ctxt[start:].index(searches[0]) + start
+        context_start = context[start:].index(searches[0]) + start
         ctxt_index = context_start
         search_index = 0
 
@@ -215,11 +234,11 @@ class Matcher:
                 try:
                     # We only match non-empty Word objects. This makes it
                     # match across non-text macros.
-                    if ctxt[ctxt_index]:
-                        if ctxt[ctxt_index] == searches[search_index]:
+                    if context[ctxt_index]:
+                        if context[ctxt_index] == searches[search_index]:
                             search_index += 1
                         else:
-                            return self._find_index(ctxt, searches, ctxt_index)
+                            return self._find_index(context, searches, ctxt_index)
                     ctxt_index += 1
 
                 except IndexError:
@@ -227,9 +246,37 @@ class Matcher:
                     # the list has ended, so there is not full match.
                     return False
 
-            # We +1 the last index to make it useable in a list slice
             return context_start, ctxt_index
         return False
+
+    def _find_lemma_pos(self, app_note: Element) -> Tuple[int, int]:
+        """Given an apparatus note Element return the start and end index of
+        the `\lemma{}` macro and return -1 for both start and end if it's not
+        present. Before returning a positive result, the offset from the
+        brackets is included. """
+        lemma_pos = app_note.cont.find(r'\lemma')
+        if lemma_pos is not -1:
+            start = lemma_pos + len(r'\lemma')
+            end = start + len(Brackets(app_note.cont, start=start))
+            return start + 1, end - 1
+        else:
+            return -1, -1
+
+    def _find_ellipsis_words(self, input_string: str) -> Words:
+        """Determine whether input string has lemma ellipsis pattern and
+        return the preceding and following word as elements in Words object.
+        If there is no ellipsis pattern, return an empty Words list. """
+        settings_pat = '|'.join([pat for pat in
+                                 settings['ellipsis_patterns']])
+        ellipsis_pat = re.compile('(' + settings_pat + ')')
+        ellipsis_search = re.search(ellipsis_pat, input_string)
+        if ellipsis_search:
+            spos = ellipsis_search.span()[0]
+            epos = ellipsis_search.span()[1]
+            return (Tokenizer(input_string[:spos]).wordlist +
+                    Tokenizer(input_string[spos:epos]).wordlist +
+                    Tokenizer(input_string[epos:]).wordlist)
+        return Words()
 
     def _define_search_words(self, edtext: Words) -> Tuple[List, bool]:
         """
@@ -237,30 +284,25 @@ class Matcher:
         words based on either (1) the content of the lemma element in the
         apparatus note or (2) the content of the critical note.
 
-        :return: Cleaned list of search words in lower case if we have a case
-            insensitive search (not Words, but their .get_text())
+        When the apparatus notes are analyzed (the .clean_apps attribute)
+        they are moved into the .ann_apps attribute. This means that an app
+        element can never occur in both attributes (as that would result in
+        duplicate entries of the app in printing)
+
+        :return:
         """
         # The apparatus note is the first item in app_entries of last Word
-        app_note = edtext[-1].app_list.pop()
-        lemma_pos = app_note.cont.find(r'\lemma')
-        if lemma_pos is not -1:
-            start = lemma_pos + len(r'\lemma')
-            end = start + len(Brackets(app_note.cont, start=start))
+        app_note = edtext[-1].clean_apps.pop()
+        start, end = self._find_lemma_pos(app_note)
+        if start is not -1:
             # Content excluding the brackets
-            lemma_content = app_note.cont[start + 1:end - 1]
+            lemma_content = app_note.cont[start:end]
         else:
             lemma_content = ''
 
         if lemma_content:
-            settings_pat = '|'.join([pat for pat in
-                                     settings['ellipsis_patterns']])
-            ellipsis_pat = re.compile('(' + settings_pat + ')')
-            ellipsis_search = re.search(ellipsis_pat, lemma_content)
-            if ellipsis_search:
-                spos = ellipsis_search.span()[0]
-                epos = ellipsis_search.span()[1]
-                lemma_word_list = (Tokenizer(lemma_content[:spos]).wordlist +
-                                   Tokenizer(lemma_content[epos:]).wordlist)
+            lemma_word_list = self._find_ellipsis_words(lemma_content)
+            if lemma_word_list:
                 ellipsis = True
             else:
                 lemma_word_list = Tokenizer(lemma_content).wordlist
@@ -284,4 +326,5 @@ class Matcher:
             ellipsis = False
         if not settings['sensitive_context_match']:
             content = [w.lower() for w in content]
+        edtext[-1].ann_apps.append(app_note)
         return content, ellipsis

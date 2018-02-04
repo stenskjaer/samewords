@@ -11,6 +11,13 @@ class TestMatcher:
         words = matcher.annotate()
         return words.write()
 
+    def test_custom_ellipses_without_space(self):
+        double_dash = r'A E \edtext{A B C D E}{\lemma{A--E}\Afootnote{}}'
+        expect = (r'\sameword{A} \sameword{E} \edtext{\sameword[1]{A} B C '
+                  r'D \sameword[1]{E}}{\lemma{\sameword{A}--\sameword{E}}'
+                  r'\Afootnote{}}')
+        assert self.run_annotation(double_dash) == expect
+
     def test_consequtive_context_matches_are_annotated(self):
         text = (r'word word word word \edtext{word}{\Afootnote{statement}} '
                 r'word word word \edtext{word}{\Afootnote{statement}} word '

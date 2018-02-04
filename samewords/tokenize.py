@@ -91,8 +91,15 @@ class Macro(UserString):
 
 
 class Word(UserString):
+    """
+    Attributes:
+        self.clean_apps: A list of apparatus elements that will be used for
+        search word analysis.
+        self.ann_apps: A list of apparatus elements that will get annotated.
+    """
 
     def __init__(self, chars: str = '') -> None:
+
         self.data = chars
         super().__init__(self)
         self.spaces = ''
@@ -100,8 +107,8 @@ class Word(UserString):
         self.suffixes: List[Element] = []
         self.content: List[Element] = []
         self.punctuation: List[Element] = []
-        self.app_list: List[Element] = []
-        self.app_string: List[Element] = [Element('', 0)]
+        self.clean_apps: List[Element] = []     # clean apps for analysis
+        self.ann_apps: List[Element] = []       # annotation apps
         self.macros: List[Macro] = []
         self.edtext_start = False
         self.edtext_end = False
@@ -128,17 +135,11 @@ class Word(UserString):
         """Add apparatus entry to the registry list and return string. If the
         index is provided, add to that index of the list, otherwise append. """
         if index:
-            new_cont = self.app_list[index].cont + input_string
-            pos = self.app_list[index].pos
-            self.app_list[index] = Element(new_cont, pos)
+            new_cont = self.clean_apps[index].cont + input_string
+            pos = self.clean_apps[index].pos
+            self.clean_apps[index] = Element(new_cont, pos)
         else:
-            self.app_list.append(Element(input_string, pos))
-
-        if self.app_string[0].pos == 0:
-            self.app_string[0] = Element(input_string, pos)
-        else:
-            self.app_string[0].cont += input_string
-            self._increment_positions(pos, len(input_string))
+            self.clean_apps.append(Element(input_string, pos))
 
     def full(self) -> str:
         """
@@ -149,7 +150,8 @@ class Word(UserString):
                 [[e.cont, e.pos] for e in self.content] +
                 [[e.full(), e.pos] for e in self.macros] +
                 [[e.cont, e.pos] for e in self.punctuation] +
-                [[e.cont, e.pos] for e in self.app_string] +
+                [[e.cont, e.pos] for e in self.ann_apps] +
+                [[e.cont, e.pos] for e in self.clean_apps] +
                 [[e.cont, e.pos] for e in self.suffixes]
         )
         elements.sort(key=itemgetter(1))
@@ -167,11 +169,21 @@ class Word(UserString):
 
     def _increment_positions(self, start: int, increment: int) -> None:
         elements = [self.comment, self.macros, self.content, self.suffixes,
-                    self.app_list, self.app_string, self.punctuation]
+                    self.clean_apps, self.ann_apps, self.punctuation]
         for el in elements:
             for item in el:
                 if item.pos >= start:
                     item.pos += increment
+
+    def update_element(self, elem: Element, cont: str) -> None:
+        incr = len(cont) - len(elem.cont)
+        elem.cont = cont
+        elems = [self.comment, self.macros, self.content, self.suffixes,
+                 self.clean_apps, self.ann_apps, self.punctuation]
+        for el in elems:
+            for item in el:
+                if item.pos >= elem.pos and item is not elem:
+                    item.pos += incr
 
     def update_macro(self, macro: Macro, index: int) -> None:
         """Update the macro at index. """
@@ -207,8 +219,8 @@ class Word(UserString):
         last. """
         if self.suffixes:
             pos = sorted([i.pos for i in self.suffixes], reverse=True)[0] + 1
-        elif self.app_list:
-            pos = sorted([i.pos for i in self.app_list])[0]
+        elif self.clean_apps:
+            pos = sorted([i.pos for i in self.clean_apps])[0]
         elif self.content:
             end_pos = sorted([i.pos for i in self.content])[-1]
             end_len = len(sorted([i.cont for i in self.content])[-1])
@@ -226,6 +238,18 @@ class Word(UserString):
 
 
 class Words(UserList):
+    """A list of Word objects with a couple of custom methods."""
+
+    def __init__(self, initlist: List[Word] = None):
+        self.data = []
+        super().__init__(self)
+        if initlist is not None:
+            if type(initlist) == type(self.data):
+                self.data[:] = initlist
+            elif isinstance(initlist, UserList):
+                self.data[:] = initlist.data[:]
+            else:
+                self.data = list(initlist)
 
     def __getitem__(self, index):
         cls = type(self)
@@ -344,7 +368,7 @@ class Tokenizer:
                 pos += len(line)
                 continue
             if c == '\\':
-                if word.app_list:
+                if word.clean_apps:
                     # If we run into a macro for a word that already has one
                     # or more app elements, we should start a new word.
                     break
