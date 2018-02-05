@@ -167,30 +167,26 @@ class Word(UserString):
                     return True
         raise IndexError('The word does not have any open macros.')
 
-    def _increment_positions(self, start: int, increment: int) -> None:
+    def _increment_after(self, element: Union[Macro, Element],
+                             increment: int) -> None:
         elements = [self.comment, self.macros, self.content, self.suffixes,
                     self.clean_apps, self.ann_apps, self.punctuation]
         for el in elements:
             for item in el:
-                if item.pos >= start:
+                if item.pos >= element.pos and item is not element:
                     item.pos += increment
 
     def update_element(self, elem: Element, cont: str) -> None:
         incr = len(cont) - len(elem.cont)
         elem.cont = cont
-        elems = [self.comment, self.macros, self.content, self.suffixes,
-                 self.clean_apps, self.ann_apps, self.punctuation]
-        for el in elems:
-            for item in el:
-                if item.pos >= elem.pos and item is not elem:
-                    item.pos += incr
+        self._increment_after(elem, incr)
 
     def update_macro(self, macro: Macro, index: int) -> None:
         """Update the macro at index. """
         old = self.macros[index]
         macro.pos = old.pos
         increment = len(macro) - len(old)
-        self._increment_positions(macro.pos, increment)
+        self._increment_after(macro, increment)
         self.macros[index] = macro
 
     def add_macro(self, macro: Macro, index: int = None) -> None:
@@ -203,7 +199,7 @@ class Word(UserString):
             old = self.macros[index]
             macro.pos = old.pos
             increment = len(macro) - len(old)
-            self._increment_positions(macro.pos, increment)
+            self._increment_after(macro, increment)
             self.macros[index] = macro
             self.macros.append(old)
         else:
@@ -211,7 +207,7 @@ class Word(UserString):
             pos = positions[0]
             macro.pos = pos
             increment = len(macro)
-            self._increment_positions(macro.pos, increment)
+            self._increment_after(macro, increment)
             self.macros.append(macro)
 
     def append_suffix(self, content: str) -> None:
@@ -232,8 +228,8 @@ class Word(UserString):
                 'The correct position for the suffix could not be determined'
                 'Word: {}'.format(self.full())
             )
-        self._increment_positions(pos, len(content))
         new = Element(content, pos)
+        self._increment_after(new, len(content))
         self.suffixes.append(new)
 
 
