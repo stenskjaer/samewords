@@ -65,16 +65,17 @@ class TestMatcher:
         text = (r'\sameword{a b} and a b \edtext{a b}{\lemma{a b}\Bfootnote{'
                 r'fnote}} a b and a b')
         expect = (r'\sameword{a b} and \sameword{a b} \edtext{\sameword[1]{a '
-                  r'b}}{\lemma{a b}\Bfootnote{fnote}} \sameword{a b} and '
-                  r'\sameword{a b}')
+                  r'b}}{\lemma{\sameword{a b}}\Bfootnote{fnote}} \sameword{a b}'
+                  r' and \sameword{a b}')
         assert self.run_annotation(text) == expect
 
     def test_match_single_level_multiword_lemma_ellipsis(self):
         text = (r'\sameword{a} b and c \edtext{a and c}{\lemma{a \dots{} '
                 r'c}\Bfootnote{fnote}} and c and c')
         expect = (r'\sameword{a} b and \sameword{c} \edtext{\sameword[1]{a} '
-                  r'and \sameword[1]{c}}{\lemma{a \dots{} c}\Bfootnote{'
-                  r'fnote}} and \sameword{c} and \sameword{c}')
+                  r'and \sameword[1]{c}}{\lemma{\sameword{a} \dots{} '
+                  r'\sameword{c}}\Bfootnote{fnote}} and \sameword{c} and '
+                  r'\sameword{c}')
         assert self.run_annotation(text) == expect
 
     def test_three_close_nested_levels(self):
@@ -82,17 +83,17 @@ class TestMatcher:
                 r"3}}}{\lemma{so}\Bfootnote{lev 2}}}{\lemma{so}\Bfootnote{lev"
                 r" 1}}")
         expect = (r"\sameword{so} \edtext{\edtext{\edtext{\sameword[1,2,"
-                  r"3]{so}}{\lemma{so}\Bfootnote{lev 3}}}{\lemma{"
-                  r"so}\Bfootnote{lev 2}}}{\lemma{so}\Bfootnote{lev "
-                  r"1}}")
+                  r"3]{so}}{\lemma{\sameword{so}}\Bfootnote{lev 3}}}{\lemma{"
+                  r"\sameword{so}}\Bfootnote{lev 2}}}{\lemma{\sameword{so}}"
+                  r"\Bfootnote{lev 1}}")
         assert self.run_annotation(text) == expect
 
     def test_flat_proximity_match(self):
         text = (r"so sw \edtext{so}{\lemma{so}\Bfootnote{foot content}}  and "
                 r"again sw it is all and something after.")
         expect = (r"\sameword{so} sw \edtext{\sameword[1]{so}}{\lemma{"
-                  r"so}\Bfootnote{foot content}}  and again sw it is all and "
-                  r"something after.")
+                  r"\sameword{so}}\Bfootnote{foot content}}  and again sw it is "
+                  r"all and something after.")
         assert self.run_annotation(text) == expect
 
     def test_false_positives(self):
@@ -108,9 +109,9 @@ class TestMatcher:
                 r"it}\Afootnote{note lvl 1}} after")
         expect = ("before \sameword{and} \edtext{first here \edtext{"
                   "\sameword[2]{and} another \edtext{\sameword[3]{and}}{"
-                  "\lemma{and}\Afootnote{lvl 3}} that's it}{\lemma{and \dots{"
-                  "} it}\Afootnote{lvl 2}}}{\lemma{first \dots{} "
-                  "it}\Afootnote{note lvl 1}} after")
+                  "\lemma{\sameword{and}}\Afootnote{lvl 3}} that's it}{\lemma{"
+                  "\sameword{and} \dots{} it}\Afootnote{lvl 2}}}{\lemma{first "
+                  "\dots{} it}\Afootnote{note lvl 1}} after")
         assert self.run_annotation(text) == expect
 
     def test_nested_ldots_lemma(self):
@@ -121,13 +122,14 @@ class TestMatcher:
                 "more}\Afootnote{lvl 1 note}} and a sw after and one more "
                 "\edtext{flat}{\lemma{flat}\Bfootnote{note here}} entry.")
         expect = (r"\sameword{sw} and \edtext{\sameword[1]{sw} so \edtext{"
-                  r"\edtext{\sameword[3]{sw}}{\lemma{"
-                  r"sw}\Bfootnote{lvl 3 note}} another thing \edtext{and "
+                  r"\edtext{\sameword[3]{sw}}{\lemma{\sameword{"
+                  r"sw}}\Bfootnote{lvl 3 note}} another thing \edtext{and "
                   r"\sameword[1]{more}}{\lemma{and more}\Bfootnote{lvl 3 "
                   r"note}}}{\lemma{sw another thing and more}\Bfootnote{lvl 2 "
-                  r"note}}}{\lemma{sw \ldots more}\Afootnote{lvl 1 note}} and "
-                  r"a \sameword{sw} after and one \sameword{more} \edtext{"
-                  r"flat}{\lemma{flat}\Bfootnote{note here}} entry.")
+                  r"note}}}{\lemma{\sameword{sw} \ldots \sameword{more}}"
+                  r"\Afootnote{lvl 1 note}} and a \sameword{sw} after and one "
+                  r"\sameword{more} \edtext{flat}{\lemma{flat}\Bfootnote{note "
+                  r"here}} entry.")
         assert self.run_annotation(text) == expect
 
     def test_multiword_lemma(self):
@@ -136,11 +138,11 @@ class TestMatcher:
                 r"per causam}\Bfootnote{causam rei B}} cognoscere \edtext{"
                 r"causam}{\lemma{causam}\Bfootnote{fnote}}.")
         expect = (r"per multa \sameword{per \sameword{causam}} tamen scire "
-                  r"\edtext{\sameword[1]{causam}}{\lemma{causam}\Bfootnote{"
-                  r"fnote}} est \edtext{\sameword[1]{per \sameword{causam}}}{"
-                  r"\lemma{per causam}\Bfootnote{causam rei B}} cognoscere "
-                  r"\edtext{\sameword[1]{causam}}{\lemma{causam}\Bfootnote{"
-                  r"fnote}}.")
+                  r"\edtext{\sameword[1]{causam}}{\lemma{\sameword{causam}}"
+                  r"\Bfootnote{fnote}} est \edtext{\sameword[1]{per "
+                  r"\sameword{causam}}}{\lemma{\sameword{per causam}}"
+                  r"\Bfootnote{causam rei B}} cognoscere \edtext{\sameword[1]"
+                  r"{causam}}{\lemma{\sameword{causam}}\Bfootnote{fnote}}.")
         assert self.run_annotation(text) == expect
 
     def test_long_proximate_before_after(self):
@@ -167,8 +169,8 @@ class TestMatcher:
                   r"lists. Common applications are to make new lists where "
                   r"each element is the result of some operations applied "
                   r"\sameword{to} each member of another sequence or "
-                  r"iterable, or \edtext{\sameword[1]{to}}{\lemma{"
-                  r"to}\Bfootnote{note}} create a subsequence of those "
+                  r"iterable, or \edtext{\sameword[1]{to}}{\lemma{\sameword{"
+                  r"to}}\Bfootnote{note}} create a subsequence of those "
                   r"elements that satisfy a certain "
                   r"condition. List comprehensions provide a concise way "
                   r"\sameword{to} create lists. \edtext{Common}{\lemma{"
@@ -177,15 +179,15 @@ class TestMatcher:
                   r"operations applied to each member of another sequence or "
                   r"iterable, or to create \sameword{a} subsequence of those "
                   r"elements that satisfy \sameword{a} certain condition. Start"
-                  r" \edtext{\sameword[1]{a}}{\lemma{a}\Bfootnote{"
+                  r" \edtext{\sameword[1]{a}}{\lemma{\sameword{a}}\Bfootnote{"
                   r"lvl 1}} and another \sameword{a} List comprehensions "
                   r"provide \sameword{a} concise way to create lists. Common "
                   r"applications are to make new lists where each element is "
                   r"the result \sameword{of} some operations applied to each "
                   r"member \sameword{of} another sequence or iterable, "
                   r"or to create a subsequence \edtext{\sameword[1]{of}}{"
-                  r"\lemma{of}\Bfootnote{note}} those elements that satisfy a "
-                  r"certain condition.")
+                  r"\lemma{\sameword{of}}\Bfootnote{note}} those elements that "
+                  r"satisfy a certain condition.")
         assert self.run_annotation(text) == expect
 
     def test_long_nested_real_world_example(self):
@@ -248,8 +250,8 @@ class TestMatcher:
         expect = (r'Sed hic occurrunt arduae difficultates; et primo '
                   r'consideranda \sameword{est} descriptio fidei quam ponit '
                   r'\name{Apostolus\index[persons]{}}, scilicet, \edtext{'
-                  r'\enquote{fides \edtext{\sameword[2]{est}}{\lemma{'
-                  r'est}\Bfootnote{\emph{om.} R}} substantia rerum '
+                  r'\enquote{fides \edtext{\sameword[2]{est}}{\lemma{\sameword{'
+                  r'est}}\Bfootnote{\emph{om.} R}} substantia rerum '
                   r'sperandarum, argumentum non apparentium.}}{\lemma{'
                   r'}\Afootnote[nosep]{Hebrews 11:1}} Ubi secundum \edtext{'
                   r'\name{Altissiodorensis\index[persons]{}} \edtext{in}{'
@@ -356,8 +358,8 @@ class TestMatcher:
         text = (r'per \sidenote{1rb O} causam scire est \edtext{per causam}{'
                 r'\lemma{per causam}\Bfootnote{causam rei B}} cognoscere')
         expect = (r'\sameword{per \sidenote{1rb O} causam} scire est \edtext{'
-                  r'\sameword[1]{per causam}}{\lemma{per causam}\Bfootnote{'
-                  r'causam rei B}} cognoscere')
+                  r'\sameword[1]{per causam}}{\lemma{\sameword{per causam}}'
+                  r'\Bfootnote{causam rei B}} cognoscere')
         assert self.run_annotation(text) == expect
 
     def test_two_multi_words(self):
@@ -365,21 +367,21 @@ class TestMatcher:
                 r"apparentes}\Bfootnote{\emph{om.} B}} \edtext{nobis "
                 r"apparentes}{\lemma{nobis apparentes}\Bfootnote{\emph{om.} "
                 r"B}}")
-        expect = (r"\edtext{\sameword[1]{nobis apparentes}}{\lemma{nobis "
-                  r"apparentes}\Bfootnote{\emph{om.} B}} \edtext{\sameword["
-                  r"1]{nobis apparentes}}{\lemma{nobis apparentes}\Bfootnote{"
-                  r"\emph{om.} B}}")
+        expect = (r"\edtext{\sameword[1]{nobis apparentes}}{\lemma{\sameword{"
+                  r"nobis apparentes}}\Bfootnote{\emph{om.} B}} "
+                  r"\edtext{\sameword[1]{nobis apparentes}}{\lemma{\sameword{"
+                  r"nobis apparentes}}\Bfootnote{\emph{om.} B}}")
         assert self.run_annotation(text) == expect
 
     def test_neutrality_on_already_wrapped(self):
         text = (r"Praeterea intellectus intelligit se: \edtext{\sameword[1]{"
-                r"aut}}{\lemma{aut}\Bfootnote{aliter Aguin.}} ergo per suam "
-                r"essentiam, \edtext{\sameword[1]{aut}}{\lemma{"
-                r"aut}\Bfootnote{aliter Aguin.}} per speciem, \edtext{"
-                r"\sameword[1]{aut}}{\lemma{aut}}\Bfootnote{aliter Aguin.}} "
-                r"per suum actum; sed \edtext{\sameword[1]{nec}}{\lemma{"
-                r"nec}}\Bfootnote{non Aguin.}} per speciem |\ledsidenote{B "
-                r"174vb} \sameword{nec} per suum actum;")
+                r"aut}}{\lemma{\sameword{aut}}\Bfootnote{aliter Aguin.}} ergo "
+                r"per suam essentiam, \edtext{\sameword[1]{aut}}{\lemma{"
+                r"\sameword{aut}}\Bfootnote{aliter Aguin.}} per speciem, "
+                r"\edtext{\sameword[1]{aut}}{\lemma{\sameword{aut}}}\Bfootnote{"
+                r"aliter Aguin.}} per suum actum; sed \edtext{\sameword[1]{nec}"
+                r"}{\lemma{\sameword{nec}}}\Bfootnote{non Aguin.}} per speciem "
+                r"|\ledsidenote{B 174vb} \sameword{nec} per suum actum;")
         assert self.run_annotation(text) == text
 
     def test_text_with_arbitrary_commands(self):
@@ -399,7 +401,7 @@ class TestMatcher:
                   r"anima non \sameword{est} intelligibile, quia omnis nostra "
                   r"cognitio ortum habet a sensu, \edtext{unde ipsum "
                   r"intelligere non \sameword[1]{est}}{\lemma{unde \dots{} "
-                  r"est}\Bfootnote{quia nihil intelligimus B}} sine "
+                  r"\sameword{est}}\Bfootnote{quia nihil intelligimus B}} sine "
                   r"phantasmate, sed anima sub sensu non cadit, nec phantasma "
                   r"facit; ergo et cetera.\edlabelE{da-49-l1q1-ysmgk1}")
         assert self.run_annotation(text) == expect
@@ -524,7 +526,8 @@ ord}
     def test_case_insensitive_context_no_match_lemma(self):
         settings['sensitive_context_match'] = False
         text = r'\edtext{A}{\lemma{A}\Afootnote{x}} a'
-        expect = r'\edtext{\sameword[1]{A}}{\lemma{A}\Afootnote{x}} \sameword{a}'
+        expect = (r'\edtext{\sameword[1]{A}}{\lemma{\sameword{A}}\Afootnote{x}} '
+                  r'\sameword{a}')
         assert self.run_annotation(text) == expect
         settings['sensitive_context_match'] = True
 
