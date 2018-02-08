@@ -11,6 +11,22 @@ class TestMatcher:
         words = matcher.annotate()
         return words.write()
 
+    def test_macro_update_copies_to_closing_attribute(self):
+        """If the sameword annotation of edtext entries as context samewords
+        does not copy the to_closing property during updating, we will get
+        nested sameword annotations. """
+        text = r"""
+            \edtext{my phrase}{\Afootnote{}}
+            \edtext{my phrase}{\Afootnote{}}
+            \edtext{my phrase}{\Afootnote{}}
+        """
+        expect = r"""
+            \edtext{\sameword[1]{my phrase}}{\Afootnote{}}
+            \edtext{\sameword[1]{my phrase}}{\Afootnote{}}
+            \edtext{\sameword[1]{my phrase}}{\Afootnote{}}
+        """
+        assert self.run_annotation(text) == expect
+
     def test_custom_ellipses_without_space(self):
         double_dash = r'A E \edtext{A B C D E}{\lemma{A--E}\Afootnote{}}'
         expect = (r'\sameword{A} \sameword{E} \edtext{\sameword[1]{A} B C '

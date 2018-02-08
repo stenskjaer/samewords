@@ -185,6 +185,7 @@ class Word(UserString):
         """Update the macro at index. """
         old = self.macros[index]
         macro.pos = old.pos
+        macro.to_closing = old.to_closing
         increment = len(macro) - len(old)
         self._increment_after(macro, increment)
         self.macros[index] = macro
