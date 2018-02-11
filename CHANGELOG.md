@@ -5,6 +5,8 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
 
 ## [0.2.7] -- UNRELEASED
 ### Solved
+- Bug with unwanted nested sameword annotations when more than two `\edtext{}{}`
+  macros contained the same phrase of more than one word [#21].
 - `context_distance` is now also actually included in the update of the settings
   during parsing of user configuration file [#22].
 - Words with intervening comments are annotated correctly [#21].
