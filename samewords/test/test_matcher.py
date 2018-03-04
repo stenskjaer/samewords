@@ -11,6 +11,18 @@ class TestMatcher:
         words = matcher.annotate()
         return words.write()
 
+    def test_annotation_thinspace_shorthand_in_word(self):
+        text = r"""5\,000 or \edtext{5\,000}{\Afootnote{6\,000}}"""
+        expect = (r'\sameword{5\,000} or \edtext{\sameword[1]{5\,000}}{'
+                  r'\Afootnote{6\,000}}')
+        assert self.run_annotation(text) == expect
+
+    def test_annotation_thinspace_in_word(self):
+        text = r"""5\thinspace{}000 or \edtext{5\,000}{\Afootnote{6\,000}}"""
+        expect = (r'\sameword{5\thinspace{}000} or \edtext{\sameword[1]{5\,'
+                  r'000}}{\Afootnote{6\,000}}')
+        assert self.run_annotation(text) == expect
+
     def test_macro_update_copies_to_closing_attribute(self):
         """If the sameword annotation of edtext entries as context samewords
         does not copy the to_closing property during updating, we will get
@@ -621,7 +633,7 @@ class TestGetContext:
                 r"the result of some operations applied to each member of "
                 r"another sequence or iterable, or to create a subsequence of "
                 r"those elements that satisfy a certain condition. Start ")
-        expect = ['Common', '', 'applications', '', '', 'are', 'to', 'make',
+        expect = ['Common', '', 'applications', '', 'are', 'to', 'make',
                   'new', 'element', 'is', 'the', 'result', 'of', 'some',
                   'operations', 'applied', 'to', 'each', 'member', 'of',
                   'another', 'sequence']
@@ -659,17 +671,17 @@ class TestGetContext:
                 r"element is the result of some operations applied to each "
                 r"member of another sequence or iterable, or \edtext{to}{"
                 r"\lemma{to}\Bfootnote{note}} \emph{} , a subsequence of those "
-                r"element s that satisfy \index{} a certain condition. "
+                r"elements that satisfy \index{} a certain condition. "
                 r"comprehensions provide a concise way to create lists. "
                 r"\edtext{Common}{\lemma{Common}\Bfootnote{note}} "
                 r"applications are to make new lists where each element is "
                 r"the result of some operations applied to each member of "
                 r"another sequence or iterable, or to create a subsequence of "
                 r"those elements that satisfy a certain condition. Start ")
-        expect = ['result', 'of', 'some', 'operations', 'applied', 'to',
+        expect = ['of', 'some', 'operations', 'applied', 'to',
                   'each', 'member', 'of', 'another', 'sequence', 'or',
-                  'iterable', 'or', 'to', '', '', '', 'a', 'subsequence',
-                  'of', 'those', 'element']
+                  'iterable', 'or', 'to', '', '', 'a', 'subsequence',
+                  'of', 'those', 'elements', 'that', 'satisfy']
         assert self.run_get_context_before(text, 45) == expect
 
     def test_get_from_short_context_before_without_empty(self):

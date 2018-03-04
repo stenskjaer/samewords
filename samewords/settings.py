@@ -9,6 +9,7 @@ settings = {
         r'\sidenote',
         r'\index',
         r'\thinspace',
+        r'\,',
         r'\enspace',
         r'\enskip',
         r'\quad',

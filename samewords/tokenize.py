@@ -31,7 +31,8 @@ class Macro(UserString):
         super().__init__(self)
         self.name = self._identify_name()
         self.oarg = self._optional_argument()
-        self.opening = re.match(r'[^\s]+?{', self.data)
+        self.opening = re.match(re.escape(self.name + self.oarg + '{'),
+                                self.data)
         self.empty = self._is_empty()
         self.pos = pos              # register start index in word
         self.end = end
@@ -59,7 +60,7 @@ class Macro(UserString):
         """
         Identify the possible optinal argument of the marco.
         """
-        match = re.match(r'\\[^ ]+(\[[^\]]+\])', self.data)
+        match = re.match(re.escape(self.name) + r'(\[[^\]]+\])', self.data)
         if match:
             return match.group(1)
         return ''
@@ -386,19 +387,14 @@ class Tokenizer:
                         macro.hidden_content = string[pos:bracket_end]
                         pos += len(macro.hidden_content)
                     break
-                # register position for later closing registration
-                self._stack_bracket.append(self._index)
                 if macro.name == r'\edtext' and not word.content:
                     self._stack_edtext.append(self._brackets)
                     self._edtext_lvl += 1
                     word.edtext_start = True
-                self._brackets += 1
-                try:
-                    # Empty macros cannot have following chars (e.g. A\,B)
-                    if macro.empty and not(string[pos].isspace()):
-                        break
-                except IndexError:
-                    break
+                if macro.opening:
+                    # register position for later closing registration
+                    self._stack_bracket.append(self._index)
+                    self._brackets += 1
                 continue
             if c == '{':
                 # Determine of this is an app entry.
