@@ -365,11 +365,15 @@ class Tokenizer:
         word = Word()
         while pos < len(string):
             c = string[pos]
-            if re.match('[\w\d]', string[pos]):
+            if re.match('[\w\d]', c):
                 match = re.match('[\w\d\-\']+', string[pos:]).group(0)
                 word.content.append(Element(match, pos))
                 pos += len(match)
                 continue
+            if c.isspace():
+                word.spaces = re.match('\s+', string[pos:]).group(0)
+                pos += len(word.spaces)
+                break
             if re.search(self._punctuation, c):
                 # Exception: .5 is part of word, not punctuation.
                 if re.match('\.\d', string[pos:]):
@@ -378,15 +382,6 @@ class Tokenizer:
                     continue
                 word.punctuation.append(Element(c, pos))
                 pos += 1
-                continue
-            if c == '%':
-                lb = string[pos:].find('\n')
-                if lb is not -1:
-                    line = string[pos:pos + lb + 1]
-                else:
-                    line = string[pos:]
-                word.comment.append(Element(line, pos))
-                pos += len(line)
                 continue
             if c == '\\':
                 if word.clean_apps:
@@ -458,9 +453,15 @@ class Tokenizer:
                 self._brackets -= 1
                 word.suffixes.append(Element(c, pos))
                 pos += 1
-            if c.isspace():
-                word.spaces = re.match('\s+', string[pos:]).group(0)
-                pos += len(word.spaces)
-                break
+                continue
+            if c == '%':
+                lb = string[pos:].find('\n')
+                if lb is not -1:
+                    line = string[pos:pos + lb + 1]
+                else:
+                    line = string[pos:]
+                word.comment.append(Element(line, pos))
+                pos += len(line)
+                continue
 
         return word, pos
