@@ -259,6 +259,20 @@ class Words(UserList):
             msg = '{cls.__name__} indices must be integers'
             raise TypeError(msg.format(cls=cls))
 
+    def index(self, item, default=0):
+        for idx, val in enumerate(self.data):
+            if val.get_text().lower() == item.lower():
+                return idx
+        return default
+
+    def rindex(self, item, default=0):
+        """Get the index of the first example of item from the right,
+        and return the index numbered from the left. """
+        for idx, val in enumerate(reversed(self.data)):
+            if val.get_text().lower() == item.lower():
+                return len(self) - idx - 1
+        return default
+
     def write(self) -> str:
         return ''.join([w.full() for w in self.data])
 
