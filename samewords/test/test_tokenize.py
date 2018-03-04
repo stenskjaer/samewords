@@ -1,11 +1,16 @@
 from samewords.tokenize import Tokenizer
-
-from pytest import mark
+from samewords.test.assets.unicode_database import blocks
 
 class TestTokenize:
 
     def write_tokenization(self, input_text):
         return Tokenizer(input_text).wordlist.write()
+
+    def test_unicode_blocks(self):
+        for block in blocks:
+            # Test the last point in each block
+            point = chr(int(blocks[block][1], 16))
+            assert Tokenizer(point).wordlist == [point]
 
     def test_whitespace(self):
         text = 'short text\t with    some\n space and stuff'

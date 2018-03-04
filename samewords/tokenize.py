@@ -463,5 +463,10 @@ class Tokenizer:
                 word.comment.append(Element(line, pos))
                 pos += len(line)
                 continue
+            if re.match(r'[\U00000020-\U0010FFFF]', c):
+                # Matches ANY unicode codepoint and registers it.
+                word.content.append(Element(c, pos))
+                pos += 1
+                continue
 
         return word, pos
