@@ -44,10 +44,12 @@ class Matcher:
                 # Annotate the edtext
                 # -------------------
                 if ellipsis:
+                    sidx = edtext.index(search_ws[0], default=0) + 1
+                    eidx = edtext.rindex(search_ws[1], default=0)
                     if self._in_context(contexts, search_ws[0:1], ellipsis):
-                        self._add_sameword(edtext[0:1], edtext_lvl)
+                        self._add_sameword(edtext[:sidx], edtext_lvl)
                     if self._in_context(contexts, search_ws[-1:], ellipsis):
-                        self._add_sameword(edtext[-1:], edtext_lvl)
+                        self._add_sameword(edtext[eidx:], edtext_lvl)
                 else:
                     sidx, eidx = self._find_index(edtext, search_ws)
                     self._add_sameword(edtext[sidx:eidx], edtext_lvl)

@@ -23,6 +23,25 @@ class TestMatcher:
                   r'000}}{\Afootnote{6\,000}}')
         assert self.run_annotation(text) == expect
 
+    def test_last_ellipsis_word_not_last_index(self):
+        text = ("B \edtext{F and some B %\n}{\lemma{F--B}}")
+        expect = ("\sameword{B} \edtext{F and some "
+                  "\sameword[1]{B %\n}}{\lemma{F--\sameword{B}}}")
+        assert self.run_annotation(text) == expect
+
+    def test_first_ellipsis_word_not_first_index(self):
+        text = ("F \edtext{ % \nF and B}{\lemma{F--B}}")
+        expect = ("\sameword{F} \edtext{\sameword[1]{ "
+                  "% \nF} and B}{\lemma{\sameword{F}--B}}")
+        assert self.run_annotation(text) == expect
+
+    def test_first_and_last_ellipsis_word_not_first_and_last_index(self):
+        text = ("B F \edtext{ % \nF and B %\n}{\lemma{F--B}}")
+        expect = ("\sameword{B} \sameword{F} \edtext{\sameword[1]{ % \nF} and "
+                  "\sameword[1]{B %\n}}{\lemma{\sameword{F}--\sameword{B}}}")
+        assert self.run_annotation(text) == expect
+
+
     def test_macro_update_copies_to_closing_attribute(self):
         """If the sameword annotation of edtext entries as context samewords
         does not copy the to_closing property during updating, we will get
