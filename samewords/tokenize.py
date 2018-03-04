@@ -206,7 +206,16 @@ class Word(UserString):
             self.macros.append(old)
         else:
             positions = sorted([cont.pos for cont in self.content])
-            pos = positions[0]
+            mpositions = sorted([macro.pos for macro in self.macros])
+            if positions:
+                # With content add macro before first content pos.
+                pos = positions[0]
+            elif self.macros:
+                # No content but macros, add the macro after last macro end.
+                pos = len(self.macros[-1]) + self.macros[-1].pos
+            else:
+                # Then I don't know what to do so just add at front.
+                pos = 0
             macro.pos = pos
             increment = len(macro)
             self._increment_after(macro, increment)
