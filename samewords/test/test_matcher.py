@@ -3,82 +3,14 @@ from samewords.tokenize import Tokenizer
 from samewords.settings import settings
 
 
-class TestUpdate:
+class TestAnnotate:
 
-    def run_update(self, input_text):
+    def run_annotation(self, input_text):
         tokenization = Tokenizer(input_text)
         matcher = Matcher(tokenization.wordlist, tokenization.registry)
-        words = matcher.update()
+        words = matcher.annotate()
         return words.write()
 
-    def test_update_single_no_change(self):
-        text = (r'\sameword{emphasis} \edtext{\sameword[1]{emphasis}}{'
-                  r'\Bfootnote{fnote}} is \sameword{emphasis}')
-        assert self.run_update(text) == text
-
-    def test_update_with_change(self):
-        text = (r'\sameword{emphasis} a emph \edtext{'
-                r'\sameword[1]{emph}}{\Bfootnote{fnote}} and emph '
-                r'\sameword{emphasis}')
-        expect = (r'emphasis a \sameword{emph} \edtext{'
-                  r'\sameword[1]{emph}}{\Bfootnote{fnote}} and \sameword{emph} '
-                  r'emphasis')
-        assert self.run_update(text) == expect
-
-    def test_update_single_level_multiword_lemma(self):
-        text = (r'a c and \sameword{a b} \edtext{\sameword[1]{a '
-                  r'c}}{\lemma{\sameword{a c}}\Bfootnote{fnote}} \sameword{a b}'
-                  r' and a c')
-        expect = (r'\sameword{a c} and a b \edtext{\sameword[1]{a c}}{\lemma{'
-                  r'\sameword{a c}}\Bfootnote{fnote}} a b and \sameword{a c}')
-        assert self.run_update(text) == expect
-
-    def test_update_single_level_multiword_lemma_ellipsis(self):
-        text = (r'\sameword{a} b and \sameword{c} \edtext{\sameword[1]{a} '
-                  r'and \sameword[1]{b}}{\lemma{\sameword{a} \dots{} '
-                  r'\sameword{b}}\Bfootnote{fnote}} and \sameword{c} and '
-                  r'\sameword{c} and b and b')
-        expect = (r'\sameword{a} \sameword{b} and c \edtext{\sameword[1]{a} '
-                  r'and \sameword[1]{b}}{\lemma{\sameword{a} \dots{} '
-                  r'\sameword{b}}\Bfootnote{fnote}} and c and c and '
-                  r'\sameword{b} and \sameword{b}')
-        assert self.run_update(text) == expect
-
-    def test_three_close_nested_levels(self):
-        text = (r"sw \sameword{so} \edtext{\edtext{\edtext{\sameword[1,2,"
-                  r"3]{sw}}{\lemma{\sameword{sw}}\Bfootnote{lev 3}}}{\lemma{"
-                  r"\sameword{sw}}\Bfootnote{lev 2}}}{\lemma{\sameword{sw}}"
-                  r"\Bfootnote{lev 1}} sw")
-        expect = (r"\sameword{sw} so \edtext{\edtext{\edtext{\sameword[1,2,"
-                r"3]{sw}}{\lemma{\sameword{sw}}\Bfootnote{lev 3}}}{\lemma{"
-                r"\sameword{sw}}\Bfootnote{lev 2}}}{\lemma{\sameword{sw}}"
-                r"\Bfootnote{lev 1}} \sameword{sw}")
-        assert self.run_update(text) == expect
-
-    def test_flat_proximity_match(self):
-        text = (r"\sameword{so} sw \edtext{\sameword[1]{sw}}{\lemma{"
-                  r"\sameword{sw}}\Bfootnote{foot content}}  and again sw it is"
-                  r" all and something after.")
-        expect = (r"so \sameword{sw} \edtext{\sameword[1]{sw}}{\lemma{"
-                r"\sameword{sw}}\Bfootnote{foot content}}  and again "
-                r"\sameword{sw} it is all and something after.")
-        assert self.run_update(text) == expect
-
-
-    def test_nested_ambiguity(self):
-        text = ("but \sameword{and} \edtext{first here \edtext{"
-                  "\sameword[2]{but} another \edtext{\sameword[3]{but}}{"
-                  "\lemma{\sameword{but}}\Afootnote{lvl 3}} that's it}{\lemma{"
-                  "\sameword{but} \dots{} it}\Afootnote{lvl 2}}}{\lemma{first "
-                  "\dots{} it}\Afootnote{note lvl 1}} after")
-        expect = ("\sameword{but} and \edtext{first here \edtext{"
-                "\sameword[2]{but} another \edtext{\sameword[3]{but}}{"
-                "\lemma{\sameword{but}}\Afootnote{lvl 3}} that's it}{\lemma{"
-                "\sameword{but} \dots{} it}\Afootnote{lvl 2}}}{\lemma{first "
-                "\dots{} it}\Afootnote{note lvl 1}} after")
-        assert self.run_update(text) == expect
-
-class TestAnnotate:
 
     def run_annotation(self, input_text):
         tokenization = Tokenizer(input_text)
@@ -681,6 +613,80 @@ ord}
         expect = (r'\edtext{\sameword[1]{a \& b}}{\Afootnote{x}} \sameword{a '
                   r'\& b}')
         assert self.run_annotation(text) == expect
+class TestUpdate:
+
+    def run_update(self, input_text):
+        tokenization = Tokenizer(input_text)
+        matcher = Matcher(tokenization.wordlist, tokenization.registry)
+        words = matcher.update()
+        return words.write()
+
+    def test_update_single_no_change(self):
+        text = (r'\sameword{emphasis} \edtext{\sameword[1]{emphasis}}{'
+                  r'\Bfootnote{fnote}} is \sameword{emphasis}')
+        assert self.run_update(text) == text
+
+    def test_update_with_change(self):
+        text = (r'\sameword{emphasis} a emph \edtext{'
+                r'\sameword[1]{emph}}{\Bfootnote{fnote}} and emph '
+                r'\sameword{emphasis}')
+        expect = (r'emphasis a \sameword{emph} \edtext{'
+                  r'\sameword[1]{emph}}{\Bfootnote{fnote}} and \sameword{emph} '
+                  r'emphasis')
+        assert self.run_update(text) == expect
+
+    def test_update_single_level_multiword_lemma(self):
+        text = (r'a c and \sameword{a b} \edtext{\sameword[1]{a '
+                  r'c}}{\lemma{\sameword{a c}}\Bfootnote{fnote}} \sameword{a b}'
+                  r' and a c')
+        expect = (r'\sameword{a c} and a b \edtext{\sameword[1]{a c}}{\lemma{'
+                  r'\sameword{a c}}\Bfootnote{fnote}} a b and \sameword{a c}')
+        assert self.run_update(text) == expect
+
+    def test_update_single_level_multiword_lemma_ellipsis(self):
+        text = (r'\sameword{a} b and \sameword{c} \edtext{\sameword[1]{a} '
+                  r'and \sameword[1]{b}}{\lemma{\sameword{a} \dots{} '
+                  r'\sameword{b}}\Bfootnote{fnote}} and \sameword{c} and '
+                  r'\sameword{c} and b and b')
+        expect = (r'\sameword{a} \sameword{b} and c \edtext{\sameword[1]{a} '
+                  r'and \sameword[1]{b}}{\lemma{\sameword{a} \dots{} '
+                  r'\sameword{b}}\Bfootnote{fnote}} and c and c and '
+                  r'\sameword{b} and \sameword{b}')
+        assert self.run_update(text) == expect
+
+    def test_three_close_nested_levels(self):
+        text = (r"sw \sameword{so} \edtext{\edtext{\edtext{\sameword[1,2,"
+                  r"3]{sw}}{\lemma{\sameword{sw}}\Bfootnote{lev 3}}}{\lemma{"
+                  r"\sameword{sw}}\Bfootnote{lev 2}}}{\lemma{\sameword{sw}}"
+                  r"\Bfootnote{lev 1}} sw")
+        expect = (r"\sameword{sw} so \edtext{\edtext{\edtext{\sameword[1,2,"
+                r"3]{sw}}{\lemma{\sameword{sw}}\Bfootnote{lev 3}}}{\lemma{"
+                r"\sameword{sw}}\Bfootnote{lev 2}}}{\lemma{\sameword{sw}}"
+                r"\Bfootnote{lev 1}} \sameword{sw}")
+        assert self.run_update(text) == expect
+
+    def test_flat_proximity_match(self):
+        text = (r"\sameword{so} sw \edtext{\sameword[1]{sw}}{\lemma{"
+                  r"\sameword{sw}}\Bfootnote{foot content}}  and again sw it is"
+                  r" all and something after.")
+        expect = (r"so \sameword{sw} \edtext{\sameword[1]{sw}}{\lemma{"
+                r"\sameword{sw}}\Bfootnote{foot content}}  and again "
+                r"\sameword{sw} it is all and something after.")
+        assert self.run_update(text) == expect
+
+
+    def test_nested_ambiguity(self):
+        text = ("but \sameword{and} \edtext{first here \edtext{"
+                  "\sameword[2]{but} another \edtext{\sameword[3]{but}}{"
+                  "\lemma{\sameword{but}}\Afootnote{lvl 3}} that's it}{\lemma{"
+                  "\sameword{but} \dots{} it}\Afootnote{lvl 2}}}{\lemma{first "
+                  "\dots{} it}\Afootnote{note lvl 1}} after")
+        expect = ("\sameword{but} and \edtext{first here \edtext{"
+                "\sameword[2]{but} another \edtext{\sameword[3]{but}}{"
+                "\lemma{\sameword{but}}\Afootnote{lvl 3}} that's it}{\lemma{"
+                "\sameword{but} \dots{} it}\Afootnote{lvl 2}}}{\lemma{first "
+                "\dots{} it}\Afootnote{note lvl 1}} after")
+        assert self.run_update(text) == expect
 
 
 class TestGetContext:
