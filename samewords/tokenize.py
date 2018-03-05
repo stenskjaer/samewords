@@ -167,7 +167,7 @@ class Word(UserString):
         This means that we close inner macros first."""
         if self.macros:
             for macro in reversed(self.macros):
-                if macro.to_closing is False:
+                if macro.opening and macro.to_closing is False:
                     macro.to_closing = distance
                     return True
         raise IndexError('The word does not have any open macros.')
@@ -428,6 +428,7 @@ class Tokenizer:
                         bracket_end = pos + len(Brackets(string, pos))
                         macro.hidden_content = string[pos:bracket_end]
                         pos += len(macro.hidden_content)
+                        word.close_macro(0)
                     break
                 if macro.name == r'\edtext' and not word.content:
                     self._stack_edtext.append(self._brackets)
