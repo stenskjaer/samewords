@@ -447,6 +447,8 @@ class Tokenizer:
                         self._stack_edtext[-1] == self._brackets):
                     bracket_end = pos + len(Brackets(string, pos))
                     word.add_app_entry(string[pos:bracket_end], pos)
+                    if '\\sameword' in string[pos:bracket_end]:
+                        word.has_sameword = True
                     word.edtext_end = True
                     pos = bracket_end
                     try:
