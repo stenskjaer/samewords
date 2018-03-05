@@ -129,7 +129,15 @@ class Matcher:
                     app_note = word.clean_apps[i]
                     # split up the apparatus note into before, lem, and after
                     s, e = self._find_lemma_pos(app_note)
-                    lem_words = Tokenizer(app_note.cont[s:e]).wordlist
+                    if s == e:
+                        # empty lemma
+                        break
+                    el_words = self._find_ellipsis_words(app_note.cont[s:e])
+                    if el_words:
+                        # Tokenize the lemma words and ellipsis
+                        lem_words = el_words
+                    else:
+                        lem_words = Tokenizer(app_note.cont[s:e]).wordlist
                     lem_words = self.cleanup(lem_words)
                     # patch app note up again with new lemma content
                     bef = app_note.cont[:s]
