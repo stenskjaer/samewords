@@ -1,5 +1,5 @@
 from samewords.tokenize import Tokenizer
-from samewords.test.assets.unicode_database import blocks
+from samewords.test.assets.unicode_register import blocks
 
 class TestTokenize:
 
