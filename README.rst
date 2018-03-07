@@ -143,6 +143,14 @@ context:
 
     samewords my-beautiful-edition.tex > ~/Desktop/test/output.tex
 
+Aside from adding ``\sameword{}``-macros as appropriate the script also converts
+all combined unicode characters into single point variants where they are
+available. That means that if you compose 006F (o) and 0308 (̈) they will be
+converted into the single code point 00F6 (ö). This ensures matching in these
+ambiguous cases if the two systems should be mixed. On this, see `here
+<https://en.wikipedia.org/wiki/Unicode_equivalence>`_
+
+
 Configuration file
 ~~~~~~~~~~~~~~~~~~
 
@@ -309,6 +317,33 @@ sense to reduce the distance if maybe a two column setup is used. But a bit too
 many ``\sameword{}`` annotations really does no harm.
 
 
+``punctuation``
+^^^^^^^^^^^^^^^
+
+Punctuation may be critical when adjacent to potential sameword matches. If
+exotic punctuation is used it might not automatically be separated from the rest
+of the word (be default all characters that are not word characters, punctuation
+or ``\`` ``{`` or ``}`` is considered part of a word.
+
+Currently the following groups of characters are considered punctuation:
+
+- ``!"#$&\'()*+,-./:;<=>?@^_`|~–—[]`` – pretty regular punctuation.
+- ``⟦⟧⟨⟩⟪⟫⟬⟭⟮⟯`` – some odd brackets from the `Miscellaneous Mathematical
+  Symbols A
+  <https://unicode-table.com/en/blocks/miscellaneous-mathematical-symbols-a/>`_.
+- All characters in `General Punctuation
+  <https://unicode-table.com/en/blocks/general-punctuation/>`_.
+- All characters in `Supplemental Punctuation <https://unicode-table.com/en/blocks/supplemental-punctuation/>`_.
+
+If you use characters as punctuation that are not in any of these groups, you
+can add them manually via the punctuation field. It can either be just the raw
+characters, regular expression statements or Unicode codepoints (e.g.
+``\u0101`` = ā) or ranges of Unicode codepoints (``\u0100—\u017F`` = the Latin
+Extended A block). The ``\u`` tells Python that we are dealing with escaped
+Unicode codepoints.
+
+If you feel bold you could of course edit the punctuation list in the settings
+file.
 
 Issue reporting and testing
 ===========================

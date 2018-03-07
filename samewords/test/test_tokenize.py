@@ -1,5 +1,8 @@
 from samewords.tokenize import Tokenizer
 from samewords.test.assets.unicode_register import blocks
+from samewords.settings import settings
+
+import re
 
 class TestTokenize:
 
@@ -10,7 +13,9 @@ class TestTokenize:
         for block in blocks:
             # Test the last point in each block
             point = chr(int(blocks[block][1], 16))
-            assert Tokenizer(point).wordlist == [point]
+            if not re.match(r'[{}]+'.format(''.join(settings['punctuation'])),
+                            point):
+                assert Tokenizer(point).wordlist == [point]
 
     def test_whitespace(self):
         text = 'short text\t with    some\n space and stuff'

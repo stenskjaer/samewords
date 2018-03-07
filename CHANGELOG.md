@@ -6,6 +6,7 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
 ## [0.2.7] -- UNRELEASED
 ### Added
 - Full unicode support.
+- Configuration option to modify the set of punctuation characters.
 
 ### Solved
 - `thinspace` and `\,` is now tokenized correctly and does not break the

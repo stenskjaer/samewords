@@ -304,7 +304,9 @@ class Tokenizer:
         """
         self.data = input_str
         # Recognized punctuation characters
-        self._punctuation = re.compile('[!"#$&\'()*+,-./:;<=>?@\[\]^_`|~–—]+')
+        self._punctuation = re.compile(
+            r'[{}]+'.format(''.join(settings['punctuation']))
+        )
         # Characters that need to be escaped in LaTeX
         self._escape_chars = '\\&%$#_{}~^'
         # keep track of current nesting level (zero indexed, so we start at -1)
