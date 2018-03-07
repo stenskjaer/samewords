@@ -206,7 +206,6 @@ class Word(UserString):
             self.macros.append(old)
         else:
             positions = sorted([cont.pos for cont in self.content])
-            mpositions = sorted([macro.pos for macro in self.macros])
             if positions:
                 # With content add macro before first content pos.
                 pos = positions[0]
@@ -224,14 +223,16 @@ class Word(UserString):
     def append_suffix(self, content: str) -> None:
         """This adds the suffix string to the list with a position after the
         last. """
-        if self.suffixes:
+        if self.content:
+            # last element in self.content.
+            last = sorted(self.content, key=lambda e: e.pos)[-1]
+            end_pos = last.pos
+            end_len = len(last.cont)
+            pos = end_pos + end_len
+        elif self.suffixes:
             pos = sorted([i.pos for i in self.suffixes], reverse=True)[0] + 1
         elif self.clean_apps:
             pos = sorted([i.pos for i in self.clean_apps])[0]
-        elif self.content:
-            end_pos = sorted([i.pos for i in self.content])[-1]
-            end_len = len(sorted([i.cont for i in self.content])[-1])
-            pos = end_pos + end_len
         elif self.punctuation:
             pos = sorted([i.pos for i in self.punctuation], reverse=True)[0] + 1
         else:

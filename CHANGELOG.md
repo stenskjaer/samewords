@@ -18,9 +18,9 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
 - Consecutive sameword context matches now actually all get annotated [#20]. 
 
 ### Changed
-- Make the annotation more robust to `\edtext{}{}`s with `\lemma{}` where the
-  lemma words (either first or last) is not first or last index in the
-  `\edtext{}`.
+- Make the annotation more robust to `\edtext{}{}`s and `\lemma{}`s where the
+  first or last (tokenized) word is not a word (e.g. `\edtext{ %\n
+  words}{\lemma{ %\n word}\Afootnote{note}}`).
 - Reverse the change from 0.2.6. I have realized that I don't want to include
   test assets in the binary distribution that you get from pypi because it's not
   the idea that you run tests on that. If you download the source distribution,

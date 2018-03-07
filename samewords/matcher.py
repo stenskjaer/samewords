@@ -44,12 +44,12 @@ class Matcher:
                 # Annotate the edtext
                 # -------------------
                 if ellipsis:
-                    sidx = edtext.index(search_ws[0], default=0) + 1
+                    sidx = edtext.index(search_ws[0], default=0)
                     eidx = edtext.rindex(search_ws[1], default=0)
                     if self._in_context(contexts, search_ws[0:1], ellipsis):
-                        self._add_sameword(edtext[:sidx], edtext_lvl)
+                        self._add_sameword(edtext[sidx:sidx+1], edtext_lvl)
                     if self._in_context(contexts, search_ws[-1:], ellipsis):
-                        self._add_sameword(edtext[eidx:], edtext_lvl)
+                        self._add_sameword(edtext[eidx:eidx+1], edtext_lvl)
                 else:
                     sidx, eidx = self._find_index(edtext, search_ws)
                     self._add_sameword(edtext[sidx:eidx], edtext_lvl)
@@ -63,22 +63,28 @@ class Matcher:
                     s, e = self._find_lemma_pos(app_note)
                     if ellipsis:
                         # Tokenize the lemma words and ellipsis
-                        lem_words = self._find_ellipsis_words(
-                            app_note.cont[s:e])
                         # Annotate the lemma word where the context matches
+                        # We want to annotate words even though they may not
+                        # be first or last index in tokenized text. So we get
+                        #  the indexes of those (list comp `idxs`) and then
+                        # use those to index into the tokenized list in
+                        # replacing.
+                        lemma = self._find_ellipsis_words(app_note.cont[s:e])
+                        idxs = [i for i, w in enumerate(lemma) if w.content]
                         if self._in_context(contexts, search_ws[0:1], ellipsis):
-                            lem_words[0] = self._add_sameword(
-                                lem_words[0:1], level=0)[0]
+                            lemma[idxs[0]] = self._add_sameword(
+                                lemma[idxs[0]:idxs[0]+1], level=0)[0]
                         if self._in_context(contexts, search_ws[-1:], ellipsis):
-                            lem_words[-1] = self._add_sameword(
-                                lem_words[-1:], level=0)[0]
+                            lemma[idxs[-1]] = self._add_sameword(
+                                lemma[idxs[-1]:idxs[-1]+1], level=0)[0]
+
                     else:
-                        lem_words = Tokenizer(app_note.cont[s:e]).wordlist
-                        lem_words = self._add_sameword(lem_words, level=0)
+                        lemma = Tokenizer(app_note.cont[s:e]).wordlist
+                        lemma = self._add_sameword(lemma, level=0)
                     # patch app note up again with new lemma content
                     bef = app_note.cont[:s]
                     after = app_note.cont[e:]
-                    new = bef + lem_words.write() + after
+                    new = bef + lemma.write() + after
                     # update the app note Element with the new content
                     edtext[-1].update_element(app_note, new)
 
@@ -318,23 +324,22 @@ class Matcher:
             lemma_content = ''
 
         if lemma_content:
-            lemma_word_list = self._find_ellipsis_words(lemma_content)
-            if lemma_word_list:
+            tokens = self._find_ellipsis_words(lemma_content)
+            if tokens:
                 ellipsis = True
             else:
-                lemma_word_list = Tokenizer(lemma_content).wordlist
+                tokens = Tokenizer(lemma_content).wordlist
                 ellipsis = False
-
+            lem_wl = Words([w for w in tokens if w.content])
             if ellipsis:
                 # Covers ellipsis lemma.
-                content = ([lemma_word_list[0].get_text()] +
-                           [lemma_word_list[-1].get_text()])
-            elif len(lemma_word_list) == 1:
+                content = ([lem_wl[0].get_text()] + [lem_wl[-1].get_text()])
+            elif len(lem_wl) == 1:
                 # Covers single word lemma
-                content = [lemma_word_list[0].get_text()]
-            elif len(lemma_word_list) > 1:
+                content = [lem_wl[0].get_text()]
+            elif len(lem_wl) > 1:
                 # Covers multiword lemma
-                content = lemma_word_list.clean()
+                content = lem_wl.clean()
             else:
                 content = []
                 ellipsis = False
