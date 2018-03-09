@@ -48,6 +48,9 @@ class Macro(UserString):
     def __str__(self) -> str:
         return str(self.full())
 
+    def __eq__(self, other) -> bool:
+        return self.full() == other
+
     def _identify_name(self) -> str:
         """
         A TeX macro can be '\' followed by either a string of letters or
@@ -113,6 +116,7 @@ class Word(UserString):
         self.macros: List[Macro] = []
         self.edtext_start = False
         self.edtext_end = False
+        self.has_sameword = False
 
     def __str__(self) -> str:
         return str(self.get_text())
@@ -163,7 +167,7 @@ class Word(UserString):
         This means that we close inner macros first."""
         if self.macros:
             for macro in reversed(self.macros):
-                if macro.to_closing is False:
+                if macro.opening and macro.to_closing is False:
                     macro.to_closing = distance
                     return True
         raise IndexError('The word does not have any open macros.')
@@ -176,6 +180,14 @@ class Word(UserString):
             for item in el:
                 if item.pos >= element.pos and item is not element:
                     item.pos += increment
+
+    def _decrement_after(self, pos: int, decrement: int) -> None:
+        elements = [self.comment, self.macros, self.content, self.suffixes,
+                    self.clean_apps, self.ann_apps, self.punctuation]
+        for el in elements:
+            for item in el:
+                if item.pos > pos:
+                    item.pos -= decrement
 
     def update_element(self, elem: Element, cont: str) -> None:
         incr = len(cont) - len(elem.cont)
@@ -221,6 +233,12 @@ class Word(UserString):
             self._increment_after(macro, increment)
             self.macros.append(macro)
 
+    def pop_macro(self, index: int = -1) -> Macro:
+        """Remove the macro from the word at the given index."""
+        m = self.macros.pop(index)
+        self._decrement_after(m.pos, len(m))
+        return m
+
     def append_suffix(self, content: str) -> None:
         """This adds the suffix string to the list with a position after the
         last. """
@@ -242,6 +260,12 @@ class Word(UserString):
         new = Element(content, pos)
         self._increment_after(new, len(content))
         self.suffixes.append(new)
+
+    def pop_suffix(self, index=-1):
+        """Remove the suffix from the word at the given index."""
+        m = self.suffixes.pop(index)
+        self._decrement_after(m.pos, len(m.cont))
+        return m
 
 
 class Words(UserList):
@@ -404,11 +428,14 @@ class Tokenizer:
                         bracket_end = pos + len(Brackets(string, pos))
                         macro.hidden_content = string[pos:bracket_end]
                         pos += len(macro.hidden_content)
+                        word.close_macro(0)
                     break
                 if macro.name == r'\edtext' and not word.content:
                     self._stack_edtext.append(self._brackets)
                     self._edtext_lvl += 1
                     word.edtext_start = True
+                if macro.name == r'\sameword':
+                    word.has_sameword = True
                 if macro.opening:
                     # register position for later closing registration
                     self._stack_bracket.append(self._index)
@@ -420,6 +447,8 @@ class Tokenizer:
                         self._stack_edtext[-1] == self._brackets):
                     bracket_end = pos + len(Brackets(string, pos))
                     word.add_app_entry(string[pos:bracket_end], pos)
+                    if '\\sameword' in string[pos:bracket_end]:
+                        word.has_sameword = True
                     word.edtext_end = True
                     pos = bracket_end
                     try:

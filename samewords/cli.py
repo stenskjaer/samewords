@@ -48,6 +48,22 @@ def parse_arguments():
                     'editions made with LaTeX and reledmac.')
     parser.add_argument('file', metavar='FILE', type=str, nargs=1,
                         help='Location of local file to be processed.')
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        '--annotate', dest='annotate', action='store_true',
+        help=("Annotate the input file with `\sameword{}` macros. This is the "
+              "default mode.")
+    )
+    group.add_argument(
+        '--clean', dest='clean', action='store_true',
+        help=("Clean the input file for all `\sameword{}` annotations.")
+    )
+    group.add_argument(
+        '--update', dest='update', action='store_true',
+        help=("Update any `\sameword{}` annotations. This is effectively "
+              "equivalent of first running the script with `--clean` and then "
+              "`--annotate`.")
+    )
     parser.add_argument(
         '--output', dest='location', action='store',
         help=("Location of the output. You can specify a filename as part of "
@@ -63,6 +79,7 @@ def parse_arguments():
     parser.add_argument('-v', '--version', action='version',
                         version='%(prog)s {}'.format(samewords.__version__),
                         help="Show version and exit.")
+
     return vars(parser.parse_args())
 
 def main():
@@ -73,11 +90,20 @@ def main():
     output = args['location']
     config = args['config']
 
+    if not True in [args['annotate'], args['clean'], args['update']]:
+        procedure = 'annotate'
+    elif args['annotate']:
+        procedure = 'annotate'
+    elif args['clean']:
+        procedure = 'clean'
+    else:
+        procedure = 'update'
+
     if config:
         parse_config_file(config)
 
     if not output:
-        print(samewords.core.process_document(filename))
+        print(samewords.core.process_document(filename, procedure))
     else:
         if os.path.isdir(output):
             _, output_filename = os.path.split(filename)
@@ -96,7 +122,7 @@ def main():
 
         # Starting conversion
         print('Starting conversion.')
-        output_content = samewords.core.process_document(filename)
+        output_content = samewords.core.process_document(filename, procedure)
         print('Conversion succeeded. Saving file to {}'.format(output_result))
         with open(output_result, mode='w') as f:
             f.write(output_content)

@@ -32,7 +32,7 @@ settings = {
     # Should the proximity search be case sensitive? That would mean that the
     # search for "an" in the context string "An example" would not match. This is a
     # good setting when lemma words are not lower cased in the critical apparatus.
-    'sensitive_context_match': False,
+    'sensitive_context_match': True,
 
     # The content search distance determines how many words before and after and
     # entry should be compared. A normal length line rarely contains more than 15

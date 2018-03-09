@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] -- UNRELEASED
+- ``--update`` and ``--clean`` features (along with a ``--annotate`` argument,
+  but that is the default mode).
+
+
 ## [0.2.7] -- UNRELEASED
 ### Added
 - Full unicode support.

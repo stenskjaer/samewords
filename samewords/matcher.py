@@ -17,24 +17,27 @@ class Matcher:
         self.words = words
         self.registry = registry
 
-    def annotate(self):
+    def annotate(self, registry: Registry = None):
         """
         Given a registry, determine whether there is a context match of
         the edtext lemma content for each entry and annotate accordingly.
         """
-        for entry in self.registry:
+        if not registry:
+            registry = self.registry
+
+        for entry in registry:
             # Get data points for phrase and its start and end
             edtext_start = entry['data'][0]
-            edtext_end = entry['data'][1]
+            edtext_end = entry['data'][1] + 1
             edtext_lvl = entry['lvl'] + 1   # Reledmac 1-indexes the levels.
-            edtext = self.words[edtext_start:edtext_end + 1]
+            edtext = self.words[edtext_start:edtext_end]
 
             # Identify search words and ellipsis
             search_ws, ellipsis = self._define_search_words(edtext)
 
             # Establish the context
             context_before = self._get_context_before(self.words, edtext_start)
-            context_after = self._get_context_after(self.words, edtext_end + 1)
+            context_after = self._get_context_after(self.words, edtext_end)
             contexts = ([w.get_text() for w in context_before]
                         + [w.get_text() for w in context_after])
 
@@ -51,7 +54,12 @@ class Matcher:
                     if self._in_context(contexts, search_ws[-1:], ellipsis):
                         self._add_sameword(edtext[eidx:], edtext_lvl)
                 else:
-                    sidx, eidx = self._find_index(edtext, search_ws)
+                    try:
+                        sidx, eidx = self._find_index(edtext, search_ws)
+                    except TypeError:
+                        raise ValueError("Looks like edtext and lemma content "
+                                         "don't match in "
+                                         "'{}'".format(edtext.write()))
                     self._add_sameword(edtext[sidx:eidx], edtext_lvl)
 
                 # Annotate the lemma if relevant
@@ -93,6 +101,67 @@ class Matcher:
                     else:
                         self._annotate_context(context, search_ws)
         return self.words
+
+    def update(self, wordlist: Words = None) -> Words:
+        """
+        Given a registry, find all edtext elements that contain a `\sameword{}`
+        annotation and check whether it is still correct. If not, update the
+        annotation.
+        """
+        self.cleanup()
+        self.annotate()
+        return self.words
+
+
+    def cleanup(self, wordlist: Words = None) -> Words:
+        """Given a Words list, remove all sameword annotations."""
+        if not wordlist:
+            wordlist = self.words
+
+        for val, word in enumerate(wordlist):
+            if word.has_sameword:
+                # Remove the macro itself.
+                for i in [v for v, m in enumerate(word.macros)
+                          if m.name == '\\sameword']:
+                    close_idx = val + word.macros[i].to_closing
+                    word.pop_macro(i)
+                    wordlist[close_idx].pop_suffix()
+
+                # Clean the app note's `\lemma{}` if there is any.
+                for i in [v for v, a in enumerate(word.clean_apps) if
+                          re.search(r'\\lemma', a.cont)]:
+                    # get the relevant app Element
+                    app_note = word.clean_apps[i]
+                    # split up the apparatus note into before, lem, and after
+                    s, e = self._find_lemma_pos(app_note)
+                    if s == e:
+                        # empty lemma
+                        break
+                    el_words = self._find_ellipsis_words(app_note.cont[s:e])
+                    if el_words:
+                        # Tokenize the lemma words and ellipsis
+                        lem_words = el_words
+                    else:
+                        lem_words = Tokenizer(app_note.cont[s:e]).wordlist
+                    lem_words = self.cleanup(lem_words)
+                    # patch app note up again with new lemma content
+                    bef = app_note.cont[:s]
+                    after = app_note.cont[e:]
+                    new = bef + lem_words.write() + after
+                    # update the app note Element with the new content
+                    word.update_element(app_note, new)
+        return wordlist
+
+    def _get_sameword_span(self, wordlist: Words) -> Union[Words, None]:
+        """Given return the slice of first `\sameword` macro. If there
+        is no `\sameword` return None."""
+        for val, w in enumerate(wordlist):
+            for mac in w.macros:
+                if mac.name == '\\sameword':
+                    start = val
+                    end = start + mac.to_closing + 1
+                    return wordlist[start:end]
+        return None
 
     def _get_context_after(self, complete: Words, boundary: int) -> Words:
         distance = settings['context_distance']
@@ -205,6 +274,9 @@ class Matcher:
             part[-1].append_suffix('}')
             # And register its distance.
             word.close_macro(len(part) - 1)
+
+        # Flip the sameword switch
+        word.has_sameword = True
 
         # Update the first word
         part[0] = word
