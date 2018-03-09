@@ -54,7 +54,12 @@ class Matcher:
                     if self._in_context(contexts, search_ws[-1:], ellipsis):
                         self._add_sameword(edtext[eidx:], edtext_lvl)
                 else:
-                    sidx, eidx = self._find_index(edtext, search_ws)
+                    try:
+                        sidx, eidx = self._find_index(edtext, search_ws)
+                    except TypeError:
+                        raise ValueError("Looks like edtext and lemma content "
+                                         "don't match in "
+                                         "'{}'".format(edtext.write()))
                     self._add_sameword(edtext[sidx:eidx], edtext_lvl)
 
                 # Annotate the lemma if relevant

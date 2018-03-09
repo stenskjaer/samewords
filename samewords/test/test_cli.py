@@ -1,3 +1,7 @@
+import subprocess
+
+from pytest import mark
+
 from samewords import cli
 from samewords.settings import settings
 
@@ -21,24 +25,36 @@ class TestConfigFileContent:
         settings.update(old)
 
 
-# class TestCustomIncludeExclude:
-#
-#     def test_custom_exclude_file(self):
-#         proc = subprocess.Popen(
-#             ['samewords', './samewords/test/assets/include-exclude.tex',
-#              '--config-file=./samewords/test/assets/conf_exclude.json'],
-#             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-#         out, err = proc.communicate()
-#         with open('./samewords/test/assets/exclusion-result.tex') as f:
-#             result = f.read()
-#         assert out.decode() == result
-#
-#     def test_custom_include_file(self):
-#         proc = subprocess.Popen(
-#             ['samewords', './samewords/test/assets/include-exclude.tex',
-#              '--config-file=./samewords/test/assets/conf_include.json'],
-#             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-#         out, err = proc.communicate()
-#         with open('./samewords/test/assets/inclusion-result.tex') as f:
-#             result = f.read()
-#         assert out.decode() == result
+class TestCLIArguments:
+
+    @mark.slow
+    def test_default_annotate_file(self):
+        proc = subprocess.Popen(
+            ['samewords', './samewords/test/assets/da-49-l1q1.tex'],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = proc.communicate()
+        with open('./samewords/test/assets/da-49-l1q1-processed.tex') as f:
+            result = f.read()
+        assert out.decode().strip() == result.strip()
+
+    @mark.slow
+    def test_clean_file(self):
+        proc = subprocess.Popen(
+            ['samewords', './samewords/test/assets/da-49-l1q1-processed.tex',
+             '--clean'],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = proc.communicate()
+        with open('./samewords/test/assets/da-49-l1q1.tex') as f:
+            result = f.read()
+        assert out.decode().strip() == result.strip()
+
+    @mark.slow
+    def test_update_file(self):
+        proc = subprocess.Popen(
+            ['samewords', './samewords/test/assets/simple-unupdated.tex',
+             '--update'],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = proc.communicate()
+        with open('./samewords/test/assets/simple-updated.tex') as f:
+            result = f.read()
+        assert out.decode().strip() == result.strip()
