@@ -38,5 +38,16 @@ settings = {
     # entry should be compared. A normal length line rarely contains more than 15
     #  words, so the default of 20 should often be enough. If a layout with every
     #  long lines is used, it may be necessary to increase it.
-    'context_distance': 20
+    'context_distance': 20,
+
+    # Additional punctuation characters can be added here. It can either be
+    # just the raw characters, regular expression statements or Unicode
+    # escaped codepoints (e.g. \u0101 = ā) or ranges of Unicode codepoints (
+    # \u0100—\u017F = the Latin Extended A block).
+    'punctuation': [
+        r'!"#$&\'()*+,-./:;<=>?@^_`|~–—\[\]',    # general punctuation
+        r'⟦⟧⟨⟩⟪⟫⟬⟭⟮⟯',          # special brackets from the Misc Mat. Symbols A
+        r'\u2000-\u206F',    # General punctuation (≠ the punctuation above)
+        r'\u2e00-\u2e7f',    # Supplemental punctuation
+    ]
 }

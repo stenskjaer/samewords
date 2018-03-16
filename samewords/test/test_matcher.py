@@ -34,21 +34,70 @@ class TestAnnotate:
     def test_last_ellipsis_word_not_last_index(self):
         text = ("B \edtext{F and some B %\n}{\lemma{F--B}}")
         expect = ("\sameword{B} \edtext{F and some "
-                  "\sameword[1]{B %\n}}{\lemma{F--\sameword{B}}}")
+                  "\sameword[1]{B} %\n}{\lemma{F--\sameword{B}}}")
         assert self.run_annotation(text) == expect
 
     def test_first_ellipsis_word_not_first_index(self):
         text = ("F \edtext{ % \nF and B}{\lemma{F--B}}")
-        expect = ("\sameword{F} \edtext{\sameword[1]{ "
-                  "% \nF} and B}{\lemma{\sameword{F}--B}}")
+        expect = ("\sameword{F} \edtext{ % \n"
+                  "\sameword[1]{F} and B}{\lemma{\sameword{F}--B}}")
         assert self.run_annotation(text) == expect
 
     def test_first_and_last_ellipsis_word_not_first_and_last_index(self):
         text = ("B F \edtext{ % \nF and B %\n}{\lemma{F--B}}")
-        expect = ("\sameword{B} \sameword{F} \edtext{\sameword[1]{ % \nF} and "
-                  "\sameword[1]{B %\n}}{\lemma{\sameword{F}--\sameword{B}}}")
+        expect = ("\sameword{B} \sameword{F} \edtext{ % \n\sameword[1]{F} and "
+                  "\sameword[1]{B} %\n}{\lemma{\sameword{F}--\sameword{B}}}")
         assert self.run_annotation(text) == expect
 
+    def test_ellipsis_lemma_word_not_first_or_last_index(self):
+        text = ("F B \edtext{ F and B}{\lemma{ % \n F--B % \n}\Afootnote{test}}")
+        expect = ("\sameword{F} \sameword{B} \edtext{ \sameword[1]{F} and "
+                  "\sameword[1]{B}}{\lemma{ % \n \sameword{F}--\sameword{B}"
+                  " % \n}\Afootnote{test}}")
+        assert self.run_annotation(text) == expect
+
+    def test_edtext_with_editorial_brackets_1(self):
+        text = ('B, F \edtext{(F and B)}{\lemma{F--B}\Afootnote{test}}')
+        expect = ('\sameword{B}, \sameword{F} \edtext{(\sameword[1]{F} and '
+                  '\sameword[1]{B})}{\lemma{\sameword{F}--\sameword{B}}'
+                  '\Afootnote{test}}')
+        assert self.run_annotation(text) == expect
+
+    def test_edtext_with_editorial_brackets_2(self):
+        text = ('B, F, \edtext{⟨F and B⟩}{\lemma{F--B}\Afootnote{test}}')
+        expect = ('\sameword{B}, \sameword{F}, \edtext{⟨\sameword[1]{F} and '
+                  '\sameword[1]{B}⟩}{\lemma{\sameword{F}--\sameword{B}}'
+                  '\Afootnote{test}}')
+        assert self.run_annotation(text) == expect
+
+    def test_edtext_with_editorial_brackets_3(self):
+        text = ('B, F, \edtext{{{}F and B{}}}{\lemma{F--B}\Afootnote{test}}')
+        expect = ('\sameword{B}, \sameword{F}, \edtext{{{}\sameword[1]{F} and '
+                  '\sameword[1]{B}{}}}{\lemma{\sameword{F}--\sameword{B}}'
+                  '\Afootnote{test}}')
+        assert self.run_annotation(text) == expect
+
+    def test_edtext_with_editorial_brackets_custom_macro(self):
+        text = ('F \edtext{\supplied{F} and B}{\lemma{F--B}}')
+        expect = ('\sameword{F} \edtext{\supplied{\sameword[1]{F}} and '
+                  'B}{\lemma{\sameword{F}--B}}')
+        assert self.run_annotation(text) == expect
+
+
+    def test_edtext_with_custom_punctuation(self):
+        text = ('B˧ \edtext{B}{}')
+        expect = ('\sameword{B}˧ \edtext{\sameword[1]{B}}{}')
+        old = settings['punctuation']
+        settings['punctuation'] += '˧'
+        assert self.run_annotation(text) == expect
+        settings['punctuation'] = old
+
+
+    def test_edtext_with_exotic_punctuation(self):
+        text = ('o “o ⸀o o. o \edtext{o}{}')
+        expect = ('\sameword{o} “\sameword{o} ⸀\sameword{o} \sameword{o}. '
+                  '\sameword{o} \edtext{\sameword[1]{o}}{}')
+        assert self.run_annotation(text) == expect
 
     def test_macro_update_copies_to_closing_attribute(self):
         """If the sameword annotation of edtext entries as context samewords

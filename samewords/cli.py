@@ -37,6 +37,7 @@ def parse_config_file(filename: str) -> bool:
             'sensitive_context_match', settings['sensitive_context_match'])
         settings['context_distance'] = user_conf.get(
             'context_distance', settings['context_distance'])
+        settings['punctuation'] += user_conf.get('punctuation', [])
         return True
     return False
 
