@@ -1,6 +1,10 @@
+Samewords
+=========
+.. image:: https://readthedocs.org/projects/samewords/badge/?version=latest
+   :target: http://samewords.readthedocs.io/en/latest/?badge=latest
+   :alt: Documentation Status
 
-Samewords – word disambigutaion in critical text editions
-=========================================================
+*Word disambigutaion in critical text editions*
 
 In critical textual editions notes in the critical apparatus are
 normally made to the line where the words occur. This leads to ambiguous
