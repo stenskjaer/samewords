@@ -1,0 +1,273 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Configuration &#8212; samewords 0.3.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Issue reporting and testing" href="reporting.html" />
+    <link rel="prev" title="Cleaning and updating files" href="cleaning.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="configuration">
+<h1>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h1>
+<p>You can configure a small range of settings relevant for the processing.
+This is done in a JSON-formatted file.</p>
+<p>You give the location of the config file in the argument <code class="docutils literal notranslate"><span class="pre">--config-file</span></code>. The
+script will automatically look for a config file with the name
+<code class="docutils literal notranslate"><span class="pre">~/.samewords.json</span></code>, so if you put it there, you won’t have to specify the
+command line argument every time you call the script. That can be very handy if
+you often need to use the same configuration.</p>
+<p>The configuration file recognizes the following parameters:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">exclude_macros</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">ellipsis_patterns</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">sensitive_context_match</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">context_distance</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">punctuation</span></code></li>
+</ul>
+<p>JSON requires backslashes to be escaped if you want to preserved them in
+the string. You do that with another backslash, so <code class="docutils literal notranslate"><span class="pre">\\</span></code> will result in
+a single backslash. You must remember this when noting <code class="docutils literal notranslate"><span class="pre">TeX</span></code> strings
+or regular expressions that contain backslashes.</p>
+<div class="section" id="example-file">
+<h2>Example file<a class="headerlink" href="#example-file" title="Permalink to this headline">¶</a></h2>
+<p>A complete configuration file could contain the following content:</p>
+<div class="code json highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;ellipsis_patterns&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="s2">&quot;--&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;–&quot;</span>
+  <span class="p">],</span>
+  <span class="s2">&quot;exclude_macros&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">excludedMacro&quot;</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="commands">
+<h2>Commands<a class="headerlink" href="#commands" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="exclude-macros">
+<h3><code class="docutils literal notranslate"><span class="pre">exclude_macros</span></code><a class="headerlink" href="#exclude-macros" title="Permalink to this headline">¶</a></h3>
+<p>You might want to define some macros which are entirely ignored in the
+comparison of text segments. That will typically be macros that <em>do not</em>
+contain text content.</p>
+<p>For example, you might use a custom macro called <code class="docutils literal notranslate"><span class="pre">\msbreak{}</span></code> to
+indicate a pagebreak in your edition. The content of that is not printed
+in the text, but in the margin. So you don’t want the comparison to
+figure in the content of this macro. Take this example phrase:</p>
+<div class="code latex highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">I</span>\<span class="n">msbreak</span><span class="p">{</span><span class="mi">23</span><span class="n">v</span><span class="p">}</span> <span class="n">know</span> <span class="n">that</span> \<span class="n">edtext</span><span class="p">{</span><span class="n">I</span> <span class="n">know</span><span class="p">}{</span>\<span class="n">Afootnote</span><span class="p">{</span><span class="n">I</span> <span class="n">don</span><span class="s1">&#39;t know B}}</span>
+<span class="n">nothing</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>Since the content of (almost) all macros is included by default, this
+would give the comparison of the phrase <code class="docutils literal notranslate"><span class="pre">I</span> <span class="pre">know</span></code> (<code class="docutils literal notranslate"><span class="pre">\edtext</span></code> content)
+with <code class="docutils literal notranslate"><span class="pre">I23v</span> <span class="pre">know</span> <span class="pre">that</span></code> (context). It will not match, and hence not
+annotate the phrase.</p>
+<p>If we add the macro to the <code class="docutils literal notranslate"><span class="pre">excluded_macros</span></code> field in a settings file
+and pass that to the script, <code class="docutils literal notranslate"><span class="pre">\msbreak</span></code> will be ignored in processing,
+and we will get a comparison between <code class="docutils literal notranslate"><span class="pre">I</span> <span class="pre">know</span></code> (<code class="docutils literal notranslate"><span class="pre">\edtext</span></code> content)
+with <code class="docutils literal notranslate"><span class="pre">I</span> <span class="pre">know</span> <span class="pre">that</span></code> (context). This will match and hence correctly
+annotate the phrase.</p>
+<p><em>Another example:</em> The script searches for words or phrases identical to
+those in the <code class="docutils literal notranslate"><span class="pre">\edtext{}{}</span></code> macros to identify possible conflicts. By
+default the content of practically all macros are included in this
+comparison.</p>
+<p>Take this passage:</p>
+<div class="code latex highlight-default notranslate"><div class="highlight"><pre><span></span>\<span class="n">edtext</span><span class="p">{</span><span class="n">Sortes</span>\<span class="n">test</span><span class="p">{</span><span class="mi">1</span><span class="p">}}{</span>\<span class="n">Afootnote</span><span class="p">{</span><span class="n">Socrates</span> <span class="n">B</span><span class="p">}}</span> <span class="n">dicit</span><span class="p">:</span> <span class="n">Sortes</span>\<span class="n">test</span><span class="p">{</span><span class="mi">2</span><span class="p">}</span> <span class="n">probus</span>
+</pre></div>
+</div>
+<p>Will result in a search for “Sortes1” in the string “dicit Sortes2
+probus”, which will not succeed.</p>
+<p>On the other hand, this passage:</p>
+<div class="code latex highlight-default notranslate"><div class="highlight"><pre><span></span>\<span class="n">edtext</span><span class="p">{</span><span class="n">Sortes</span>\<span class="n">test</span><span class="p">{</span><span class="mi">1</span><span class="p">}}{</span>\<span class="n">Afootnote</span><span class="p">{</span><span class="n">Socrates</span> <span class="n">B</span><span class="p">}}</span> <span class="n">dicit</span><span class="p">:</span> <span class="n">Sortes</span>\<span class="n">test</span><span class="p">{</span><span class="mi">1</span><span class="p">}</span> <span class="n">probus</span>
+</pre></div>
+</div>
+<p>Will result in a search for “Sortes1” in the string “dicit Sortes1
+probus”, which will succeed and therefore annotate the instances.</p>
+<p>If you add <code class="docutils literal notranslate"><span class="pre">\test</span></code> to the <code class="docutils literal notranslate"><span class="pre">excluded_macros</span></code> field, both examples
+above will compare “Sortes” with “Sortes” and hence give a positive
+match.</p>
+</div>
+<div class="section" id="ellipsis-patterns">
+<h3><code class="docutils literal notranslate"><span class="pre">ellipsis_patterns</span></code><a class="headerlink" href="#ellipsis-patterns" title="Permalink to this headline">¶</a></h3>
+<p>This key contains a list of patterns that should be included when
+matching for ellipsis symbols in <code class="docutils literal notranslate"><span class="pre">\lemma{}</span></code>. These are used in a
+regular expression match, so any valid python regular expression will
+work.</p>
+<p>Say you use “–” and “…” to indicate ellipsis. Actually, you ought to
+write the dotted ellipsis with <code class="docutils literal notranslate"><span class="pre">\dots{}</span></code> in <code class="docutils literal notranslate"><span class="pre">LaTeX</span></code>, but if you
+insist, you could give the key the following list (but you shouldn’t,
+really. Use <code class="docutils literal notranslate"><span class="pre">\dots{}</span></code>):</p>
+<div class="code json highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;ellipsis_patterns&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">.</span><span class="se">\\</span><span class="s2">.</span><span class="se">\\</span><span class="s2">.&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;-+&quot;</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>This looks complicated, but don’t worry. The “…” is matched with a regex
+pattern, which requires us to escape the regular “.” – that would
+normally look like this <code class="docutils literal notranslate"><span class="pre">\.\.\.</span></code>. But since we also need to escape the
+backslashes, they are doubly escaped.</p>
+<p>The second is a lot simpler, it is just a regex that will match one or
+more regular dashes in your text. Note that this comes with some danger
+as it will match if your lemma contains a single dash, even though you
+might not have thought of it as an “ellipsis”-dash. In these cases, its
+better to be explicit and either use double dashes (<code class="docutils literal notranslate"><span class="pre">--</span></code>) or real
+unicode en-dashes (<code class="docutils literal notranslate"><span class="pre">–</span></code>). It is also typographically much better.</p>
+<p>Another example of a regex match pattern would be to match for the thin
+space command in <code class="docutils literal notranslate"><span class="pre">LaTeX</span></code>, which is <code class="docutils literal notranslate"><span class="pre">\,</span></code>, which produces a space of
+just 0.16667em. A comma is a meta-character in regex, so it would need
+escaped, which would look like <code class="docutils literal notranslate"><span class="pre">\\,</span></code>, but the backslash is also a
+meta-character, so that needs escaping too. This means that to match the
+literal expression <code class="docutils literal notranslate"><span class="pre">\,</span></code> the regex would look like this: <code class="docutils literal notranslate"><span class="pre">\\\\,</span></code>. So
+if we wanted to match the <code class="docutils literal notranslate"><span class="pre">LaTeX</span></code> expression <code class="docutils literal notranslate"><span class="pre">\,-\,</span></code> (thin space, a
+dash, and another thin space), we would write the following regex:
+<code class="docutils literal notranslate"><span class="pre">\\\\,-\\\\,</span></code>. But as we would probably want to match any length of
+dashes, it could be improved to <code class="docutils literal notranslate"><span class="pre">\\\\,-+\\\\,</span></code>.</p>
+</div>
+<div class="section" id="sensitive-context-match">
+<h3><code class="docutils literal notranslate"><span class="pre">sensitive_context_match</span></code><a class="headerlink" href="#sensitive-context-match" title="Permalink to this headline">¶</a></h3>
+<p>The value of the settings variable <code class="docutils literal notranslate"><span class="pre">sensitive_proximity_match</span></code>
+determines whether the search for matches in the proximity is case
+sensitive. By default it is case insensitive, but if the value is set to
+<code class="docutils literal notranslate"><span class="pre">True</span></code>, it will be case sensitive.</p>
+<p>In JSON:</p>
+<div class="code json highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;sensitive_context_match&quot;</span><span class="p">:</span> <span class="n">true</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>That would mean that the search for “an” in the context string “An
+example” would not match. This is a sensible setting when lemma words
+are not lower cased in the critical apparatus.</p>
+</div>
+<div class="section" id="context-distance">
+<h3><code class="docutils literal notranslate"><span class="pre">context_distance</span></code><a class="headerlink" href="#context-distance" title="Permalink to this headline">¶</a></h3>
+<p>This determines the amount of words that will be compared with a match phrase at
+either side of an <code class="docutils literal notranslate"><span class="pre">\edtext{}{}</span></code> entry. A normal length line rarely contains more
+than 15 words, so the default of 20 should often be enough. If a layout with
+every long lines is used, it may be necessary to increase it, while it may make
+sense to reduce the distance if maybe a two column setup is used. But a bit too
+many <code class="docutils literal notranslate"><span class="pre">\sameword{}</span></code> annotations really does no harm.</p>
+</div>
+<div class="section" id="punctuation">
+<h3><code class="docutils literal notranslate"><span class="pre">punctuation</span></code><a class="headerlink" href="#punctuation" title="Permalink to this headline">¶</a></h3>
+<p>Punctuation may be critical when adjacent to potential sameword matches. If
+exotic punctuation is used it might not automatically be separated from the rest
+of the word. By default all characters that are not word characters, punctuation
+or <code class="docutils literal notranslate"><span class="pre">\</span></code> <code class="docutils literal notranslate"><span class="pre">{</span></code> or <code class="docutils literal notranslate"><span class="pre">}</span></code> is considered part of a word.</p>
+<p>Currently the following groups of characters are considered punctuation:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">!&quot;#$&amp;\'()*+,-./:;&lt;=&gt;?&#64;^_`|~–—[]</span></code> – pretty regular punctuation.</li>
+<li><code class="docutils literal notranslate"><span class="pre">⟦⟧⟨⟩⟪⟫⟬⟭⟮⟯</span></code> – some odd brackets from the <a class="reference external" href="https://unicode-table.com/en/blocks/miscellaneous-mathematical-symbols-a/">Miscellaneous Mathematical
+Symbols A</a>.</li>
+<li>All characters in <a class="reference external" href="https://unicode-table.com/en/blocks/general-punctuation/">General Punctuation</a>.</li>
+<li>All characters in <a class="reference external" href="https://unicode-table.com/en/blocks/supplemental-punctuation/">Supplemental Punctuation</a>.</li>
+</ul>
+<p>If you use characters as punctuation that are not in any of these groups, you
+can add them manually via the punctuation field. It can either be just the raw
+characters, regular expression statements or Unicode codepoints (e.g.
+<code class="docutils literal notranslate"><span class="pre">\u0101</span></code> = ā) or ranges of Unicode codepoints (<code class="docutils literal notranslate"><span class="pre">\u0100—\u017F</span></code> = the Latin
+Extended A block). The <code class="docutils literal notranslate"><span class="pre">\u</span></code> tells Python that we are dealing with escaped
+Unicode codepoints.</p>
+<p>If you feel bold you could of course edit the punctuation list in the settings
+file.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Configuration</a><ul>
+<li><a class="reference internal" href="#example-file">Example file</a></li>
+<li><a class="reference internal" href="#commands">Commands</a><ul>
+<li><a class="reference internal" href="#exclude-macros"><code class="docutils literal notranslate"><span class="pre">exclude_macros</span></code></a></li>
+<li><a class="reference internal" href="#ellipsis-patterns"><code class="docutils literal notranslate"><span class="pre">ellipsis_patterns</span></code></a></li>
+<li><a class="reference internal" href="#sensitive-context-match"><code class="docutils literal notranslate"><span class="pre">sensitive_context_match</span></code></a></li>
+<li><a class="reference internal" href="#context-distance"><code class="docutils literal notranslate"><span class="pre">context_distance</span></code></a></li>
+<li><a class="reference internal" href="#punctuation"><code class="docutils literal notranslate"><span class="pre">punctuation</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="cleaning.html" title="previous chapter">Cleaning and updating files</a></li>
+      <li>Next: <a href="reporting.html" title="next chapter">Issue reporting and testing</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/configuration.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Michael Stenskjær Christensen.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/configuration.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

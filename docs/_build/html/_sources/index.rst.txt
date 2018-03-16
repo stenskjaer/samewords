@@ -72,3 +72,36 @@ context:
     samewords my-beautiful-edition.tex > ~/Desktop/test/output.tex
 
 
+
+
+Contents
+--------
+
+.. toctree::
+   :maxdepth: 2
+
+   installation
+   details
+   cleaning
+   configuration
+   reporting
+   developing
+   license
+
+
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
+
+
+Disclaimer
+==========
+
+I provide no guarantees for the integrity of your software or editions when you
+use the package.
+
+Copyright © 2017 Michael Stenskjær Christensen, MIT License.

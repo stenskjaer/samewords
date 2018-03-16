@@ -1,0 +1,169 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Issue reporting and testing &#8212; samewords 0.3.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="For development" href="developing.html" />
+    <link rel="prev" title="Configuration" href="configuration.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="issue-reporting-and-testing">
+<h1>Issue reporting and testing<a class="headerlink" href="#issue-reporting-and-testing" title="Permalink to this headline">¶</a></h1>
+<p>If you like the idea of this software, please help improving it by
+filing <a class="reference external" href="https://github.com/stenskjaer/samewords/issues">issue report</a>
+when you find bugs.</p>
+<div class="section" id="to-file-a-bug">
+<h2>To file a bug<a class="headerlink" href="#to-file-a-bug" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Create a <em>minimal working example</em> (MWE) TeX document that contains
+absolutely nothing aside from the material necessary for reproducing
+the bug. The document should (if possible) be able to compile on a
+fresh installation of LateX without any custom packages.</li>
+<li>Open an <a class="reference external" href="https://github.com/stenskjaer/samewords/issues">issue
+report</a> and
+describe the conditions under which you experience the bug. It should
+be possible for me to reproduce the bug by following your directions.</li>
+<li>If the script returns an error, copy and paste the error reporting
+into the report.</li>
+<li>If the script returns you document, include that, and describe the
+result you expected, and how that differs from what you get.</li>
+</ul>
+</div>
+<div class="section" id="testing-updated-issue-branches">
+<h2>Testing updated issue branches<a class="headerlink" href="#testing-updated-issue-branches" title="Permalink to this headline">¶</a></h2>
+<p>Once I (think I) have a solution, I will ask you to test a branch. You
+can do that by either downloading that specific branch as a zip or clone
+the repository and pull down the changed branch. Choose one of the
+following two, depending on you preferences.</p>
+<p><strong>Downloading branch zip</strong> This approach is simplest if (1) you don’t
+feel quite comfortable using <code class="docutils literal notranslate"><span class="pre">git</span></code> or (2) only want to test a single
+change or issue.</p>
+<ul class="simple">
+<li>Navigate to the relevant branch in Github (the “Branch:” dropdown).</li>
+<li>Download that branch to your computer (the “Clone or download”
+button).</li>
+<li>Navigate to the downloaded zip file, unzip it and enter the
+directory.</li>
+</ul>
+<p><strong>Clone repository and checkout branch</strong> This approach is more flexible
+and makes it easier for you to pull and test different branches. It also
+makes it easier to keep track of which branch you are testing on (with
+the <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">status</span></code> command). Finally, if you should want to push changes
+in pull requests, this is also the approach you should use.</p>
+<ul class="simple">
+<li>Navigate to an appropriate directory.</li>
+<li>Run <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">clone</span> <span class="pre">https://github.com/stenskjaer/samewords.git</span></code>. A
+directory with the name “samewords” will be created in you current
+working directory.</li>
+<li>Check out the branch that you want to test. If that is called
+<code class="docutils literal notranslate"><span class="pre">issue-13</span></code> run <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">checkout</span> <span class="pre">issue-13</span></code>.</li>
+</ul>
+<p>After either of the above processes, the rest is identical:</p>
+<ul class="simple">
+<li>Create a <em>virtual environment</em> for testing with <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">-m</span> <span class="pre">venv</span> <span class="pre">.env</span></code>, and
+then activate it with <code class="docutils literal notranslate"><span class="pre">source</span> <span class="pre">.env/bin/activate</span></code> (this is based on a Unix
+environment, if you run Windows, check out <a class="reference external" href="https://docs.python.org/3.6/library/venv.html">the Python documentation</a>).</li>
+<li>Install the script in the virtual environment with <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.</span></code>.</li>
+<li>To make sure you run the version in the <em>virtual environment</em>, run
+<code class="docutils literal notranslate"><span class="pre">.env/bin/samewords</span></code> from the directory (to avoid using a global version of
+the script, if you have that).</li>
+<li>Run your supplied MWE (or other material provided by me in the issue report)
+and inspect whether the problem is solved and report back in the issue report.</li>
+<li>When you are done testing, deactivate the virtual environment by running
+<code class="docutils literal notranslate"><span class="pre">deactivate</span></code> (Bash on Unix) or <code class="docutils literal notranslate"><span class="pre">deactivate.bat</span></code> (Windows).</li>
+</ul>
+<p>Notice that if you are asked to test a branch it is not necessary to run any of
+the automated tests.</p>
+<p>If you have downloaded a branch zip, you can delete the unzipped
+directory, and everything should be back to normal.</p>
+<p>If you have cloned the repository, you can just leave it there.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Issue reporting and testing</a><ul>
+<li><a class="reference internal" href="#to-file-a-bug">To file a bug</a></li>
+<li><a class="reference internal" href="#testing-updated-issue-branches">Testing updated issue branches</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="configuration.html" title="previous chapter">Configuration</a></li>
+      <li>Next: <a href="developing.html" title="next chapter">For development</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/reporting.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Michael Stenskjær Christensen.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/reporting.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

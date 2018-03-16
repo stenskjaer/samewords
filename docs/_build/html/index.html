@@ -1,0 +1,195 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Samewords – word disambigutaion in critical text editions &#8212; samewords 0.3.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="installation.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="samewords-word-disambigutaion-in-critical-text-editions">
+<h1>Samewords – word disambigutaion in critical text editions<a class="headerlink" href="#samewords-word-disambigutaion-in-critical-text-editions" title="Permalink to this headline">¶</a></h1>
+<p>In critical textual editions notes in the critical apparatus are
+normally made to the line where the words occur. This leads to ambiguous
+references when a critical apparatus note refers to a word that occurs
+more than once in a line. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">We</span> <span class="n">have</span> <span class="n">a</span> <span class="n">passage</span> <span class="n">of</span> <span class="n">text</span> <span class="n">here</span><span class="p">,</span> <span class="n">such</span> <span class="n">a</span> <span class="n">nice</span> <span class="n">place</span> <span class="k">for</span> <span class="n">a</span> <span class="n">critical</span>
+<span class="n">note</span><span class="o">.</span>
+
+<span class="o">----</span>
+<span class="mi">1</span> <span class="n">a</span><span class="p">]</span> <span class="n">om</span><span class="o">.</span> <span class="n">M</span>
+</pre></div>
+</div>
+<p>It is very unclear which of three instances of “a” the note refers to.</p>
+<p><a class="reference external" href="https://www.ctan.org/pkg/reledmac">Reledmac</a> is a great LaTeX package that
+facilitates typesetting critical editions of prime quality. It already provides
+facilities for disambiguating identical words, but it requires the creator of
+the critical text to mark all potential instances of ambiguous references
+manually (see the <em>reledmac</em> handbook for the details on that). <em>Samewords</em>
+automates this step for the editor.</p>
+<div class="section" id="install-and-usage">
+<h2>Install and usage<a class="headerlink" href="#install-and-usage" title="Permalink to this headline">¶</a></h2>
+<div class="code bash highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip3</span> <span class="n">install</span> <span class="n">samewords</span>
+</pre></div>
+</div>
+<p>That’s it!</p>
+<p>This requires Python 3.6 installed in your system. For more details on
+installation, see the <a class="reference internal" href="installation.html#installation"><span class="std std-ref">Installation</span></a> section.</p>
+<p>Now call the script with the file you want annotated as the only argument to get
+the annotated version back in the terminal.</p>
+<div class="code bash highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">samewords</span> <span class="n">my</span><span class="o">-</span><span class="n">awesome</span><span class="o">-</span><span class="n">edition</span><span class="o">.</span><span class="n">tex</span>
+</pre></div>
+</div>
+<p>This will send the annotated version to <code class="docutils literal notranslate"><span class="pre">stdout</span></code>. To see that it actually
+contains some <code class="docutils literal notranslate"><span class="pre">\sameword{}</span></code> macros, you can try running it through
+<code class="docutils literal notranslate"><span class="pre">grep</span></code>:</p>
+<div class="code bash highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">samewords</span> <span class="n">my</span><span class="o">-</span><span class="n">awesome</span><span class="o">-</span><span class="n">edition</span><span class="o">.</span><span class="n">tex</span> <span class="o">|</span> <span class="n">grep</span> <span class="n">sameword</span>
+</pre></div>
+</div>
+<p>You can define a output location with the <code class="docutils literal notranslate"><span class="pre">--output</span></code> option:</p>
+<div class="code bash highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">samewords</span> <span class="o">--</span><span class="n">output</span> <span class="o">~/</span><span class="n">Desktop</span><span class="o">/</span><span class="n">test</span><span class="o">/</span><span class="n">output</span> <span class="n">my</span><span class="o">-</span><span class="n">awesome</span><span class="o">-</span><span class="n">edition</span><span class="o">.</span><span class="n">tex</span>
+</pre></div>
+</div>
+<p>This will check whether <code class="docutils literal notranslate"><span class="pre">~/Desktop/test/output</span></code> is a directory or a file.
+If it is a directory, it will put the file inside that directory (with
+the original name). If it is a file, it will ask you whether you want to
+overwrite it. If it is neither a directory nor a file, it will create
+the file <code class="docutils literal notranslate"><span class="pre">output</span></code> and write the content to that.</p>
+<p>Alternatively regular unix redirecting will work just as well in a Unix
+context:</p>
+<div class="code bash highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">samewords</span> <span class="n">my</span><span class="o">-</span><span class="n">beautiful</span><span class="o">-</span><span class="n">edition</span><span class="o">.</span><span class="n">tex</span> <span class="o">&gt;</span> <span class="o">~/</span><span class="n">Desktop</span><span class="o">/</span><span class="n">test</span><span class="o">/</span><span class="n">output</span><span class="o">.</span><span class="n">tex</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="contents">
+<h2>Contents<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#easy-installation">Easy installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#optional-virtual-environment">Optional: Virtual environment</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="details.html">Annotation details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cleaning.html">Cleaning and updating files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#example-file">Example file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#commands">Commands</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reporting.html">Issue reporting and testing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reporting.html#to-file-a-bug">To file a bug</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reporting.html#testing-updated-issue-branches">Testing updated issue branches</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developing.html">For development</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developing.html#if-you-want-to-make-a-pull-request">If you want to make a pull request</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
+</ul>
+</div>
+<div class="section" id="disclaimer">
+<h1>Disclaimer<a class="headerlink" href="#disclaimer" title="Permalink to this headline">¶</a></h1>
+<p>I provide no guarantees for the integrity of your software or editions when you
+use the package.</p>
+<p>Copyright © 2017 Michael Stenskjær Christensen, MIT License.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Samewords – word disambigutaion in critical text editions</a><ul>
+<li><a class="reference internal" href="#install-and-usage">Install and usage</a></li>
+<li><a class="reference internal" href="#contents">Contents</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+<li><a class="reference internal" href="#disclaimer">Disclaimer</a></li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="installation.html" title="next chapter">Installation</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Michael Stenskjær Christensen.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
