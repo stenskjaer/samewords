@@ -71,4 +71,4 @@ context:
 
     samewords my-beautiful-edition.tex > ~/Desktop/test/output.tex
 
-
+See more in the `documentation <https://samewords.readthedocs.io/en/latest/>`__.
