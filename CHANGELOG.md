@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [0.4.0]
+### Changed
+- Improved Unicode support. The script now fully supports Unicode 10 and
+  correctly recognizes word characters in any language.
+
 ## [0.3.0]
 ### Added
 - Separate documentation on
@@ -24,7 +29,7 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
 - `context_distance` is now also actually included in the update of the settings
   during parsing of user configuration file [#22].
 - Words with intervening comments are annotated correctly [#21].
-- Consecutive sameword context matches now actually all get annotated [#20]. 
+- Consecutive sameword context matches now actually all get annotated [#20].
 
 ### Changed
 - Make the annotation more robust to `\edtext{}{}`s and `\lemma{}`s where the
@@ -67,7 +72,7 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
 ### Added
 - Context length matching *exactly* 30 content words rather than *at least*.
 - Completely rewritten underlying system with significantly simplified
-  tokenization and matching approach. 
+  tokenization and matching approach.
 - Add configuration option for enabling case sensitive proximity matching.
 - Ensure that the user submits a unicode encoded file.
 - Ensure that all characters are unicode composed characters. This means that
@@ -103,7 +108,7 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
   included or excluded. See the documentation on the configuration file.
 
 ### Changed
-- Ignored macros are not included in the sameword wrap when they follow a match. 
+- Ignored macros are not included in the sameword wrap when they follow a match.
 - Code refactoring and improvement of some tests.
 - Include `\index{}` in `exclude_macros` by default. Index macros should always
   be ignored as their content is not relevant to the content of the text (it's

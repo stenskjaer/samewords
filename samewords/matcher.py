@@ -1,4 +1,4 @@
-import re
+import regex
 
 from samewords.tokenize import Words, Registry, Word, Tokenizer, Macro, Element
 from samewords.brackets import Brackets
@@ -135,7 +135,7 @@ class Matcher:
 
                 # Clean the app note's `\lemma{}` if there is any.
                 for i in [v for v, a in enumerate(word.clean_apps) if
-                          re.search(r'\\lemma', a.cont)]:
+                          regex.search(r'\\lemma', a.cont)]:
                     # get the relevant app Element
                     app_note = word.clean_apps[i]
                     # split up the apparatus note into before, lem, and after
@@ -226,9 +226,9 @@ class Matcher:
         # Is the phrase wrapped?
         sw_wrap = None
         lvl_match = None
-        pat = re.compile(r'(\\sameword)([^{]+)?')
+        pat = regex.compile(r'(\\sameword)([^{]+)?')
         sw_idx = [i for i, val in enumerate(word.macros)
-                  if re.search(pat, val.full())]
+                  if regex.search(pat, val.full())]
         try:
             sw_idx = sw_idx[0]
         except IndexError:
@@ -238,7 +238,7 @@ class Matcher:
         # current chunk, then this chunk is already wrapped in its entirety,
         # and should not be rewrapped. In that case we update the wrap data.
         if sw_idx is not -1 and word.macros[sw_idx].to_closing == len(part) - 1:
-            sw_match = re.search(pat, word.macros[sw_idx].full())
+            sw_match = regex.search(pat, word.macros[sw_idx].full())
             sw_wrap = sw_match.group(0)
             lvl_match = sw_match.group(2)
 
@@ -363,8 +363,8 @@ class Matcher:
         If there is no ellipsis pattern, return an empty Words list. """
         settings_pat = '|'.join([pat for pat in
                                  settings['ellipsis_patterns']])
-        ellipsis_pat = re.compile('(' + settings_pat + ')')
-        ellipsis_search = re.search(ellipsis_pat, input_string)
+        ellipsis_pat = regex.compile('(' + settings_pat + ')')
+        ellipsis_search = regex.search(ellipsis_pat, input_string)
         if ellipsis_search:
             spos = ellipsis_search.span()[0]
             epos = ellipsis_search.span()[1]

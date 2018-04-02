@@ -10,7 +10,10 @@ setup(name='samewords',
       version=__version__,
       packages=find_packages(),
       install_requires=[
-          'pytest==3.0.7',
+          'regex==2018.2.21'
+      ],
+      test_requires=[
+          'pytest==3.0.7'
       ],
       classifiers=[
           'Development Status :: 4 - Beta',

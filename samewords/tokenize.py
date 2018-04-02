@@ -1,4 +1,4 @@
-import re
+import regex
 
 from collections import UserString, UserList
 from typing import List, Tuple, Dict, Union
@@ -31,7 +31,7 @@ class Macro(UserString):
         super().__init__(self)
         self.name = self._identify_name()
         self.oarg = self._optional_argument()
-        self.opening = re.match(re.escape(self.name + self.oarg + '{'),
+        self.opening = regex.match(regex.escape(self.name + self.oarg + '{'),
                                 self.data)
         self.empty = self._is_empty()
         self.pos = pos              # register start index in word
@@ -57,13 +57,14 @@ class Macro(UserString):
         any single character. Find that.
         """
         if self.data is not '':
-            return re.match(r'\\(\w+|.)', self.data).group(0)
+            return regex.match(r'\\(\w+|.)', self.data).group(0)
 
     def _optional_argument(self) -> str:
         """
         Identify the possible optinal argument of the marco.
         """
-        match = re.match(re.escape(self.name) + r'(\[[^\]]+\])', self.data)
+        match = regex.match(regex.escape(self.name) + r'(\[[^\]]+\])',
+                            self.data)
         if match:
             return match.group(1)
         return ''
@@ -328,7 +329,7 @@ class Tokenizer:
         """
         self.data = input_str
         # Recognized punctuation characters
-        self._punctuation = re.compile(
+        self._punctuation = regex.compile(
             r'[{}]+'.format(''.join(settings['punctuation']))
         )
         # Characters that need to be escaped in LaTeX
@@ -392,18 +393,18 @@ class Tokenizer:
         word = Word()
         while pos < len(string):
             c = string[pos]
-            if re.match('[\w\d]', c):
-                match = re.match('[\w\d\-\']+', string[pos:]).group(0)
+            if regex.match('[\w\d]', c):
+                match = regex.match('[\w\d\-\']+', string[pos:]).group(0)
                 word.content.append(Element(match, pos))
                 pos += len(match)
                 continue
             if c.isspace():
-                word.spaces = re.match('\s+', string[pos:]).group(0)
+                word.spaces = regex.match('\s+', string[pos:]).group(0)
                 pos += len(word.spaces)
                 break
-            if re.search(self._punctuation, c):
+            if regex.search(self._punctuation, c):
                 # Exception: .5 is part of word, not punctuation.
-                if re.match('\.\d', string[pos:]):
+                if regex.match('\.\d', string[pos:]):
                     word.content.append(Element(c, pos))
                     pos += 1
                     continue
@@ -495,7 +496,7 @@ class Tokenizer:
                 word.comment.append(Element(line, pos))
                 pos += len(line)
                 continue
-            if re.match(r'[\U00000020-\U0010FFFF]', c):
+            if regex.match(r'[\U00000020-\U0010FFFF]', c):
                 # Matches ANY unicode codepoint and registers it.
                 word.content.append(Element(c, pos))
                 pos += 1

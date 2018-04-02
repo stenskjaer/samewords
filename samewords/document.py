@@ -8,8 +8,7 @@ of a reledmac-encoded LaTeX file and serve up content from each paragraph
 between `\beginnumbering` and `\endnumbering` for sameword processing.
 """
 
-import re
-from typing import Dict
+import regex
 import unicodedata
 
 from typing import List
@@ -33,8 +32,8 @@ def chunk_doc(content: str) -> List[str]:
 
     :param content: The content of the document as a string.
     """
-    starts = re.finditer(r'\\beginnumbering\n', content)
-    ends = re.finditer(r'\n\\endnumbering', content)
+    starts = regex.finditer(r'\\beginnumbering\n', content)
+    ends = regex.finditer(r'\n\\endnumbering', content)
     if '\\beginnumbering\n' in content:
         indices = []
         for start, end in zip(starts, ends):
@@ -65,9 +64,10 @@ def chunk_pars(content):
     """
 
     if content.find(r'\autopar') is not -1:
-        positions = [idx.start() for idx in re.finditer('\n\n', content)]
+        positions = [idx.start() for idx in regex.finditer('\n\n', content)]
     else:
-        positions = [idx.start() for idx in re.finditer(r'\\pstart', content)]
+        positions = [idx.start()
+                     for idx in regex.finditer(r'\\pstart', content)]
 
     paragraphs = []
     paragraphs.append(content[:positions[0]])
