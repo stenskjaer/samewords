@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 from samewords import __version__
 
 with open('README.md') as file:
-    long_description = file.read()
+    long_description = str(file.read())
 
 setup(name='samewords',
       version=__version__,
