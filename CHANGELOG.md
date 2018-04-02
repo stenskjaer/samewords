@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [0.4.1]
+### Changed
+- Convert the README to markdown.
+
 ## [0.4.0]
 ### Changed
 - Improved Unicode support. The script now fully supports Unicode 10 and
