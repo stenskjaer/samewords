@@ -24,8 +24,16 @@ the critical text to mark all potential instances of ambiguous references
 manually (see the *reledmac* handbook for the details on that). *Samewords*
 automates this step for the editor.
 
-Install and usage
------------------
+Web service and API
+-------------------
+
+See some quick results by `trying out the online web service <https://s3.amazonaws.com/samewords-app/index.html>`__.
+
+For more on this and the available API endpoint, see :ref:`apiinterface`.
+
+
+Local install and usage
+-----------------------
 
 .. code:: bash
 
@@ -82,6 +90,7 @@ Contents
    details
    cleaning
    configuration
+   api
    reporting
    developing
    license
