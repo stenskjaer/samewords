@@ -43,8 +43,8 @@ A complete configuration file could contain the following content:
 
 
 
-Commands
---------
+Parameters
+----------
 
 ``exclude_macros``
 ^^^^^^^^^^^^^^^^^^

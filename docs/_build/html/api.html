@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Cleaning and updating files &#8212; Samewords 0.3.0 documentation</title>
+    <title>API Interface &#8212; Samewords 0.3.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" src="_static/documentation_options.js"></script>
@@ -15,8 +15,8 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Configuration" href="configuration.html" />
-    <link rel="prev" title="Annotation details" href="details.html" />
+    <link rel="next" title="Issue reporting and testing" href="reporting.html" />
+    <link rel="prev" title="Configuration" href="configuration.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -31,19 +31,19 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="cleaning-and-updating-files">
-<h1>Cleaning and updating files<a class="headerlink" href="#cleaning-and-updating-files" title="Permalink to this headline">¶</a></h1>
-<p>When an edition has been annotated, but you want to make further changes to the
-text, you don’t have to keep track of which changes have consequences for the
-<code class="docutils literal notranslate"><span class="pre">\sameword{}</span></code> annotations.</p>
-<p>You can either clean the text for any annotations with the <code class="docutils literal notranslate"><span class="pre">--clean</span></code> command
-line argument or simply make your changes to the file with annotations and then
-run the script with the <code class="docutils literal notranslate"><span class="pre">--update</span></code> to do exactly that. You don’t have to worry
-about updating existing annotations. But if you change a <code class="docutils literal notranslate"><span class="pre">\edtext{}</span></code> that has
-a <code class="docutils literal notranslate"><span class="pre">\lemma{}</span></code> you of course need to update the lemma too.</p>
-<p>There is an <code class="docutils literal notranslate"><span class="pre">--annotate</span></code> argument too, just for good measure, but the script
-runs in that mode by default, so there is no need to use it under normal
-circumstances.</p>
+  <div class="section" id="api-interface">
+<span id="apiinterface"></span><h1>API Interface<a class="headerlink" href="#api-interface" title="Permalink to this headline">¶</a></h1>
+<p>There is an API endpoint for the web service (UI available at
+<a class="reference external" href="https://s3.amazonaws.com/samewords-app/index.html">https://s3.amazonaws.com/samewords-app/index.html</a>).</p>
+<p>Endpoint: <a class="reference external" href="https://90tqezjfmk.execute-api.us-east-1.amazonaws.com/prod">https://90tqezjfmk.execute-api.us-east-1.amazonaws.com/prod</a></p>
+<p>Query parameters:</p>
+<ul class="simple">
+<li>url: the absolute url of the file that you want processed.</li>
+<li>mode: the processing mode that you want to apply. Options are [“annotate”,
+“update”, “clean”]</li>
+</ul>
+<p>An example call would therefore be to
+<code class="docutils literal notranslate"><span class="pre">https://90tqezjfmk.execute-api.us-east-1.amazonaws.com/prod?url=https://myamazingserver.net/my-edition.tex?mode=update</span></code>.</p>
 </div>
 
 
@@ -55,15 +55,15 @@ circumstances.</p>
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="details.html" title="previous chapter">Annotation details</a></li>
-      <li>Next: <a href="configuration.html" title="next chapter">Configuration</a></li>
+      <li>Previous: <a href="configuration.html" title="previous chapter">Configuration</a></li>
+      <li>Next: <a href="reporting.html" title="next chapter">Issue reporting and testing</a></li>
   </ul></li>
 </ul>
 </div>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="_sources/cleaning.rst.txt"
+      <li><a href="_sources/api.rst.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div>
@@ -91,7 +91,7 @@ circumstances.</p>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |
-      <a href="_sources/cleaning.rst.txt"
+      <a href="_sources/api.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 
