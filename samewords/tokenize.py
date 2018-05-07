@@ -398,8 +398,8 @@ class Tokenizer:
                 word.content.append(Element(match, pos))
                 pos += len(match)
                 continue
-            if c.isspace():
-                word.spaces = regex.match('\s+', string[pos:]).group(0)
+            if c.isspace() or c == '~':
+                word.spaces = regex.match('[\s~]+', string[pos:]).group(0)
                 pos += len(word.spaces)
                 break
             if regex.search(self._punctuation, c):
