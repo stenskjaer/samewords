@@ -45,7 +45,7 @@ settings = {
     # escaped codepoints (e.g. \u0101 = ā) or ranges of Unicode codepoints (
     # \u0100—\u017F = the Latin Extended A block).
     'punctuation': [
-        r'!"#$&\'()*+,-./:;<=>?@^_`|~–—\[\]',    # general punctuation
+        r'!"#$&\'()*+,-./:;<=>?@^_`|~–—\[\]«»¡¿',    # general punctuation
         r'⟦⟧⟨⟩⟪⟫⟬⟭⟮⟯',          # special brackets from the Misc Mat. Symbols A
         r'\u2000-\u206F',    # General punctuation (≠ the punctuation above)
         r'\u2e00-\u2e7f',    # Supplemental punctuation

@@ -6,6 +6,7 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
 ## [0.4.3]
 ### Added
 - Documentation of web interface and API.
+- Four more punctuation characters («»¡¿).
 
 ## [0.4.2]
 ### Changed
