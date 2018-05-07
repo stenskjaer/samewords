@@ -19,9 +19,9 @@ settings = {
         r'\kern'
     ],
 
-    # List of patterns that should be included when matching for ellipsis symbols
-    #  in `\lemma{}`. These are used in a regular expression match, so any valid
-    # python regular expression will work.
+    # List of patterns that should be included when matching for ellipsis
+    # symbols in `\lemma{}`. These are used in a regular expression match,
+    # so any valid python regular expression will work.
     'ellipsis_patterns': [
         r'\\l?dots({})?',   # \dots, \dots{}, \ldots, \ldots{}
         '-+',               # one or more dashes
@@ -30,14 +30,15 @@ settings = {
     ],
 
     # Should the proximity search be case sensitive? That would mean that the
-    # search for "an" in the context string "An example" would not match. This is a
-    # good setting when lemma words are not lower cased in the critical apparatus.
+    #  search for "an" in the context string "An example" would not match.
+    # This is a good setting when lemma words are not lower cased in the
+    # critical apparatus.
     'sensitive_context_match': True,
 
-    # The content search distance determines how many words before and after and
-    # entry should be compared. A normal length line rarely contains more than 15
-    #  words, so the default of 20 should often be enough. If a layout with every
-    #  long lines is used, it may be necessary to increase it.
+    # The content search distance determines how many words before and after
+    # and entry should be compared. A normal length line rarely contains more
+    #  than 15 words, so the default of 20 should often be enough. If a
+    # layout with every long lines is used, it may be necessary to increase it.
     'context_distance': 20,
 
     # Additional punctuation characters can be added here. It can either be
