@@ -23,6 +23,12 @@ class TestTokenize:
         assert Tokenizer(text).wordlist == expect
         assert Tokenizer(text).wordlist.write() == text
 
+    def test_latex_non_breaking_space(self):
+        text = '2~dollars'
+        expect = ['2', 'dollars']
+        assert Tokenizer(text).wordlist == expect
+        assert Tokenizer(text).wordlist.write() == text
+
     def test_single_macro(self):
         text = 'text \emph{emphasis} is nice'
         expect = ['text', 'emphasis', 'is', 'nice']
@@ -136,7 +142,7 @@ class TestTokenize:
         assert Tokenizer(kern).wordlist.write() == kern
 
     def test_punctuation(self):
-        text = 'text, with. punctuation.-!"#$&()*+,-./:;<=>?@[]^`|~ enough?!'
+        text = 'text, with. punctuation.-!"#$&()*+,-./:;<=>?@[]^`| enough?!'
         expect = ['text', 'with', 'punctuation', 'enough']
         tokens = Tokenizer(text)
         assert tokens.wordlist == expect
