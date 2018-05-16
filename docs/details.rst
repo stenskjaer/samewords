@@ -20,3 +20,27 @@ It has however not been tested with any languages that are not left-to-right.
 
 If you find any problems with any language, you should
 `file a bug report <https://github.com/stenskjaer/samewords/issues>`_.
+
+Overlapping apparatus entries
+=============================
+
+In cases where it is necessary to create two apparatus entries that overlap, the
+line numbers of the overlapping structure must be indicated manually (the
+``\xxref{}`` can assist with that).
+
+.. code-block:: latex
+
+   \beginnumbering
+   \pstart
+   One %
+   \edtext{
+       and two
+       \edtext{and}{\xxref{start}{end}\lemma{and–and}\Afootnote{overlapping}}\edlabel{start}%
+       four
+   }{\lemma{and–four}\Afootnote{del.}}
+   and\edlabel{end} five.
+   \pend
+   \endnumbering
+
+Here the two labels ``\edlabel{start}`` and ``\edlabel{end}`` indicate the
+extent of the inner overlapping note.
