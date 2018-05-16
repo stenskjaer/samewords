@@ -25,7 +25,7 @@ settings = {
     'ellipsis_patterns': [
         r'\\l?dots({})?',   # \dots, \dots{}, \ldots, \ldots{}
         '-+',               # one or more dashes
-        '–',                # one or more en-dash
+        '–+',               # one or more en-dash
         '—'                 # em-dash
     ],
 

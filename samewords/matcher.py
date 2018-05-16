@@ -35,11 +35,22 @@ class Matcher:
             # Identify search words and ellipsis
             search_ws, ellipsis = self._define_search_words(edtext)
 
-            # Establish the context
-            context_before = self._get_context_before(self.words, edtext_start)
-            context_after = self._get_context_after(self.words, edtext_end)
-            contexts = ([w.get_text() for w in context_before]
-                        + [w.get_text() for w in context_after])
+            if ellipsis:
+                # If we have a lemma note with ellipsis, we need to establish
+                # context for both ellipsis elements (which may be nested
+                # inside the edtext).
+                ell_sidx = edtext.index(search_ws[0], default=0) + edtext_start
+                ell_eidx = edtext.rindex(search_ws[1], default=0) + edtext_start
+
+                el1_ctxt = self._get_contexts(self.words, ell_sidx)
+                el2_ctxt = self._get_contexts(self.words, ell_eidx)
+                contexts = el1_ctxt + el2_ctxt
+            else:
+                # Establish the context
+                ctxt_before = self._get_context_before(self.words, edtext_start)
+                ctxt_after = self._get_context_after(self.words, edtext_end)
+                contexts = [w.get_text() for w in ctxt_before] + \
+                           [w.get_text() for w in ctxt_after]
 
             # Is there a match in either context?
             if search_ws and self._in_context(contexts, search_ws, ellipsis):
@@ -49,9 +60,9 @@ class Matcher:
                 if ellipsis:
                     sidx = edtext.index(search_ws[0], default=0)
                     eidx = edtext.rindex(search_ws[1], default=0)
-                    if self._in_context(contexts, search_ws[0:1], ellipsis):
+                    if self._in_context(el1_ctxt, search_ws[0:1], ellipsis):
                         self._add_sameword(edtext[sidx:sidx+1], edtext_lvl)
-                    if self._in_context(contexts, search_ws[-1:], ellipsis):
+                    if self._in_context(el2_ctxt, search_ws[-1:], ellipsis):
                         self._add_sameword(edtext[eidx:eidx+1], edtext_lvl)
                 else:
                     try:
@@ -79,10 +90,10 @@ class Matcher:
                         # replacing.
                         lemma = self._find_ellipsis_words(app_note.cont[s:e])
                         idxs = [i for i, w in enumerate(lemma) if w.content]
-                        if self._in_context(contexts, search_ws[0:1], ellipsis):
+                        if self._in_context(el1_ctxt, search_ws[0:1], ellipsis):
                             lemma[idxs[0]] = self._add_sameword(
                                 lemma[idxs[0]:idxs[0]+1], level=0)[0]
-                        if self._in_context(contexts, search_ws[-1:], ellipsis):
+                        if self._in_context(el2_ctxt, search_ws[-1:], ellipsis):
                             lemma[idxs[-1]] = self._add_sameword(
                                 lemma[idxs[-1]:idxs[-1]+1], level=0)[0]
 
@@ -98,14 +109,16 @@ class Matcher:
 
                 # Then annotate the contexts
                 # ------------------------------
-                for context in [context_before, context_after]:
-                    if ellipsis:
-                        if self._in_context(context, search_ws[0:1], ellipsis):
-                            self._annotate_context(context, search_ws[0:1])
-                        if self._in_context(context, search_ws[-1:], ellipsis):
-                            self._annotate_context(context, search_ws[-1:])
-                    else:
-                        self._annotate_context(context, search_ws)
+                if ellipsis:
+                    for pos, word in zip([ell_sidx, ell_eidx], search_ws):
+                        ctxt = self._get_context_before(self.words, pos) +\
+                               self._get_context_after(self.words, pos + 1)
+                        if self._in_context(ctxt, [word], ellipsis):
+                            self._annotate_context(ctxt, [word])
+                else:
+                    for ctxt in [ctxt_before, ctxt_after]:
+                        self._annotate_context(ctxt, search_ws)
+
         return self.words
 
     def update(self, wordlist: Words = None) -> Words:
@@ -169,6 +182,11 @@ class Matcher:
                     return wordlist[start:end]
         return None
 
+    def _get_contexts(self, words: Words, pivot: int) -> List:
+        l1 = [w.get_text() for w in self._get_context_before(words, pivot)]
+        l2 = [w.get_text() for w in self._get_context_after(words, pivot + 1)]
+        return l1 + l2
+
     def _get_context_after(self, complete: Words, boundary: int) -> Words:
         distance = settings['context_distance']
         start = boundary
@@ -186,11 +204,13 @@ class Matcher:
         end = boundary
         start = end
         count = 0
-        while count < distance and start > 0:
+        while count < distance and start >= 0:
             w: Word = complete[start]
             start -= 1
             if w.content:
                 count += 1
+        if start == -1:
+            return complete[:end]
         return complete[start:end]
 
     def _annotate_context(self, context: Words, searches: List) -> None:

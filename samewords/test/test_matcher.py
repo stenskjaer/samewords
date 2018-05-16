@@ -17,6 +17,25 @@ class TestAnnotate:
         words = matcher.cleanup()
         return words.write()
 
+    def test_edtext_internal_ellipsis_match_first(self):
+        text = r"A \edtext{B A B C}{\lemma{B–C}\Afootnote{}}"
+        exp = (r"A \edtext{\sameword[1]{B} A \sameword{B} C}{\lemma{"
+               r"\sameword{B}–C}\Afootnote{}}")
+        assert self.run_annotation(text) == exp
+
+    def test_edtext_internal_ellipsis_match_last(self):
+        text = r"A \edtext{B C D C}{\lemma{B–C}\Afootnote{}}"
+        exp = (r"A \edtext{B \sameword{C} D \sameword[1]{C}}{\lemma{"
+               r"B–\sameword{C}}\Afootnote{}}")
+        assert self.run_annotation(text) == exp
+
+    def test_edtext_internal_ellipsis_match_first_last(self):
+        text = r"A \edtext{B C D B C}{\lemma{B–C}\Afootnote{}}"
+        exp = (r"A \edtext{\sameword[1]{B} \sameword{C} D \sameword{B} "
+               r"\sameword[1]{C}}{\lemma{\sameword{B}–\sameword{"
+               r"C}}\Afootnote{}}")
+        assert self.run_annotation(text) == exp
+
     def test_annotation_thinspace_shorthand_in_word(self):
         text = r"""5\,000 or \edtext{5\,000}{\Afootnote{6\,000}}"""
         expect = (r'\sameword{5\,000} or \edtext{\sameword[1]{5\,000}}{'
@@ -83,7 +102,6 @@ class TestAnnotate:
                   'B}{\lemma{\sameword{F}--B}}')
         assert self.run_annotation(text) == expect
 
-
     def test_edtext_with_custom_punctuation(self):
         text = ('B˧ \edtext{B}{}')
         expect = ('\sameword{B}˧ \edtext{\sameword[1]{B}}{}')
@@ -91,7 +109,6 @@ class TestAnnotate:
         settings['punctuation'] += '˧'
         assert self.run_annotation(text) == expect
         settings['punctuation'] = old
-
 
     def test_edtext_with_exotic_punctuation(self):
         text = ('o “o ⸀o o. o \edtext{o}{}')
@@ -526,7 +543,7 @@ class TestAnnotate:
         expect = ("\\edlabelS{da-49-l1q1-ysmgk1}% \n\\no{1.1} Illud de quo "
                   r"est scientia est intelligibile, quia cum scientia sit "
                   r"habitus intellectus, de quo "
-                  r"\sameword{est} scientia oportet esse intelligibile; sed "
+                  r"est scientia oportet esse intelligibile; sed "
                   r"anima non \sameword{est} intelligibile, quia omnis nostra "
                   r"cognitio ortum habet a sensu, \edtext{unde ipsum "
                   r"intelligere non \sameword[1]{est}}{\lemma{unde \dots{} "

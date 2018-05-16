@@ -5,6 +5,9 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
 
 ## [0.4.3]
 ### Changed
+- Context matches of `\edtext{}{}`-annotations where the second argument
+  contains `\lemma{}` with an ellipsis marker are now done correctly. This means
+  that matches inside the `\edtext{}{}` are also matched and annotated.
 - Treat `~` as a space character.
 
 ### Added
