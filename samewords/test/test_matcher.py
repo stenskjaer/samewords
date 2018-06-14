@@ -17,6 +17,19 @@ class TestAnnotate:
         words = matcher.cleanup()
         return words.write()
 
+    def test_multiword_sameword_w_edtext_inside(self):
+        text = (r"""
+aa bb 
+\edtext{cc 
+	\edtext{
+			\edtext{aa}{\Afootnote{AA \emph{X}}}
+		bb}%
+		{\Afootnote{BB AA \emph{Y}}}%
+		}%
+	{\lemma{cc–bb}\Afootnote{\emph{Ø}}}.        
+        """)
+        print(self.run_annotation(text))
+
     def test_edtext_internal_ellipsis_match_first(self):
         text = r"A \edtext{B A B C}{\lemma{B–C}\Afootnote{}}"
         exp = (r"A \edtext{\sameword[1]{B} A \sameword{B} C}{\lemma{"
