@@ -24,6 +24,238 @@ class TestAnnotate:
         assert self.run_annotation(text) == expect
         assert self.run_cleanup(expect) == text
 
+    # MULTIWORD TESTS GROUPED TOGETHER HERE
+    def test_match_single_level_multiword_separated(self):
+        text = (r'a b and a b \edtext{a b}{\Bfootnote{fnote}} a b and a b')
+        expect = (r'\sameword{a} \sameword{b} and \sameword{a} \sameword{b} '
+                  r'\edtext{\sameword[1]{a} \sameword[1]{b}}{\Bfootnote{fnote}} '
+                  r'\sameword{a} \sameword{b} and \sameword{a} \sameword{b}')
+        expect_multi = (r'\sameword{a b} and \sameword{a b} '
+                        r'\edtext{\sameword[1]{a b}}{\Bfootnote{'
+                        r'fnote}} \sameword{a b} and \sameword{a b}')
+        clean = (r'a b and a b \edtext{a b}{\Bfootnote{fnote}} a b and a b')
+        assert self.run_annotation(text) == expect
+        assert self.run_cleanup(expect) == clean
+
+        global settings
+        settings['multiword'] = True
+        assert self.run_annotation(text) == expect_multi
+        settings['multiword'] = False
+
+    def test_annotation_thinspace_shorthand_in_number_word(self):
+        text = (r"5\,000 and 6\,000 \edtext{5\,000 and 6\thinspace{}000}{"
+                r"\Afootnote{6\,000}}")
+        expect = (r'\sameword{5\,000} \sameword{and} \sameword{6\,000} \edtext{'
+                  r'\sameword[1]{5\,000} \sameword[1]{and} '
+                  r'\sameword[1]{6\thinspace{}000}}{\Afootnote{6\,000}}')
+        expect_multi = (r'\sameword{5\,000 and 6\,000} \edtext{'
+                        r'\sameword[1]{5\,000 and 6\thinspace{}000}}'
+                        r'{\Afootnote{6\,000}}')
+        assert self.run_annotation(text) == expect
+        assert self.run_cleanup(expect) == text
+
+        global settings
+        settings['multiword'] = True
+        assert self.run_annotation(text) == expect_multi
+        settings['multiword'] = False
+
+    def test_macro_update_copies_to_closing_attribute(self):
+        """If the sameword annotation of edtext entries as context samewords
+        does not copy the to_closing property during updating, we will get
+        nested sameword annotations. """
+        text = r"""
+            \edtext{my phrase}{\Afootnote{}}
+            \edtext{my phrase}{\Afootnote{}}
+            \edtext{my phrase}{\Afootnote{}}
+        """
+        expect_single = r"""
+            \edtext{\sameword[1]{my} \sameword[1]{phrase}}{\Afootnote{}}
+            \edtext{\sameword[1]{my} \sameword[1]{phrase}}{\Afootnote{}}
+            \edtext{\sameword[1]{my} \sameword[1]{phrase}}{\Afootnote{}}
+        """
+        expect_multi = r"""
+            \edtext{\sameword[1]{my phrase}}{\Afootnote{}}
+            \edtext{\sameword[1]{my phrase}}{\Afootnote{}}
+            \edtext{\sameword[1]{my phrase}}{\Afootnote{}}
+        """
+        assert self.run_annotation(text) == expect_single
+        assert self.run_cleanup(expect_single) == text
+        global settings
+        settings['multiword'] = True
+        assert self.run_annotation(text) == expect_multi
+        settings['multiword'] = False
+
+    def test_match_single_level_multiword_lemma(self):
+        text = (r'a b and a b \edtext{a b}{\lemma{a b}\Bfootnote{'
+                r'fnote}} a b and a b')
+        expect_multi = (
+            r'\sameword{a b} and \sameword{a b} \edtext{\sameword[1]{a '
+            r'b}}{\lemma{\sameword{a b}}\Bfootnote{fnote}} \sameword{a b}'
+            r' and \sameword{a b}'
+        )
+        expect_single = (
+            r'\sameword{a} \sameword{b} and \sameword{a} \sameword{b} '
+            r'\edtext{\sameword[1]{a} \sameword[1]{b}}{\lemma{\sameword{a} '
+            r'\sameword{b}}\Bfootnote{fnote}} \sameword{a} \sameword{b} and '
+            r'\sameword{a} \sameword{b}'
+        )
+        clean = (r'a b and a b \edtext{a b}{\lemma{a b}\Bfootnote{fnote}} a b '
+                 r'and a b')
+        assert self.run_annotation(text) == expect_single
+        assert self.run_cleanup(expect_single) == clean
+        global settings
+        settings['multiword'] = True
+        assert self.run_annotation(text) == expect_multi
+        settings['multiword'] = False
+
+    def test_multiword_lemma(self):
+        text = (r"per multa per causam tamen scire \edtext{causam}{\lemma{"
+                r"causam}\Bfootnote{fnote}} est \edtext{per causam}{\lemma{"
+                r"per causam}\Bfootnote{causam rei B}} cognoscere \edtext{"
+                r"causam}{\lemma{causam}\Bfootnote{fnote}}.")
+        expect_multi = (
+            r"per multa \sameword{per \sameword{causam}} tamen scire "
+            r"\edtext{\sameword[1]{causam}}{\lemma{\sameword{causam}}"
+            r"\Bfootnote{fnote}} est \edtext{\sameword[1]{per "
+            r"\sameword{causam}}}{\lemma{\sameword{per causam}}"
+            r"\Bfootnote{causam rei B}} cognoscere \edtext{\sameword[1]"
+            r"{causam}}{\lemma{\sameword{causam}}\Bfootnote{fnote}}."
+        )
+        expect_single = (
+            r"\sameword{per} multa \sameword{per} \sameword{causam} tamen scire "
+            r"\edtext{\sameword[1]{causam}}{\lemma{\sameword{causam}}"
+            r"\Bfootnote{fnote}} est \edtext{\sameword[1]{per} "
+            r"\sameword[1]{causam}}{\lemma{\sameword{per} \sameword{causam}}"
+            r"\Bfootnote{causam rei B}} cognoscere \edtext{\sameword[1]"
+            r"{causam}}{\lemma{\sameword{causam}}\Bfootnote{fnote}}."
+        )
+        assert self.run_annotation(text) == expect_single
+        assert self.run_cleanup(expect_single) == text
+        global settings
+        settings['multiword'] = True
+        assert self.run_annotation(text) == expect_multi
+        settings['multiword'] = False
+
+    def test_custom_multiword(self):
+        """Macro `\exclude` is explicitly excluded, so what is compared is
+        'Hákonar' and 'Hákonar' which is then matched and annotated. """
+        text = (r'Han var sonr \edtext{Hákon\emph{ar}\exclude{Håkon II} '
+                r'konungs}{\Afootnote{k\emph{on}gſ hakon\emph{ar} Sk}}, '
+                r'sons Hákonar\exclude{Håkon I} konungs')
+        expect_single = (
+            r'Han var sonr \edtext{\sameword[1]{Hákon\emph{ar}}'
+            r'\exclude{Håkon II} \sameword[1]{konungs}}{\Afootnote{k\emph{on}gſ'
+            r' hakon\emph{ar} Sk}}, sons \sameword{Hákonar}\exclude{'
+            r'Håkon I} \sameword{konungs}'
+        )
+        expect_multi = (
+            r'Han var sonr \edtext{\sameword[1]{Hákon\emph{'
+            r'ar}\exclude{Håkon II} konungs}}{\Afootnote{k\emph{on}gſ '
+            r'hakon\emph{ar} Sk}}, sons \sameword{Hákonar\exclude{'
+            r'Håkon I} konungs}'
+        )
+        global settings
+        old_exclude = settings['exclude_macros']
+        settings['exclude_macros'] += [r'\exclude']
+        assert self.run_annotation(text) == expect_single
+        assert self.run_cleanup(expect_single) == text
+        settings['multiword'] = True
+        assert self.run_annotation(text) == expect_multi
+        settings['multiword'] = False
+        settings['exclude_macros'] = old_exclude
+
+    def test_multiword_with_interveening_macro(self):
+        text = (r'per \sidenote{1rb O} causam scire est \edtext{per causam}{'
+                r'\lemma{per causam}\Bfootnote{causam rei B}} cognoscere')
+        expect_multi = (
+            r'\sameword{per \sidenote{1rb O} causam} scire est \edtext{'
+            r'\sameword[1]{per causam}}{\lemma{\sameword{per causam}}'
+            r'\Bfootnote{causam rei B}} cognoscere'
+        )
+        expect_single = (
+            r'\sameword{per} \sidenote{1rb O} \sameword{causam} scire est '
+            r'\edtext{\sameword[1]{per} \sameword[1]{causam}}{\lemma{'
+            r'\sameword{per} \sameword{causam}}\Bfootnote{causam rei B}} '
+            r'cognoscere'
+        )
+        assert self.run_annotation(text) == expect_single
+        assert self.run_cleanup(expect_single) == text
+        global settings
+        settings['multiword'] = True
+        assert self.run_annotation(text) == expect_multi
+        settings['multiword'] = False
+
+    def test_two_multi_words(self):
+        text = (r"\edtext{nobis apparentes}{\lemma{nobis "
+                r"apparentes}\Bfootnote{\emph{om.} B}} \edtext{nobis "
+                r"apparentes}{\lemma{nobis apparentes}\Bfootnote{\emph{om.} "
+                r"B}}")
+        expect_single = (
+            r"\edtext{\sameword[1]{nobis} \sameword[1]{apparentes}}{"
+            r"\lemma{\sameword{nobis} \sameword{apparentes}}\Bfootnote{"
+            r"\emph{om.} B}} \edtext{\sameword[1]{nobis} "
+            r"\sameword[1]{apparentes}}{\lemma{\sameword{nobis} "
+            r"\sameword{apparentes}}\Bfootnote{\emph{om.} B}}"
+        )
+        expect_multi = (r"\edtext{\sameword[1]{nobis apparentes}}{\lemma{\sameword{"
+                  r"nobis apparentes}}\Bfootnote{\emph{om.} B}} "
+                  r"\edtext{\sameword[1]{nobis apparentes}}{\lemma{\sameword{"
+                  r"nobis apparentes}}\Bfootnote{\emph{om.} B}}")
+        assert self.run_annotation(text) == expect_single
+        assert self.run_cleanup(expect_single) == text
+        global settings
+        settings['multiword'] = True
+        assert self.run_annotation(text) == expect_multi
+        settings['multiword'] = False
+
+    def test_latex_expression_escaped_matching(self):
+        text = r'\edtext{a \& b}{\Afootnote{x}} a \& b'
+        expect_single = (
+            r'\edtext{\sameword[1]{a} \sameword[1]{\&} \sameword[1]{b}}'
+            r'{\Afootnote{x}} \sameword{a} \sameword{\&} \sameword{b}'
+        )
+        expect_multi = (
+            r'\edtext{\sameword[1]{a \& b}}{\Afootnote{x}} \sameword{a \& b}'
+        )
+        assert self.run_annotation(text) == expect_single
+        assert self.run_cleanup(expect_single) == text
+        global settings
+        settings['multiword'] = True
+        assert self.run_annotation(text) == expect_multi
+        settings['multiword'] = False
+
+    def test_match_single_level_multiword_lemma_ellipsis(self):
+        text = (r'\sameword{a} b and c \edtext{a and c}{\lemma{a \dots{} '
+                r'c}\Bfootnote{fnote}} and c and c')
+        expect = (r'\sameword{a} b and \sameword{c} \edtext{\sameword[1]{a} '
+                  r'and \sameword[1]{c}}{\lemma{\sameword{a} \dots{} '
+                  r'\sameword{c}}\Bfootnote{fnote}} and \sameword{c} and '
+                  r'\sameword{c}')
+        clean = (r'a b and c \edtext{a and c}{\lemma{a \dots{} c}\Bfootnote{'
+                 r'fnote}} and c and c')
+        assert self.run_annotation(text) == expect
+        assert self.run_cleanup(expect) == clean
+
+    def test_match_multiword_with_overlaps(self):
+        text = (r"""
+aa bb
+\edtext{
+  cc
+  \edtext{%
+    \edtext{aa}{\Afootnote{AA \emph{X}}}
+    bb
+  }%
+  {\Afootnote{BB AA \emph{Y}}}%
+}%
+{\lemma{cc–bb}\Afootnote{\emph{Ø}}}.
+""")
+
+        global settings
+        settings['multiword'] = False
+        print(self.run_annotation(text))
+
+
+
     def test_annotation_thinspace_in_word(self):
         text = r"""5\thinspace{}000 or \edtext{5\,000}{\Afootnote{6\,000}}"""
         expect = (r'\sameword{5\thinspace{}000} or \edtext{\sameword[1]{5\,'
@@ -99,23 +331,6 @@ class TestAnnotate:
                   '\sameword{o} \edtext{\sameword[1]{o}}{}')
         assert self.run_annotation(text) == expect
 
-    def test_macro_update_copies_to_closing_attribute(self):
-        """If the sameword annotation of edtext entries as context samewords
-        does not copy the to_closing property during updating, we will get
-        nested sameword annotations. """
-        text = r"""
-            \edtext{my phrase}{\Afootnote{}}
-            \edtext{my phrase}{\Afootnote{}}
-            \edtext{my phrase}{\Afootnote{}}
-        """
-        expect = r"""
-            \edtext{\sameword[1]{my phrase}}{\Afootnote{}}
-            \edtext{\sameword[1]{my phrase}}{\Afootnote{}}
-            \edtext{\sameword[1]{my phrase}}{\Afootnote{}}
-        """
-        assert self.run_annotation(text) == expect
-        assert self.run_cleanup(expect) == text
-
     def test_custom_ellipses_without_space(self):
         double_dash = r'A E \edtext{A B C D E}{\lemma{A--E}\Afootnote{}}'
         expect = (r'\sameword{A} \sameword{E} \edtext{\sameword[1]{A} B C '
@@ -162,38 +377,6 @@ class TestAnnotate:
                   r'emphasis}')
         assert self.run_annotation(text) == expect
         assert self.run_cleanup(expect) == text
-
-    def test_match_single_level_multiword(self):
-        text = (r'\sameword{a b} and a b \edtext{a b}{\Bfootnote{fnote}} a b '
-                r'and a b')
-        expect = (r'\sameword{a b} and \sameword{a b} \edtext{\sameword[1]{a '
-                  r'b}}{\Bfootnote{fnote}} \sameword{a b} and \sameword{a b}')
-        clean = (r'a b and a b \edtext{a b}{\Bfootnote{fnote}} a b and a b')
-        assert self.run_annotation(text) == expect
-        assert self.run_cleanup(expect) == clean
-
-    def test_match_single_level_multiword_lemma(self):
-        text = (r'\sameword{a b} and a b \edtext{a b}{\lemma{a b}\Bfootnote{'
-                r'fnote}} a b and a b')
-        expect = (r'\sameword{a b} and \sameword{a b} \edtext{\sameword[1]{a '
-                  r'b}}{\lemma{\sameword{a b}}\Bfootnote{fnote}} \sameword{a b}'
-                  r' and \sameword{a b}')
-        clean = (r'a b and a b \edtext{a b}{\lemma{a b}\Bfootnote{fnote}} a b '
-                 r'and a b')
-        assert self.run_annotation(text) == expect
-        assert self.run_cleanup(expect) == clean
-
-    def test_match_single_level_multiword_lemma_ellipsis(self):
-        text = (r'\sameword{a} b and c \edtext{a and c}{\lemma{a \dots{} '
-                r'c}\Bfootnote{fnote}} and c and c')
-        expect = (r'\sameword{a} b and \sameword{c} \edtext{\sameword[1]{a} '
-                  r'and \sameword[1]{c}}{\lemma{\sameword{a} \dots{} '
-                  r'\sameword{c}}\Bfootnote{fnote}} and \sameword{c} and '
-                  r'\sameword{c}')
-        clean = (r'a b and c \edtext{a and c}{\lemma{a \dots{} c}\Bfootnote{'
-                 r'fnote}} and c and c')
-        assert self.run_annotation(text) == expect
-        assert self.run_cleanup(expect) == clean
 
     def test_three_close_nested_levels(self):
         text = (r"so \edtext{\edtext{\edtext{so}{\lemma{so}\Bfootnote{lev "
@@ -253,19 +436,6 @@ class TestAnnotate:
         assert self.run_annotation(text) == expect
         assert self.run_cleanup(expect) == text
 
-    def test_multiword_lemma(self):
-        text = (r"per multa per causam tamen scire \edtext{causam}{\lemma{"
-                r"causam}\Bfootnote{fnote}} est \edtext{per causam}{\lemma{"
-                r"per causam}\Bfootnote{causam rei B}} cognoscere \edtext{"
-                r"causam}{\lemma{causam}\Bfootnote{fnote}}.")
-        expect = (r"per multa \sameword{per \sameword{causam}} tamen scire "
-                  r"\edtext{\sameword[1]{causam}}{\lemma{\sameword{causam}}"
-                  r"\Bfootnote{fnote}} est \edtext{\sameword[1]{per "
-                  r"\sameword{causam}}}{\lemma{\sameword{per causam}}"
-                  r"\Bfootnote{causam rei B}} cognoscere \edtext{\sameword[1]"
-                  r"{causam}}{\lemma{\sameword{causam}}\Bfootnote{fnote}}.")
-        assert self.run_annotation(text) == expect
-        assert self.run_cleanup(expect) == text
 
     def test_long_proximate_before_after(self):
         text = (r"List comprehensions provide a concise a way to create "
@@ -448,21 +618,6 @@ class TestAnnotate:
         assert self.run_cleanup(expect) == text
         settings['exclude_macros'] = old_exclude
 
-    def test_custom_multiword(self):
-        """Macro `\exclude` is explicitly excluded, so what is compared is
-        'Hákonar' and 'Hákonar' which is then matched and annotated. """
-        old_exclude = settings['exclude_macros']
-        settings['exclude_macros'] += [r'\exclude']
-        text = (r'Han var sonr \edtext{Hákon\emph{ar}\exclude{Håkon II} '
-                r'konungs}{\Afootnote{k\emph{on}gſ hakon\emph{ar} Sk}}, '
-                r'sons Hákonar\exclude{Håkon I} konungs')
-        expect = (r'Han var sonr \edtext{\sameword[1]{Hákon\emph{'
-                  r'ar}\exclude{Håkon II} konungs}}{\Afootnote{k\emph{on}gſ '
-                  r'hakon\emph{ar} Sk}}, sons \sameword{Hákonar\exclude{'
-                  r'Håkon I} konungs}')
-        assert self.run_annotation(text) == expect
-        assert self.run_cleanup(expect) == text
-        settings['exclude_macros'] = old_exclude
 
     def test_custom_not_excluded_macro_with_match(self):
         """Macro is not explicitly excluded, which means that the
@@ -480,27 +635,6 @@ class TestAnnotate:
         text = (r'\edtext{Sortes\test{1}}{\Afootnote{Socrates B}} dicit: '
                 r'Sortes\test{2} probus')
         assert self.run_annotation(text) == text
-
-    def test_multiword_with_interveening_macro(self):
-        text = (r'per \sidenote{1rb O} causam scire est \edtext{per causam}{'
-                r'\lemma{per causam}\Bfootnote{causam rei B}} cognoscere')
-        expect = (r'\sameword{per \sidenote{1rb O} causam} scire est \edtext{'
-                  r'\sameword[1]{per causam}}{\lemma{\sameword{per causam}}'
-                  r'\Bfootnote{causam rei B}} cognoscere')
-        assert self.run_annotation(text) == expect
-        assert self.run_cleanup(expect) == text
-
-    def test_two_multi_words(self):
-        text = (r"\edtext{nobis apparentes}{\lemma{nobis "
-                r"apparentes}\Bfootnote{\emph{om.} B}} \edtext{nobis "
-                r"apparentes}{\lemma{nobis apparentes}\Bfootnote{\emph{om.} "
-                r"B}}")
-        expect = (r"\edtext{\sameword[1]{nobis apparentes}}{\lemma{\sameword{"
-                  r"nobis apparentes}}\Bfootnote{\emph{om.} B}} "
-                  r"\edtext{\sameword[1]{nobis apparentes}}{\lemma{\sameword{"
-                  r"nobis apparentes}}\Bfootnote{\emph{om.} B}}")
-        assert self.run_annotation(text) == expect
-        assert self.run_cleanup(expect) == text
 
     def test_neutrality_on_already_wrapped(self):
         text = (r"Praeterea intellectus intelligit se: \edtext{\sameword[1]{"
@@ -690,13 +824,6 @@ ord}
         text = r'\edtext{a and b}{\Afootnote{x}} a \& b'
         assert self.run_annotation(text) == text
 
-    def test_latex_expression_escaped_matching(self):
-        text = r'\edtext{a \& b}{\Afootnote{x}} a \& b'
-        expect = (r'\edtext{\sameword[1]{a \& b}}{\Afootnote{x}} \sameword{a '
-                  r'\& b}')
-        assert self.run_annotation(text) == expect
-        assert self.run_cleanup(expect) == text
-
 class TestUpdate:
 
     def run_update(self, input_text):
@@ -717,14 +844,6 @@ class TestUpdate:
         expect = (r'emphasis a \sameword{emph} \edtext{'
                   r'\sameword[1]{emph}}{\Bfootnote{fnote}} and \sameword{emph} '
                   r'emphasis')
-        assert self.run_update(text) == expect
-
-    def test_update_single_level_multiword_lemma(self):
-        text = (r'a c and \sameword{a b} \edtext{\sameword[1]{a '
-                  r'c}}{\lemma{\sameword{a c}}\Bfootnote{fnote}} \sameword{a b}'
-                  r' and a c')
-        expect = (r'\sameword{a c} and a b \edtext{\sameword[1]{a c}}{\lemma{'
-                  r'\sameword{a c}}\Bfootnote{fnote}} a b and \sameword{a c}')
         assert self.run_update(text) == expect
 
     def test_update_single_level_multiword_lemma_ellipsis(self):

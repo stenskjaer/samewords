@@ -8,8 +8,8 @@ settings = {
     'exclude_macros': [
         r'\sidenote',
         r'\index',
-        r'\thinspace',
-        r'\,',
+        #r'\thinspace',
+        #r'\,',
         r'\enspace',
         r'\enskip',
         r'\quad',
@@ -50,5 +50,8 @@ settings = {
         r'⟦⟧⟨⟩⟪⟫⟬⟭⟮⟯',          # special brackets from the Misc Mat. Symbols A
         r'\u2000-\u206F',    # General punctuation (≠ the punctuation above)
         r'\u2e00-\u2e7f',    # Supplemental punctuation
-    ]
+    ],
+
+    # Should we annotate multi word matches with single macro?
+    'multiword': False
 }

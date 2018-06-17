@@ -1,6 +1,7 @@
 import regex
 
-from samewords.tokenize import Words, Registry, Word, Tokenizer, Macro, Element
+from samewords.tokenize import (Words, Registry, Word, Tokenizer, Macro, Element,
+                                LatexSyntaxError)
 from samewords.brackets import Brackets
 from samewords.settings import settings
 
@@ -60,7 +61,8 @@ class Matcher:
                         raise ValueError("Looks like edtext and lemma content "
                                          "don't match in "
                                          "'{}'".format(edtext.write()))
-                    self._add_sameword(edtext[sidx:eidx], edtext_lvl)
+
+                    self._process_annotation(edtext, sidx, eidx, edtext_lvl)
 
                 # Annotate the lemma if relevant
                 # ------------------
@@ -88,7 +90,8 @@ class Matcher:
 
                     else:
                         lemma = Tokenizer(app_note.cont[s:e]).wordlist
-                        lemma = self._add_sameword(lemma, level=0)
+                        lemma = self._process_annotation(lemma, 0, len(lemma), 0)
+
                     # patch app note up again with new lemma content
                     bef = app_note.cont[:s]
                     after = app_note.cont[e:]
@@ -194,18 +197,47 @@ class Matcher:
         return complete[start:end]
 
     def _annotate_context(self, context: Words, searches: List) -> None:
-        indices = self._find_index(context, searches)
-        if indices:
-            # Annotate all matches
-            while True:
-                start = indices[0]
-                end = indices[1]
-                self._add_sameword(context[start:end], 0)
-                new_indices = self._find_index(context, searches, start=end)
-                if new_indices:
-                    indices = new_indices
-                else:
-                    break
+        """In the context every match for a search word should be annotated
+        when we annotate single words to get the counting right. If we are in
+        a multiword setting, annotate all continous stretches of the search
+        words."""
+        if settings['multiword'] is False:
+            for search in searches:
+                indices = [i for i, c in enumerate(context) if c == search]
+                for idx in indices:
+                    self._add_sameword(context[idx:idx + 1], level=0)
+        else:
+            indices = self._find_index(context, searches)
+            if indices:
+                while True:
+                    start = indices[0]
+                    end = indices[1]
+                    self._process_annotation(context, start, end, 0)
+                    new_indices = self._find_index(context, searches, start=end)
+                    if new_indices:
+                        indices = new_indices
+                    else:
+                        break
+
+    def _process_annotation(self, part: Words, start:int,
+                            end: int, level: int) -> Words:
+        """Given a chunk of text, this will either annotate an indicated part
+        of the chunk with a multiword or single word sameword annotations. """
+        multi_parse_error = False
+        if settings['multiword'] is True:
+            old = part[start:end]
+            try:
+                self._add_sameword(part[start:end].validate(), level)
+            except LatexSyntaxError:
+                part[start:end] = old
+                multi_parse_error = True
+
+        if settings['multiword'] is False or multi_parse_error is True:
+            for idx in range(start, end):
+                if part[idx].content:
+                    self._add_sameword(part[idx:idx + 1], level)
+            multi_parse_error = False
+        return part
 
     def _add_sameword(self, part: Words, level: int) -> Words:
         """
