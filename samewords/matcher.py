@@ -225,11 +225,12 @@ class Matcher:
         of the chunk with a multiword or single word sameword annotations. """
         multi_parse_error = False
         if settings['multiword'] is True:
-            old = part[start:end]
+            old = part
             try:
-                self._add_sameword(part[start:end].validate(), level)
+                self._add_sameword(part[start:end], level)
+                part.validate()
             except LatexSyntaxError:
-                part[start:end] = old
+                part = old
                 multi_parse_error = True
 
         if settings['multiword'] is False or multi_parse_error is True:
