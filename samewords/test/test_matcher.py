@@ -251,8 +251,9 @@ aa bb
 """)
 
         global settings
-        settings['multiword'] = False
+        settings['multiword'] = True
         print(self.run_annotation(text))
+        settings['multiword'] = False
 
 
 
