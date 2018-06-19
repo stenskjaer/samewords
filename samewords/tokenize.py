@@ -11,6 +11,11 @@ RegistryEntry = Dict[str, Union[List[int], int]]
 Registry = List[RegistryEntry]
 
 
+class LatexSyntaxError(ValueError):
+    """Raised when a LaTeX string has invalid syntax."""
+    pass
+
+
 class Element:
     def __init__(self, cont: str, pos: int) -> None:
         self.cont = cont

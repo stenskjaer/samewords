@@ -1,6 +1,7 @@
 import regex
 
-from samewords.tokenize import Words, Registry, Word, Tokenizer, Macro, Element
+from samewords.tokenize import (Words, Registry, Word, Tokenizer, Macro, Element,
+                                LatexSyntaxError)
 from samewords.brackets import Brackets
 from samewords.settings import settings
 
@@ -17,7 +18,7 @@ class Matcher:
         self.words = words
         self.registry = registry
 
-    def annotate(self, registry: Registry = None):
+    def annotate(self, registry: Registry = None) -> Words:
         """
         Given a registry, determine whether there is a context match of
         the edtext lemma content for each entry and annotate accordingly.
@@ -71,7 +72,8 @@ class Matcher:
                         raise ValueError("Looks like edtext and lemma content "
                                          "don't match in "
                                          "'{}'".format(edtext.write()))
-                    self._add_sameword(edtext[sidx:eidx], edtext_lvl)
+
+                    self._process_annotation(edtext, sidx, eidx, edtext_lvl)
 
                 # Annotate the lemma if relevant
                 # ------------------
@@ -99,7 +101,8 @@ class Matcher:
 
                     else:
                         lemma = Tokenizer(app_note.cont[s:e]).wordlist
-                        lemma = self._add_sameword(lemma, level=0)
+                        lemma = self._process_annotation(lemma, 0, len(lemma), 0)
+
                     # patch app note up again with new lemma content
                     bef = app_note.cont[:s]
                     after = app_note.cont[e:]
@@ -121,7 +124,7 @@ class Matcher:
 
         return self.words
 
-    def update(self, wordlist: Words = None) -> Words:
+    def update(self) -> Words:
         """
         Given a registry, find all edtext elements that contain a `\sameword{}`
         annotation and check whether it is still correct. If not, update the
@@ -130,7 +133,6 @@ class Matcher:
         self.cleanup()
         self.annotate()
         return self.words
-
 
     def cleanup(self, wordlist: Words = None) -> Words:
         """Given a Words list, remove all sameword annotations."""
@@ -170,6 +172,25 @@ class Matcher:
                     # update the app note Element with the new content
                     word.update_element(app_note, new)
         return wordlist
+
+    def validate(self) -> Union[Words, LatexSyntaxError]:
+        for entry in self.registry:
+            text = self.words[entry['data'][0]:entry['data'][1]+1].write()
+            s = 0
+            pos = 0
+            while pos < len(text):
+                c = text[pos]
+                if c == '{':
+                    s += 1
+                elif c == '}':
+                    s -= 1
+                pos += 1
+            if s != 0:
+                raise LatexSyntaxError(
+                    "There are unbalanced parentheses in the following "
+                    "string: \n" + text
+                )
+        return self
 
     def _get_sameword_span(self, wordlist: Words) -> Union[Words, None]:
         """Given return the slice of first `\sameword` macro. If there
@@ -214,18 +235,41 @@ class Matcher:
         return complete[start:end]
 
     def _annotate_context(self, context: Words, searches: List) -> None:
-        indices = self._find_index(context, searches)
-        if indices:
-            # Annotate all matches
-            while True:
-                start = indices[0]
-                end = indices[1]
-                self._add_sameword(context[start:end], 0)
-                new_indices = self._find_index(context, searches, start=end)
-                if new_indices:
-                    indices = new_indices
-                else:
-                    break
+        """In the context every match for a search word should be annotated
+        when we annotate single words to get the counting right. If we are in
+        a multiword setting, annotate all continous stretches of the search
+        words."""
+        if settings['multiword'] is False:
+            for search in searches:
+                indices = [i for i, c in enumerate(context) if c == search]
+                for idx in indices:
+                    self._add_sameword(context[idx:idx + 1], level=0)
+        else:
+            indices = self._find_index(context, searches)
+            if indices:
+                while True:
+                    start = indices[0]
+                    end = indices[1]
+                    self._process_annotation(context, start, end, 0)
+                    new_indices = self._find_index(context, searches, start=end)
+                    if new_indices:
+                        indices = new_indices
+                    else:
+                        break
+
+    def _process_annotation(self, part: Words, start:int,
+                            end: int, level: int) -> Words:
+        """Given a chunk of text, this will either annotate an indicated part
+        of the chunk with a multiword or single word sameword annotations. """
+        multi_parse_error = False
+        if settings['multiword'] is True:
+            old = part[start:end]
+            self._add_sameword(part[start:end], level)
+        else:
+            for idx in range(start, end):
+                if part[idx].content:
+                    self._add_sameword(part[idx:idx + 1], level)
+        return part
 
     def _add_sameword(self, part: Words, level: int) -> Words:
         """
