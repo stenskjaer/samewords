@@ -17,18 +17,23 @@ class TestAnnotate:
         words = matcher.cleanup()
         return words.write()
 
-    def test_multiword_sameword_w_edtext_inside(self):
+    def test_match_multiword_with_overlaps(self):
         text = (r"""
-aa bb 
-\edtext{cc 
-	\edtext{
-			\edtext{aa}{\Afootnote{AA \emph{X}}}
-		bb}%
-		{\Afootnote{BB AA \emph{Y}}}%
-		}%
-	{\lemma{cc–bb}\Afootnote{\emph{Ø}}}.        
-        """)
+aa bb
+\edtext{
+  cc
+  \edtext{\edtext{aa}{\Afootnote{AA \emph{X}}}
+    bb
+  }%
+  {\Afootnote{BB AA \emph{Y}}}%
+}%
+{\lemma{cc–bb}\Afootnote{\emph{Ø}}}.
+""")
+
+        global settings
+        settings['multiword'] = True
         print(self.run_annotation(text))
+        settings['multiword'] = False
 
     def test_edtext_internal_ellipsis_match_first(self):
         text = r"A \edtext{B A B C}{\lemma{B–C}\Afootnote{}}"
@@ -267,27 +272,6 @@ aa bb
                  r'fnote}} and c and c')
         assert self.run_annotation(text) == expect
         assert self.run_cleanup(expect) == clean
-
-    def test_match_multiword_with_overlaps(self):
-        text = (r"""
-aa bb
-\edtext{
-  cc
-  \edtext{%
-    \edtext{aa}{\Afootnote{AA \emph{X}}}
-    bb
-  }%
-  {\Afootnote{BB AA \emph{Y}}}%
-}%
-{\lemma{cc–bb}\Afootnote{\emph{Ø}}}.
-""")
-
-        global settings
-        settings['multiword'] = False
-        print(self.run_annotation(text))
-        settings['multiword'] = False
-
-
 
     def test_annotation_thinspace_in_word(self):
         text = r"""5\thinspace{}000 or \edtext{5\,000}{\Afootnote{6\,000}}"""
