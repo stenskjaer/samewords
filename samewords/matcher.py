@@ -18,7 +18,7 @@ class Matcher:
         self.words = words
         self.registry = registry
 
-    def annotate(self, registry: Registry = None):
+    def annotate(self, registry: Registry = None) -> Words:
         """
         Given a registry, determine whether there is a context match of
         the edtext lemma content for each entry and annotate accordingly.
@@ -160,6 +160,25 @@ class Matcher:
                     # update the app note Element with the new content
                     word.update_element(app_note, new)
         return wordlist
+
+    def validate(self) -> Union[Words, LatexSyntaxError]:
+        for entry in self.registry:
+            text = self.words[entry['data'][0]:entry['data'][1]+1].write()
+            s = 0
+            pos = 0
+            while pos < len(text):
+                c = text[pos]
+                if c == '{':
+                    s += 1
+                elif c == '}':
+                    s -= 1
+                pos += 1
+            if s != 0:
+                raise LatexSyntaxError(
+                    "There are unbalanced parentheses in the following "
+                    "string: \n" + text
+                )
+        return self
 
     def _get_sameword_span(self, wordlist: Words) -> Union[Words, None]:
         """Given return the slice of first `\sameword` macro. If there

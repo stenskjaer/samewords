@@ -320,22 +320,6 @@ class Words(UserList):
         """A list strings of each Word.text item, i.e. a cleaned word list."""
         return [w.get_text() for w in self.data if w.content]
 
-    def validate(self) -> Union["Words", LatexSyntaxError]:
-        text = self.write()
-        s = 0
-        pos = 0
-        while s >= 0 and pos < len(text):
-            c = text[pos]
-            if c == '{':
-                s += 1
-            elif c == '}':
-                s -= 1
-            pos += 1
-        if s != 0:
-            raise LatexSyntaxError("The string {} has unbalanced parentheses.")
-        else:
-            return self
-
 
 class Tokenizer:
 
