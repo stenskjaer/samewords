@@ -1,5 +1,5 @@
 from samewords.matcher import Matcher
-from samewords.tokenize import Tokenizer
+from samewords.tokenize import Tokenizer, LatexSyntaxError
 from samewords.settings import settings
 
 
@@ -251,7 +251,7 @@ aa bb
 """)
 
         global settings
-        settings['multiword'] = True
+        settings['multiword'] = False
         print(self.run_annotation(text))
         settings['multiword'] = False
 

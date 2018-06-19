@@ -111,7 +111,7 @@ class Matcher:
                         self._annotate_context(context, search_ws)
         return self.words
 
-    def update(self, wordlist: Words = None) -> Words:
+    def update(self) -> Words:
         """
         Given a registry, find all edtext elements that contain a `\sameword{}`
         annotation and check whether it is still correct. If not, update the
@@ -120,7 +120,6 @@ class Matcher:
         self.cleanup()
         self.annotate()
         return self.words
-
 
     def cleanup(self, wordlist: Words = None) -> Words:
         """Given a Words list, remove all sameword annotations."""
@@ -244,19 +243,12 @@ class Matcher:
         of the chunk with a multiword or single word sameword annotations. """
         multi_parse_error = False
         if settings['multiword'] is True:
-            old = part
-            try:
-                self._add_sameword(part[start:end], level)
-                part.validate()
-            except LatexSyntaxError:
-                part = old
-                multi_parse_error = True
-
-        if settings['multiword'] is False or multi_parse_error is True:
+            old = part[start:end]
+            self._add_sameword(part[start:end], level)
+        else:
             for idx in range(start, end):
                 if part[idx].content:
                     self._add_sameword(part[idx:idx + 1], level)
-            multi_parse_error = False
         return part
 
     def _add_sameword(self, part: Words, level: int) -> Words:
