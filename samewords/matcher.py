@@ -276,20 +276,33 @@ class Matcher:
         else:
             this_lvl = ''
 
-        # Is the phrase wrapped?
+        # Is there an \edtext{}{} macro on the word? If so, will it create
+        # overlapping problem? First, get the indices of any edtext macros.
+        ed_idxs = [i for i, val in enumerate(word.macros) if r'\edtext{' in val]
+        # Then figure out if any of them end before this \sameword{} is
+        # supposed to end.
+        short_ed_idxs = [i for i, val in enumerate(ed_idxs)
+                         if word.macros[val].to_closing < len(part) - 1]
+        try:
+            ed_idx = short_ed_idxs[0]
+        except IndexError:
+            ed_idx = -1
+
+        # Is the phrase wrapped in a \sameword{}?
         sw_wrap = None
         lvl_match = None
         pat = regex.compile(r'(\\sameword)([^{]+)?')
-        sw_idx = [i for i, val in enumerate(word.macros)
-                  if regex.search(pat, val.full())]
+        sw_idxs = [i for i, val in enumerate(word.macros)
+                   if regex.search(pat, val.full())]
         try:
-            sw_idx = sw_idx[0]
+            sw_idx = sw_idxs[0]
         except IndexError:
             sw_idx = -1
 
-        # If the first word is wrapped, and it is equal in length to the
-        # current chunk, then this chunk is already wrapped in its entirety,
-        # and should not be rewrapped. In that case we update the wrap data.
+        # If the first word is wrapped in a `\sameword{}`, and it is equal in
+        #  length to the current chunk, then this chunk is already wrapped in
+        #  its entirety, and should not be rewrapped. In that case we update
+        # the wrap data.
         if sw_idx is not -1 and word.macros[sw_idx].to_closing == len(part) - 1:
             sw_match = regex.search(pat, word.macros[sw_idx].full())
             sw_wrap = sw_match.group(0)
@@ -322,8 +335,15 @@ class Matcher:
             else:
                 sw_macro = Macro(r'\sameword{')
 
-            # If the first word already has a sameword wrap, put new one first.
-            if sw_idx is not -1:
+            # Does the word have a edtext macro index that we need to put
+            # this before (thus putting the edtext inside the \sameword)?
+            if ed_idx is not -1:
+                word.add_macro(sw_macro, ed_idx)
+            # Else, does the word already have a sameword wrap? If it is
+            # shorter than the current chunk/part then the current macro should
+            # go outside (by taking over its index and pushing that one in).
+            elif (sw_idx is not -1 and
+                  word.macros[sw_idx].to_closing < len(part) - 1):
                 word.add_macro(sw_macro, sw_idx)
             # Otherwise, put it at the end of macros (making it the innermost).
             else:
