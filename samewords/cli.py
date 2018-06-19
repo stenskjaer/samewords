@@ -38,6 +38,9 @@ def parse_config_file(filename: str) -> bool:
         settings['context_distance'] = user_conf.get(
             'context_distance', settings['context_distance'])
         settings['punctuation'] += user_conf.get('punctuation', [])
+        settings['multiword'] = user_conf.get(
+            'multiword', settings['multiword'])
+        #TODO: Add test for this multiword config setting.
         return True
     return False
 
