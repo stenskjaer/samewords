@@ -192,17 +192,6 @@ class Matcher:
                 )
         return self
 
-    def _get_sameword_span(self, wordlist: Words) -> Union[Words, None]:
-        """Given return the slice of first `\sameword` macro. If there
-        is no `\sameword` return None."""
-        for val, w in enumerate(wordlist):
-            for mac in w.macros:
-                if mac.name == '\\sameword':
-                    start = val
-                    end = start + mac.to_closing + 1
-                    return wordlist[start:end]
-        return None
-
     def _get_contexts(self, words: Words, pivot: int) -> List:
         l1 = [w.get_text() for w in self._get_context_before(words, pivot)]
         l2 = [w.get_text() for w in self._get_context_after(words, pivot + 1)]
