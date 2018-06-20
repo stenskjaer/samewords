@@ -17,24 +17,6 @@ class TestAnnotate:
         words = matcher.cleanup()
         return words.write()
 
-    def test_match_multiword_with_overlaps(self):
-        text = (r"""
-aa bb
-\edtext{
-  cc
-  \edtext{\edtext{aa}{\Afootnote{AA \emph{X}}}
-    bb
-  }%
-  {\Afootnote{BB AA \emph{Y}}}%
-}%
-{\lemma{cc–bb}\Afootnote{\emph{Ø}}}.
-""")
-
-        global settings
-        settings['multiword'] = True
-        print(self.run_annotation(text))
-        settings['multiword'] = False
-
     def test_edtext_internal_ellipsis_match_first(self):
         text = r"A \edtext{B A B C}{\lemma{B–C}\Afootnote{}}"
         exp = (r"A \edtext{\sameword[1]{B} A \sameword{B} C}{\lemma{"
@@ -259,6 +241,23 @@ aa bb
         global settings
         settings['multiword'] = True
         assert self.run_annotation(text) == expect_multi
+        settings['multiword'] = False
+
+    def test_match_multiword_with_overlaps(self):
+        text = (r"""
+aa bb
+\edtext{
+  cc
+  \edtext{\edtext{aa}{\Afootnote{AA \emph{X}}}
+    bb
+  }%
+  {\Afootnote{BB AA \emph{Y}}}%
+}%
+{\lemma{cc–bb}\Afootnote{\emph{Ø}}}.
+""")
+        global settings
+        settings['multiword'] = True
+        print(self.run_annotation(text))
         settings['multiword'] = False
 
     def test_match_single_level_multiword_lemma_ellipsis(self):

@@ -278,7 +278,7 @@ class Matcher:
 
         # Is there an \edtext{}{} macro on the word? If so, will it create
         # overlapping problem? First, get the indices of any edtext macros.
-        ed_idxs = [i for i, val in enumerate(word.macros) if r'\edtext{' in val]
+        ed_idxs = [i for i, val in enumerate(word.macros)]
         # Then figure out if any of them end before this \sameword{} is
         # supposed to end.
         short_ed_idxs = [i for i, val in enumerate(ed_idxs)
