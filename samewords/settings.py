@@ -16,7 +16,8 @@ settings = {
         r'\qquad',
         r'\hskip',
         r'\negthinspace',
-        r'\kern'
+        r'\kern',
+        r'\edlabel'
     ],
 
     # List of patterns that should be included when matching for ellipsis

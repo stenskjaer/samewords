@@ -1,4 +1,5 @@
 import regex
+from warnings import warn
 
 from samewords.tokenize import (Words, Registry, Word, Tokenizer, Macro, Element,
                                 LatexSyntaxError)
@@ -268,6 +269,12 @@ class Matcher:
         level of an existing wrap is the same as the current, no change is
         made, otherwise that is updated.
         """
+        if len([s for s in part if s.content]) == 0:
+            warn('There is an edtext element without any content that I think '
+                 'should be annotated. This may result in incorrect sameword '
+                 'numbering.')
+            return part
+
         word: Word = part[0]
 
         # Should we handle the lemma level?

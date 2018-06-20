@@ -17,6 +17,35 @@ class TestAnnotate:
         words = matcher.cleanup()
         return words.write()
 
+    def test_issue_32_2(self):
+        """Break of problem"""
+        text = (r"""
+some text 
+\edtext{}%
+	{\xxref{start}{end}\lemma{and–text}%
+	\Afootnote{xxrefnote}}%
+		\edlabel{start}\edtext{and}{\Afootnote{or}}
+		\edlabel{end}\edtext{text}{\Afootnote{letters}}
+more text
+        """)
+        print(self.run_annotation(text))
+
+    def test_issue_32_1(self):
+        text = (r"""
+One %
+\edtext{and two \edtext{and}{\xxref{and-and-start}{and-and-end}\lemma{and–and}\Afootnote{overlapping}}\edlabel{and-and-start} %
+\edtext{three}{%
+	\Afootnote{tree}}
+ and four and one and two and three %
+\edtext{and}{%
+	\Afootnote{or}}
+ four}{
+	\lemma{and–four}
+	\Afootnote{del.}}
+ and\edlabel{and-and-end} six.        
+        """)
+        print(self.run_annotation(text))
+
     def test_edtext_internal_ellipsis_match_first(self):
         text = r"A \edtext{B A B C}{\lemma{B–C}\Afootnote{}}"
         exp = (r"A \edtext{\sameword[1]{B} A \sameword{B} C}{\lemma{"
