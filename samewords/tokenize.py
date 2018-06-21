@@ -215,18 +215,28 @@ class Word(UserString):
         the positions in the word. It must wrap the word, which means the
         position of the macro must be less than the position of the content
         start. """
+
+        positions = sorted([cont.pos for cont in self.content])
+        try:
+            content_start = positions[0]
+        except IndexError:
+            content_start = None
+
         if index is not None:
             old = self.macros[index]
-            macro.pos = old.pos
-            increment = len(macro) - len(old)
+            if content_start < old.pos:
+                macro.pos = content_start
+                increment = len(macro) - len(self.content[0].cont)
+            else:
+                macro.pos = old.pos
+                increment = len(macro) - len(old)
             self._increment_after(macro, increment)
             self.macros[index] = macro
             self.macros.append(old)
         else:
-            positions = sorted([cont.pos for cont in self.content])
-            if positions:
+            if content_start is not None:
                 # With content add macro before first content pos.
-                pos = positions[0]
+                pos = content_start
             elif self.macros:
                 # No content but macros, add the macro after last macro end.
                 pos = len(self.macros[-1]) + self.macros[-1].pos

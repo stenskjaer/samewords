@@ -283,17 +283,16 @@ class Matcher:
         else:
             this_lvl = ''
 
-        # Is there an \edtext{}{} macro on the word? If so, will it create
-        # overlapping problem? First, get the indices of any edtext macros.
-        ed_idxs = [i for i, val in enumerate(word.macros)]
-        # Then figure out if any of them end before this \sameword{} is
+        # Are there any macros on the word that may create overlapping
+        # problems? Figure out if any of them end before this \sameword{} is
         # supposed to end.
-        short_ed_idxs = [i for i, val in enumerate(ed_idxs)
-                         if word.macros[val].to_closing < len(part) - 1]
+        short_idxs = [i for i, _ in enumerate(word.macros)
+                      if word.macros[i].to_closing < len(part) - 1]
         try:
-            ed_idx = short_ed_idxs[0]
+            # We take the first because it will be the lowest pos.
+            short_idx = short_idxs[0]
         except IndexError:
-            ed_idx = -1
+            short_idx = -1
 
         # Is the phrase wrapped in a \sameword{}?
         sw_wrap = None
@@ -342,10 +341,10 @@ class Matcher:
             else:
                 sw_macro = Macro(r'\sameword{')
 
-            # Does the word have a edtext macro index that we need to put
-            # this before (thus putting the edtext inside the \sameword)?
-            if ed_idx is not -1:
-                word.add_macro(sw_macro, ed_idx)
+            # Does the word have a macro index that we need to take over by
+            # the \sameword to put it before that macro?
+            if short_idx is not -1:
+                word.add_macro(sw_macro, short_idx)
             # Else, does the word already have a sameword wrap? If it is
             # shorter than the current chunk/part then the current macro should
             # go outside (by taking over its index and pushing that one in).
