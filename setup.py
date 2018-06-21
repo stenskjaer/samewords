@@ -13,7 +13,7 @@ setup(name='samewords',
           'regex==2018.2.21'
       ],
       test_requires=[
-          'pytest==3.0.7'
+          'pytest==3.6.2'
       ],
       classifiers=[
           'Development Status :: 4 - Beta',

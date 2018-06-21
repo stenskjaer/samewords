@@ -272,7 +272,8 @@ class Matcher:
         if len([s for s in part if s.content]) == 0:
             warn('There is an edtext element without any content that I think '
                  'should be annotated. This may result in incorrect sameword '
-                 'numbering.')
+                 'numbering. The problem occurs in this section:\n'
+                 + part.write())
             return part
 
         word: Word = part[0]

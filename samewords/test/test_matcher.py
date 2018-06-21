@@ -1,6 +1,8 @@
 from samewords.matcher import Matcher
-from samewords.tokenize import Tokenizer, LatexSyntaxError
+from samewords.tokenize import Tokenizer
 from samewords.settings import settings
+
+import pytest
 
 
 class TestAnnotate:
@@ -17,34 +19,30 @@ class TestAnnotate:
         words = matcher.cleanup()
         return words.write()
 
-    def test_issue_32_2(self):
-        """Break of problem"""
-        text = (r"""
-some text 
-\edtext{}%
-	{\xxref{start}{end}\lemma{and–text}%
-	\Afootnote{xxrefnote}}%
-		\edlabel{start}\edtext{and}{\Afootnote{or}}
-		\edlabel{end}\edtext{text}{\Afootnote{letters}}
-more text
-        """)
-        print(self.run_annotation(text))
+    @pytest.mark.filterwarnings('ignore:UserWarning')
+    def test_empty_edtext_with_xxref(self):
+        text = (r"text \edtext{}{\xxref{start}{end}\lemma{"
+                r"and–text}\Afootnote{xxrefnote}} \edlabel{start}\edtext{"
+                r"and}{\Afootnote{or}} \edlabel{end}\edtext{text}{\Afootnote{"
+                r"letters}} more text ")
+        expect = (r"\sameword{text} \edtext{}{\xxref{start}{end}\lemma{"
+                  r"\sameword{and}–\sameword{text}}\Afootnote{xxrefnote}} "
+                  r"\edlabel{start}\edtext{\sameword{and}}{\Afootnote{or}} "
+                  r"\edlabel{end}\edtext{\sameword[1]{text}}{\Afootnote{"
+                  r"letters}} more \sameword{text} ")
+        with pytest.warns(UserWarning):
+            assert self.run_annotation(text) == expect
 
-    def test_issue_32_1(self):
-        text = (r"""
-One %
-\edtext{and two \edtext{and}{\xxref{and-and-start}{and-and-end}\lemma{and–and}\Afootnote{overlapping}}\edlabel{and-and-start} %
-\edtext{three}{%
-	\Afootnote{tree}}
- and four and one and two and three %
-\edtext{and}{%
-	\Afootnote{or}}
- four}{
-	\lemma{and–four}
-	\Afootnote{del.}}
- and\edlabel{and-and-end} six.        
-        """)
-        print(self.run_annotation(text))
+    def test_edtext_with_text_xxref_overlapping(self):
+        text = (r"One \edtext{two \edtext{and}{\xxref{1}{2}\lemma{"
+                r"and–and}\Afootnote{overlapping}}\edlabel{1} four}{\lemma{"
+                r"and–four}\Afootnote{del.}} and\edlabel{and-and-end} six.")
+        expect = (r"One \edtext{two \edtext{\sameword[1,2]{and}}{\xxref{1}{"
+                  r"2}\lemma{\sameword{and}–\sameword{and}}\Afootnote{"
+                  r"overlapping}}\edlabel{1} four}{\lemma{\sameword{"
+                  r"and}–four}\Afootnote{del.}} \sameword{and}\edlabel{"
+                  r"and-and-end} six.")
+        assert self.run_annotation(text) == expect
 
     def test_edtext_internal_ellipsis_match_first(self):
         text = r"A \edtext{B A B C}{\lemma{B–C}\Afootnote{}}"
@@ -274,19 +272,43 @@ One %
 
     def test_match_multiword_with_overlaps(self):
         text = (r"""
-aa bb
-\edtext{
-  cc
-  \edtext{\edtext{aa}{\Afootnote{AA \emph{X}}}
-    bb
-  }%
-  {\Afootnote{BB AA \emph{Y}}}%
-}%
-{\lemma{cc–bb}\Afootnote{\emph{Ø}}}.
-""")
+            aa bb
+            \edtext{
+              cc
+              \edtext{\edtext{aa}{\Afootnote{AA \emph{X}}}
+                bb
+              }%
+              {\Afootnote{BB AA \emph{Y}}}%
+            }%
+            {\lemma{cc–bb}\Afootnote{\emph{Ø}}}.
+            """)
+        expect_single = (r"""
+            \sameword{aa} \sameword{bb}
+            \edtext{
+              cc
+              \edtext{\edtext{\sameword[2,3]{aa}}{\Afootnote{AA \emph{X}}}
+                \sameword[1,2]{bb}
+              }%
+              {\Afootnote{BB AA \emph{Y}}}%
+            }%
+            {\lemma{cc–\sameword{bb}}\Afootnote{\emph{Ø}}}.
+            """)
+        expect_multi = (r"""
+            \sameword{\sameword{aa} \sameword{bb}}
+            \edtext{
+              cc
+              \edtext{\sameword[2]{\edtext{\sameword[3]{aa}}{\Afootnote{AA \emph{X}}}
+                \sameword[1]{bb}}
+              }%
+              {\Afootnote{BB AA \emph{Y}}}%
+            }%
+            {\lemma{cc–\sameword{bb}}\Afootnote{\emph{Ø}}}.
+            """)
+        assert self.run_annotation(text) == expect_single
+        assert self.run_cleanup(expect_single) == text
         global settings
         settings['multiword'] = True
-        print(self.run_annotation(text))
+        assert self.run_annotation(text) == expect_multi
         settings['multiword'] = False
 
     def test_match_single_level_multiword_lemma_ellipsis(self):
