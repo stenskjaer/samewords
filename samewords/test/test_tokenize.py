@@ -119,10 +119,11 @@ class TestTokenize:
         enspace = r'A\enspace B'
         negthinspace = r'A\negthinspace B'
         kern = r'A\kern{.5em}B'
+        singleword_result = ['AB']
         non_spaced_result = ['A', 'B']
         spaced_result = ['A', '', 'B']
-        assert Tokenizer(thinspace1).wordlist == non_spaced_result
-        assert Tokenizer(thinspace2).wordlist == spaced_result
+        assert Tokenizer(thinspace1).wordlist == singleword_result
+        assert Tokenizer(thinspace2).wordlist == non_spaced_result
         assert Tokenizer(enskip).wordlist == spaced_result
         assert Tokenizer(quad).wordlist == spaced_result
         assert Tokenizer(qquad).wordlist == spaced_result
