@@ -63,6 +63,18 @@ class TestAnnotate:
                r"C}}\Afootnote{}}")
         assert self.run_annotation(text) == exp
 
+    def test_multiword_sameword_w_edtext_inside(self):
+        text = (r"TWO~dollars and "
+                r"\edtext{TWO}{\Afootnote{4}} "
+                r"\edtext{TWO~\edtext{dollars}{\Afootnote{cents}}}{\Afootnote{del.}} "
+                r"some more.")
+        expect = (r"\sameword{\sameword{TWO}~\sameword{dollars}} and "
+                  r"\edtext{\sameword[1]{TWO}}{\Afootnote{4}} "
+                  r"\edtext{\sameword[1]{\sameword{TWO}~\edtext{\sameword[2]{dollars}}"
+                  r"{\Afootnote{cents}}}}{\Afootnote{del.}} some more.")
+        print(self.run_annotation(text))
+        assert self.run_annotation(text) == expect
+
     def test_annotation_thinspace_shorthand_in_word(self):
         text = r"""5\,000 or \edtext{5\,000}{\Afootnote{6\,000}}"""
         expect = (r'\sameword{5\,000} or \edtext{\sameword[1]{5\,000}}{'
