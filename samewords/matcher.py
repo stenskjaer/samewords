@@ -231,7 +231,10 @@ class Matcher:
         words."""
         if settings['multiword'] is False:
             for search in searches:
-                indices = [i for i, c in enumerate(context) if c == search]
+                indices = [
+                    i for i, c in enumerate(self._apply_sensitivity(context))
+                    if c == search
+                ]
                 for idx in indices:
                     self._add_sameword(context[idx:idx + 1], level=0)
         else:
