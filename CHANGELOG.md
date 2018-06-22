@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [0.4.3]
+### Added
+- `multiword` option in the configuration, making it possible to choose whether
+  matches with more than a single word should be annotated separately or as a
+  single phrase.
+- Raise a user warning in cases of empty `\edtext{}{}` macros. This usually
+  happens as a consequence of overlapping elements that are encoded with
+  `\xxref{}` macros.
+
 ### Changed
 - Context matches of `\edtext{}{}`-annotations where the second argument
   contains `\lemma{}` with an ellipsis marker are now done correctly. This means

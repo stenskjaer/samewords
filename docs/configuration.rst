@@ -204,3 +204,42 @@ Unicode codepoints.
 
 If you feel bold you could of course edit the punctuation list in the settings
 file.
+
+``multiword``
+^^^^^^^^^^^^^
+
+In cases where an ``\edtext{}{}`` macro contains a phrase, and there is a phrase
+of that match in the context, it is usually possible to either annotate each
+words of the phrase separately or all in one ``\sameword{}`` macro.
+
+Default setting is ``False``, meaning that each word is annotated separately.
+
+For example:
+> A word with \edtext{a word}{\Afootnote{another D}} after it.
+
+If that is annotated with multiple ``\sameword{}`` macros, it will look like
+this::
+
+    \sameword{A} \sameword{word} with \edtext{\sameword[1]{a}
+    \sameword[1]{word}}{\Afootnote{another D}} after it.
+
+This will result in an apparatus note with the numbering “A² word²”. If it is
+annotated with a single “multiword” annotation, it looks like this::
+
+    \sameword{A word} with \edtext{\sameword[1]{a word}}{\Afootnote{another D}}
+    after it.
+
+This will result in an apparatus note withe the numbering “A word²”.
+
+Which of these solutions is prefered usually a question of the individual taste
+and intuition of the editor.
+
+In some cases this may however lead to problems: When multiple levels of
+``\edtext{}{}`` annotations are nested and are in need of disambiguation, this
+might however lead to unexpected results where the apparatus note occurs as if
+it were annotated with the words separately (e.g. “A² word²”). Furthermore,
+there is a risk that these “multiword” annotations yield a result where the
+beginning or end of a ``\edtext{}{}`` overlaps with that of a ``\sameword{}``.
+This is invalid LaTeX and will therefore not compile. The separate sameword
+annotations will never give this problem, so it is prefered as default with the
+option of the editor to enable the slightly more risky multiword approach.
