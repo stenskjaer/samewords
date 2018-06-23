@@ -13,6 +13,8 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
   `\xxref{}` macros.
 
 ### Changed
+- Solve bug with wrapping of nested `\edtext{}{}` elements in multiword
+  annotations.
 - Context matches of `\edtext{}{}`-annotations where the second argument
   contains `\lemma{}` with an ellipsis marker are now done correctly. This means
   that matches inside the `\edtext{}{}` are also matched and annotated.

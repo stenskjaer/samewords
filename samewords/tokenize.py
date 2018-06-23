@@ -254,26 +254,32 @@ class Word(UserString):
         self._decrement_after(m.pos, len(m))
         return m
 
-    def append_suffix(self, content: str) -> None:
-        """This adds the suffix string to the list with a position after the
-        last. """
-        if self.content:
-            # last element in self.content.
-            last = sorted(self.content, key=lambda e: e.pos)[-1]
-            end_pos = last.pos
-            end_len = len(last.cont)
-            pos = end_pos + end_len
-        elif self.suffixes:
-            pos = sorted([i.pos for i in self.suffixes], reverse=True)[0] + 1
-        elif self.clean_apps:
-            pos = sorted([i.pos for i in self.clean_apps])[0]
-        elif self.punctuation:
-            pos = sorted([i.pos for i in self.punctuation], reverse=True)[0] + 1
+    def append_suffix(self, content: str,
+                      after_clean_apps: bool = False) -> None:
+        """This adds the suffix string to the list with an appropriate
+        position. """
+        if after_clean_apps:
+            pos = sorted([i.pos for i in self.clean_apps])[0] + 1
         else:
-            raise ValueError(
-                'The correct position for the suffix could not be determined'
-                'Word: {}'.format(self.full())
-            )
+            if self.content:
+                # last element in self.content.
+                last = sorted(self.content, key=lambda e: e.pos)[-1]
+                end_pos = last.pos
+                end_len = len(last.cont)
+                pos = end_pos + end_len
+            elif self.suffixes:
+                pos = sorted([i.pos for i in self.suffixes],
+                             reverse=True)[0] + 1
+            elif self.clean_apps:
+                pos = sorted([i.pos for i in self.clean_apps])[0]
+            elif self.punctuation:
+                pos = sorted([i.pos for i in self.punctuation],
+                             reverse=True)[0] + 1
+            else:
+                raise ValueError(
+                    'The correct position for the suffix could not be determined'
+                    'Word: {}'.format(self.full())
+                )
         new = Element(content, pos)
         self._increment_after(new, len(content))
         self.suffixes.append(new)

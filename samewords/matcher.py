@@ -359,8 +359,15 @@ class Matcher:
             else:
                 word.add_macro(sw_macro)
 
-            # Add closing bracket to last word.
-            part[-1].append_suffix('}')
+            # Add closing bracket to last word. If we have a multiword
+            # wrapping, and the last word has both and opening and closing
+            # edtext, then it contains an edtext that is nested inside the
+            # current multiword wrap, and we therefore put the closing after
+            # that.
+            if len(part) > 1 and part[-1].edtext_start and part[-1].edtext_end:
+                part[-1].append_suffix('}', after_clean_apps=True)
+            else:
+                part[-1].append_suffix('}')
             # And register its distance.
             word.close_macro(len(part) - 1)
 
