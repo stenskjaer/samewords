@@ -28,6 +28,12 @@ class TestAnnotate:
                         r"\edtext{\sameword[1]{\sameword{TWO}~\edtext{"
                         r"\sameword[2]{dollars}}{\Afootnote{cents}}}}{"
                         r"\Afootnote{del.}} some more.")
+        expect_single = (r"\sameword{TWO}~\sameword{dollars} and \edtext{"
+                         r"\sameword[1]{TWO}}{\Afootnote{4}} \edtext{"
+                         r"\sameword[1]{TWO}~\edtext{\sameword[1,"
+                         r"2]{dollars}}{\Afootnote{cents}}}{\Afootnote{del.}} "
+                         r"some more.")
+        assert self.run_annotation(text) == expect_single
         global settings
         settings['multiword'] = True
         assert self.run_annotation(text) == expect_multi
