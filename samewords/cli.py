@@ -17,6 +17,8 @@ def load_config(filename) -> Dict:
     """Load and read in configuration from local config file.
 
     :return Dictionary of the configuration."""
+    if not os.path.isfile(filename):
+        raise FileNotFoundError
     try:
         with open(filename, mode='r') as f:
             conf = json.loads(f.read())
@@ -25,11 +27,13 @@ def load_config(filename) -> Dict:
         raise
 
 
-def parse_config_file(filename: str) -> bool:
+def parse_config_file(filename: str) -> None:
     """Parse the config file and update the global settings.
     If successful, True, otherwise return False."""
+    print(filename)
     filename = os.path.expanduser(filename)
-    if os.path.isfile(filename):
+    print(filename)
+    try:
         user_conf = load_config(filename)
         settings['ellipsis_patterns'] += user_conf.get('ellipsis_patterns', [])
         settings['exclude_macros'] += user_conf.get('exclude_macros', [])
@@ -41,8 +45,10 @@ def parse_config_file(filename: str) -> bool:
         settings['multiword'] = user_conf.get(
             'multiword', settings['multiword'])
         #TODO: Add test for this multiword config setting.
-        return True
-    return False
+    except FileNotFoundError as e:
+        raise FileNotFoundError(
+            "The config file '{}' does not exist.".format(filename)) from e
+
 
 def parse_arguments():
     parser = argparse.ArgumentParser(

@@ -5,6 +5,7 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
 
 ## [0.4.3]
 ### Added
+- Raise an error if the configuration file does not exist.
 - `multiword` option in the configuration, making it possible to choose whether
   matches with more than a single word should be annotated separately or as a
   single phrase.
