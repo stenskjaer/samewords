@@ -474,6 +474,7 @@ class Tokenizer:
                         if string[pos] == '}':
                             # Add possible closing of parent first edtext arg
                             word.add_app_entry(string[pos], pos, -1)
+                            self._register_closing(word)
                             self._brackets -= 1
                             pos += 1
                     except IndexError:
@@ -487,17 +488,7 @@ class Tokenizer:
                     pos += 1
                     continue
             if c == '}':
-                # try to register this closing where it opens.
-                try:
-                    open_idx = self._stack_bracket[-1]
-                    self._words[open_idx].close_macro(self._index - open_idx)
-                    self._stack_bracket.pop()
-                except IndexError:
-                    # Word not entered in Words wordlist or it has no macro.
-                    # Register on current word macro if it exists.
-                    if word.macros:
-                        word.close_macro(0)
-                        self._stack_bracket.pop()
+                self._register_closing(word)
                 self._brackets -= 1
                 word.suffixes.append(Element(c, pos))
                 pos += 1
@@ -518,3 +509,16 @@ class Tokenizer:
                 continue
 
         return word, pos
+
+    def _register_closing(self, word: Word) -> None:
+        # try to register this closing where it opens.
+        try:
+            open_idx = self._stack_bracket[-1]
+            self._words[open_idx].close_macro(self._index - open_idx)
+            self._stack_bracket.pop()
+        except IndexError:
+            # Word not entered in Words wordlist or it has no macro.
+            # Register on current word macro if it exists.
+            if word.macros:
+                word.close_macro(0)
+                self._stack_bracket.pop()
