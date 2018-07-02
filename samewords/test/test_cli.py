@@ -5,7 +5,6 @@ from pytest import mark
 from samewords import cli
 from samewords.settings import settings
 
-
 class TestConfigFileContent:
 
     def test_config_file_parsing(self):

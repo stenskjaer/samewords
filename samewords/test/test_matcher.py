@@ -1,5 +1,6 @@
 from samewords.matcher import Matcher
 from samewords.tokenize import Tokenizer
+from samewords.test import temp_settings
 from samewords.settings import settings
 
 import pytest
@@ -34,10 +35,9 @@ class TestAnnotate:
                          r"2]{dollars}}{\Afootnote{cents}}}{\Afootnote{del.}} "
                          r"some more.")
         assert self.run_annotation(text) == expect_single
-        global settings
-        settings['multiword'] = True
-        assert self.run_annotation(text) == expect_multi
-        settings['multiword'] = False
+        with temp_settings({'multiword': True}):
+            assert self.run_annotation(text) == expect_multi
+
 
     @pytest.mark.filterwarnings('ignore:UserWarning')
     def test_empty_edtext_with_xxref(self):
@@ -103,11 +103,8 @@ class TestAnnotate:
         clean = (r'a b and a b \edtext{a b}{\Bfootnote{fnote}} a b and a b')
         assert self.run_annotation(text) == expect
         assert self.run_cleanup(expect) == clean
-
-        global settings
-        settings['multiword'] = True
-        assert self.run_annotation(text) == expect_multi
-        settings['multiword'] = False
+        with temp_settings({'multiword': True}):
+            assert self.run_annotation(text) == expect_multi
 
     def test_annotation_thinspace_shorthand_in_number_word(self):
         text = (r"5\,000 and 6\,000 \edtext{5\,000 and 6\thinspace{}000}{"
@@ -120,11 +117,8 @@ class TestAnnotate:
                         r'{\Afootnote{6\,000}}')
         assert self.run_annotation(text) == expect
         assert self.run_cleanup(expect) == text
-
-        global settings
-        settings['multiword'] = True
-        assert self.run_annotation(text) == expect_multi
-        settings['multiword'] = False
+        with temp_settings({'multiword': True}):
+            assert self.run_annotation(text) == expect_multi
 
     def test_macro_update_copies_to_closing_attribute(self):
         """If the sameword annotation of edtext entries as context samewords
@@ -147,10 +141,8 @@ class TestAnnotate:
         """
         assert self.run_annotation(text) == expect_single
         assert self.run_cleanup(expect_single) == text
-        global settings
-        settings['multiword'] = True
-        assert self.run_annotation(text) == expect_multi
-        settings['multiword'] = False
+        with temp_settings({'multiword': True}):
+            assert self.run_annotation(text) == expect_multi
 
     def test_match_single_level_multiword_lemma(self):
         text = (r'a b and a b \edtext{a b}{\lemma{a b}\Bfootnote{'
@@ -170,10 +162,8 @@ class TestAnnotate:
                  r'and a b')
         assert self.run_annotation(text) == expect_single
         assert self.run_cleanup(expect_single) == clean
-        global settings
-        settings['multiword'] = True
-        assert self.run_annotation(text) == expect_multi
-        settings['multiword'] = False
+        with temp_settings({'multiword': True}):
+            assert self.run_annotation(text) == expect_multi
 
     def test_multiword_lemma(self):
         text = (r"per multa per causam tamen scire \edtext{causam}{\lemma{"
@@ -198,10 +188,8 @@ class TestAnnotate:
         )
         assert self.run_annotation(text) == expect_single
         assert self.run_cleanup(expect_single) == text
-        global settings
-        settings['multiword'] = True
-        assert self.run_annotation(text) == expect_multi
-        settings['multiword'] = False
+        with temp_settings({'multiword': True}):
+            assert self.run_annotation(text) == expect_multi
 
     def test_custom_multiword(self):
         """Macro `\exclude` is explicitly excluded, so what is compared is
@@ -221,15 +209,12 @@ class TestAnnotate:
             r'hakon\emph{ar} Sk}}, sons \sameword{Hákonar\exclude{'
             r'Håkon I} konungs}'
         )
-        global settings
         old_exclude = settings['exclude_macros']
-        settings['exclude_macros'] += [r'\exclude']
-        assert self.run_annotation(text) == expect_single
-        assert self.run_cleanup(expect_single) == text
-        settings['multiword'] = True
-        assert self.run_annotation(text) == expect_multi
-        settings['multiword'] = False
-        settings['exclude_macros'] = old_exclude
+        with temp_settings({'exclude_macros': old_exclude + [r'\exclude']}):
+            assert self.run_annotation(text) == expect_single
+            assert self.run_cleanup(expect_single) == text
+            with temp_settings({'multiword': True}):
+                assert self.run_annotation(text) == expect_multi
 
     def test_multiword_with_interveening_macro(self):
         text = (r'per \sidenote{1rb O} causam scire est \edtext{per causam}{'
@@ -247,10 +232,8 @@ class TestAnnotate:
         )
         assert self.run_annotation(text) == expect_single
         assert self.run_cleanup(expect_single) == text
-        global settings
-        settings['multiword'] = True
-        assert self.run_annotation(text) == expect_multi
-        settings['multiword'] = False
+        with temp_settings({'multiword': True}):
+            assert self.run_annotation(text) == expect_multi
 
     def test_two_multi_words(self):
         text = (r"\edtext{nobis apparentes}{\lemma{nobis "
@@ -270,10 +253,8 @@ class TestAnnotate:
                   r"nobis apparentes}}\Bfootnote{\emph{om.} B}}")
         assert self.run_annotation(text) == expect_single
         assert self.run_cleanup(expect_single) == text
-        global settings
-        settings['multiword'] = True
-        assert self.run_annotation(text) == expect_multi
-        settings['multiword'] = False
+        with temp_settings({'multiword': True}):
+            assert self.run_annotation(text) == expect_multi
 
     def test_latex_expression_escaped_matching(self):
         text = r'\edtext{a \& b}{\Afootnote{x}} a \& b'
@@ -286,10 +267,8 @@ class TestAnnotate:
         )
         assert self.run_annotation(text) == expect_single
         assert self.run_cleanup(expect_single) == text
-        global settings
-        settings['multiword'] = True
-        assert self.run_annotation(text) == expect_multi
-        settings['multiword'] = False
+        with temp_settings({'multiword': True}):
+            assert self.run_annotation(text) == expect_multi
 
     def test_match_multiword_with_overlaps(self):
         text = (r"""
@@ -327,10 +306,8 @@ class TestAnnotate:
             """)
         assert self.run_annotation(text) == expect_single
         assert self.run_cleanup(expect_single) == text
-        global settings
-        settings['multiword'] = True
-        assert self.run_annotation(text) == expect_multi
-        settings['multiword'] = False
+        with temp_settings({'multiword': True}):
+            assert self.run_annotation(text) == expect_multi
 
     def test_match_single_level_multiword_lemma_ellipsis(self):
         text = (r'\sameword{a} b and c \edtext{a and c}{\lemma{a \dots{} '
@@ -406,10 +383,8 @@ class TestAnnotate:
     def test_edtext_with_custom_punctuation(self):
         text = ('B˧ \edtext{B}{}')
         expect = ('\sameword{B}˧ \edtext{\sameword[1]{B}}{}')
-        old = settings['punctuation']
-        settings['punctuation'] += '˧'
-        assert self.run_annotation(text) == expect
-        settings['punctuation'] = old
+        with temp_settings({'punctuation': settings['punctuation'] + ['˧']}):
+            assert self.run_annotation(text) == expect
 
     def test_edtext_with_exotic_punctuation(self):
         text = ('o “o ⸀o o. o \edtext{o}{}')
@@ -691,8 +666,6 @@ class TestAnnotate:
     def test_custom_macros(self):
         """Macro `\exclude` is explicitly excluded, so what is compared is
         'Sortes' and 'Sortes' which is then matched and annotated. """
-        old_exclude = settings['exclude_macros']
-        settings['exclude_macros'] += [r'\exclude']
         text = (r'Han var sonr \edtext{Hákon\emph{ar}\exclude{Håkon II}}{'
                 r'\Afootnote{k\emph{on}gſ hakon\emph{ar} Sk}}, '
                 r'sons Hákonar\exclude{Håkon I}')
@@ -700,9 +673,10 @@ class TestAnnotate:
                   r'ar}}\exclude{Håkon II}}{\Afootnote{k\emph{on}gſ '
                   r'hakon\emph{ar} Sk}}, sons \sameword{Hákonar}\exclude{'
                   r'Håkon I}')
-        assert self.run_annotation(text) == expect
-        assert self.run_cleanup(expect) == text
-        settings['exclude_macros'] = old_exclude
+        with temp_settings({'exclude_macros': settings['exclude_macros']
+                                             + [r'\exclude']}):
+            assert self.run_annotation(text) == expect
+            assert self.run_cleanup(expect) == text
 
 
     def test_custom_not_excluded_macro_with_match(self):
@@ -878,29 +852,29 @@ ord}
         assert self.run_cleanup(expect) == text
 
     def test_case_insensitive_context_no_match_lemma(self):
-        settings['sensitive_context_match'] = False
         text = r'\edtext{A}{\lemma{A}\Afootnote{x}} a'
         expect = (r'\edtext{\sameword[1]{A}}{\lemma{\sameword{A}}\Afootnote{x}} '
                   r'\sameword{a}')
-        assert self.run_annotation(text) == expect
-        assert self.run_cleanup(expect) == text
-        settings['sensitive_context_match'] = True
+        with temp_settings({'sensitive_context_match': False}):
+            assert self.run_annotation(text) == expect
+            assert self.run_cleanup(expect) == text
 
     def test_case_insensitive_context_no_match_edtext(self):
-        settings['sensitive_context_match'] = False
         text = r'\edtext{A}{\Afootnote{x}} a'
         expect = r'\edtext{\sameword[1]{A}}{\Afootnote{x}} \sameword{a}'
-        assert self.run_annotation(text) == expect
-        assert self.run_cleanup(expect) == text
-        settings['sensitive_context_match'] = True
+        with temp_settings({'sensitive_context_match': False}):
+            assert self.run_annotation(text) == expect
+            assert self.run_cleanup(expect) == text
 
     def test_case_sensitive_context_match_lemma(self):
         text = r'\edtext{A}{\lemma{A}\Afootnote{x}} a'
-        assert self.run_annotation(text) == text
+        with temp_settings({'sensitive_context_match': True}):
+            assert self.run_annotation(text) == text
 
     def test_case_sensitive_context_match_edtext(self):
         text = r'\edtext{A}{\Afootnote{x}} a'
-        assert self.run_annotation(text) == text
+        with temp_settings({'sensitive_context_match': True}):
+            assert self.run_annotation(text) == text
 
     def test_latex_expression_escaping(self):
         text = r'\\ \& \% \$ \# \_ \{ \} \~ \^'
@@ -1315,13 +1289,6 @@ class TestDefineSearchWords:
         settings['exclude_macros'] = old_exclude
 
     def test_custom_ellipses_without_space(self):
-        old_exclude = settings['exclude_macros']
-        settings['exclude_macros'] += [
-            "\\.\\.\\.",
-            "-+",
-            "\\,-\\,",
-            "\\\\,-+\\\\,"
-        ]
         single_dash = r'\edtext{A B C D E}{\lemma{A-E}\Afootnote{}}'
         double_dash = r'\edtext{A B C D E}{\lemma{A--E}\Afootnote{}}'
         triple_dash = r'\edtext{A B C D E}{\lemma{A---E}\Afootnote{}}'
@@ -1331,13 +1298,13 @@ class TestDefineSearchWords:
         dots = r'\edtext{A B C D E}{\lemma{A\dots{}E}\Afootnote{}}'
         ldots_brackets = r'\edtext{A B C D E}{\lemma{A\ldots{}E}\Afootnote{}}'
         expect = ['A', 'E']
-
-        assert self.run_wordlist(single_dash) == expect
-        assert self.run_wordlist(double_dash) == expect
-        assert self.run_wordlist(triple_dash) == expect
-        assert self.run_wordlist(endash) == expect
-        assert self.run_wordlist(emdash) == expect
-        assert self.run_wordlist(comma_string) == expect
-        assert self.run_wordlist(dots) == expect
-        assert self.run_wordlist(ldots_brackets) == expect
-        settings['exclude_macros'] = old_exclude
+        excluded = settings['exclude_macros'] + ["\\.\\.\\.", "-+", "\\,-\\,", "\\\\,", "-+\\\\,"]
+        with temp_settings({'exclude_macros': excluded}):
+            assert self.run_wordlist(single_dash) == expect
+            assert self.run_wordlist(double_dash) == expect
+            assert self.run_wordlist(triple_dash) == expect
+            assert self.run_wordlist(endash) == expect
+            assert self.run_wordlist(emdash) == expect
+            assert self.run_wordlist(comma_string) == expect
+            assert self.run_wordlist(dots) == expect
+            assert self.run_wordlist(ldots_brackets) == expect
