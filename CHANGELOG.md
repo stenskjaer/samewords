@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [0.4.3]
+## [0.5.0]
 ### Added
 - Raise an error if the configuration file does not exist.
 - `multiword` option in the configuration, making it possible to choose whether
