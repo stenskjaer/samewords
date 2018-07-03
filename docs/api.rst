@@ -4,7 +4,7 @@ API Interface
 =============
 
 There is an API endpoint for the web service (UI available at
-https://s3.amazonaws.com/samewords-app/index.html).
+http://samewords.stenskjaer.net).
 
 Endpoint: https://90tqezjfmk.execute-api.us-east-1.amazonaws.com/prod
 

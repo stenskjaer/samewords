@@ -17,7 +17,7 @@ The configuration file recognizes the following parameters:
 - ``sensitive_context_match``
 - ``context_distance``
 - ``punctuation``
-
+- ``multiword``
 
 JSON requires backslashes to be escaped if you want to preserved them in
 the string. You do that with another backslash, so ``\\`` will result in
@@ -27,7 +27,7 @@ or regular expressions that contain backslashes.
 Example file
 ------------
 
-A complete configuration file could contain the following content:
+An example configuration file could contain the following content:
 
 .. code:: json
 
