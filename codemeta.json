@@ -1,0 +1,23 @@
+{
+  "@context": "https://raw.githubusercontent.com/codemeta/codemeta/master/codemeta.jsonld",
+  "@type": "Code",
+  "author": [
+    {
+      "@id": "https://orcid.org/0000-0002-8190-679X",
+      "@type": "Person",
+      "email": "michael.stenskjaer@gmail.com",
+      "name": "Michael Stenskjær Christensen",
+      "affiliation": "University of Copenhagen, University of Gothenburg"
+    }
+  ],
+  "identifier": "http://doi.org/10.5281/zenodo.1306293",
+  "codeRepository": "https://github.com/stenskjaer/samewords",
+  "datePublished": "2018-07-05",
+  "dateModified": "2018-07-05",
+  "dateCreated": "2018-07-05",
+  "description": "Samewords automatically annotates potentially ambiguous words in critical text editions made with Reledmac in LaTeX.",
+  "keywords": "Scholarly editing, Critical editing, LaTeX",
+  "license": "MIT",
+  "title": "Samewords",
+  "version": "v0.5.0"
+}
