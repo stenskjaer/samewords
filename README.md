@@ -1,7 +1,11 @@
 Samewords
 =========
 
-[![Documentation Status](https://readthedocs.org/projects/samewords/badge/?version=latest)](http://samewords.readthedocs.io/en/latest/?badge=latest)
+[![Documentation
+Status](https://readthedocs.org/projects/samewords/badge/?version=latest)](http://samewords.readthedocs.io/en/latest/?badge=latest)
+[![DOI](https://zenodo.org/badge/92066873.svg)](https://zenodo.org/badge/latestdoi/92066873)
+
+
 
 *Word disambigutaion in critical text editions*
 
