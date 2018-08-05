@@ -21,11 +21,10 @@ bibliography: paper.bib
 
 A common problem for the editor of a scholarly textual edition is the handling
 of ambiguous references in the critical apparatus. 
-For example, see this paragraph:
+Let us take this paragraph as an example:
 
 ```
-We have a passage of text here, such a nice place for a critical
-note.
+Here is a chunk of text, what a nice place for a critical note.
 
 ----
 1 a] om. M
@@ -36,8 +35,7 @@ the reference points to. This will often be done by a numbering scheme such as
 this:
 
 ```
-We have a passage of text here, such a nice place for a critical
-note.
+Here is a chunk of text, what a nice place for a critical note.
 
 ----
 1 a²] om. M
@@ -57,10 +55,10 @@ manual annotation therefore includes a large risk of error.
 be installed via `pip`, but an online interface and API is also provided for the
 users who are not used to installing and running software from the command line.
 It provides full Unicode 10 support, and handles single word conflicts by
-default (with the option to annotate multi-word conflicts as well) as well as
-apparatus entries with custom lemmas. It is possible to indicate custom ellipsis
-patterns for spans in custom lemma references. Further details, such as the
-number of context words to compare, recognized punctuation characters, and case
+default (with the option to annotate multi-word conflicts) as well as apparatus
+entries with custom lemmas. It is possible to indicate custom ellipsis patterns
+for spans in custom lemma references. Further details, such as the number of
+context words to compare, recognized punctuation characters, and case
 sensitivity can be configured in a configuration file.
 
 The source code has been archived at *Zenodo* with the linked DOI: [@zenodo].
