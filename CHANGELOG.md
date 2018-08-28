@@ -5,6 +5,8 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
 
 ## [0.5.2]
 ### Added
+- Don't care about case sensitivity between lemma and edtext when annotating the
+  edtext with a sameword macro.
 - Tokenize edtext after started word content as separate word.
 - Tokenize starred LaTeX commands correctly.
 - Add `process_string` method to processing interface. This methods both

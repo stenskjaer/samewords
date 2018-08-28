@@ -20,6 +20,12 @@ class TestAnnotate:
         words = matcher.cleanup()
         return words.write()
 
+    def test_case_sensitivity_in_edtext_index_matching(self):
+        text = (r"hoc \edtext{Hoc}{\lemma{hoc}\Bfootnote{}}")
+        expect = (r"\sameword{hoc} \edtext{\sameword[1]{Hoc}}{\lemma{\sameword"
+                  r"{hoc}}\Bfootnote{}}")
+        assert self.run_annotation(text) == expect
+
     def test_multiword_sameword_w_edtext_inside(self):
         text = (r"TWO~dollars and \edtext{TWO}{\Afootnote{4}} "
                 r"\edtext{TWO~\edtext{dollars}{\Afootnote{cents}}}{"

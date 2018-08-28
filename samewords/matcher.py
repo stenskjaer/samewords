@@ -5,6 +5,7 @@ from samewords.tokenize import (Words, Registry, Word, Tokenizer, Macro, Element
                                 LatexSyntaxError)
 from samewords.brackets import Brackets
 from samewords.settings import settings
+from samewords.test import temp_settings
 
 from typing import List, Tuple, Union
 
@@ -68,7 +69,8 @@ class Matcher:
                         self._add_sameword(edtext[eidx:eidx+1], edtext_lvl)
                 else:
                     try:
-                        sidx, eidx = self._find_index(edtext, search_ws)
+                        with temp_settings({'sensitive_context_match': False}):
+                            sidx, eidx = self._find_index(edtext, search_ws)
                     except TypeError:
                         raise ValueError("Looks like edtext and lemma content "
                                          "don't match in "
@@ -406,6 +408,7 @@ class Matcher:
         item (that has content) in the context matches the next item in the
         search words list. """
         context = self._apply_sensitivity(context)
+        searches = self._apply_sensitivity(searches)
 
         if searches[0] not in context[start:]:
             return False
@@ -423,7 +426,8 @@ class Matcher:
                         if context[ctxt_index] == searches[search_index]:
                             search_index += 1
                         else:
-                            return self._find_index(context, searches, ctxt_index)
+                            return self._find_index(context, searches,
+                                                    start=ctxt_index)
                     ctxt_index += 1
 
                 except IndexError:
