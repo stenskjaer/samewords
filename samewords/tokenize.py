@@ -36,7 +36,8 @@ class Macro(UserString):
         super().__init__(self)
         self.name = self._identify_name()
         self.oarg = self._optional_argument()
-        self.opening = regex.match(regex.escape(self.name + self.oarg + '{'),
+        self.star = self._match_star()
+        self.opening = regex.match(regex.escape(self.name + self.oarg + self.star + '{'),
                                 self.data)
         self.empty = self._is_empty()
         self.pos = pos              # register start index in word
@@ -66,9 +67,19 @@ class Macro(UserString):
 
     def _optional_argument(self) -> str:
         """
-        Identify the possible optinal argument of the marco.
+        Identify the possible optional argument.
         """
         match = regex.match(regex.escape(self.name) + r'(\[[^\]]+\])',
+                            self.data)
+        if match:
+            return match.group(1)
+        return ''
+
+    def _match_star(self) -> str:
+        """
+        Identify the possible star argument.
+        """
+        match = regex.match(regex.escape(self.name + self.oarg) + r'(\*)',
                             self.data)
         if match:
             return match.group(1)
@@ -176,7 +187,8 @@ class Word(UserString):
                 if macro.opening and macro.to_closing is False:
                     macro.to_closing = distance
                     return True
-        raise IndexError('The word does not have any open macros.')
+        raise IndexError(
+            'The word {} does not have any open macros.'.format(self))
 
     def _increment_after(self, element: Union[Macro, Element],
                              increment: int) -> None:

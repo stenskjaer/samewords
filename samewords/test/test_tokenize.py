@@ -29,6 +29,10 @@ class TestTokenize:
         assert Tokenizer(text).wordlist == expect
         assert Tokenizer(text).wordlist.write() == text
 
+    def test_latex_star_command(self):
+        text = "\eledsection*{Prooemium}"
+        assert self.write_tokenization(text) == text
+
     def test_single_macro(self):
         text = 'text \emph{emphasis} is nice'
         expect = ['text', 'emphasis', 'is', 'nice']
