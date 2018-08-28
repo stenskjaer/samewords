@@ -10,7 +10,7 @@ setup(name='samewords',
       version=__version__,
       packages=find_packages(),
       install_requires=[
-          'regex==2018.2.21'
+          'regex==2018.8.17'
       ],
       test_requires=[
           'pytest==3.6.2'
