@@ -3,6 +3,17 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [0.5.2]
+### Added
+- Tokenize starred LaTeX commands correctly.
+- Add `process_string` method to processing interface. This methods both
+  receives and returns a string.
+
+## [0.5.1]
+### Changed
+- Update regex version to 2018.8.17
+- Remove erroneous temporary settings in tests.
+
 ## [0.5.0]
 ### Added
 - Raise an error if the configuration file does not exist.
