@@ -23,9 +23,15 @@ def process_document(filename: str, method: str = 'annotate') -> str:
     document as string."""
 
     content = doc_content(filename)
-    chunked_document = chunk_doc(content)
+    return process_string(content, method=method)
+
+
+def process_string(content: str, method: str = 'annotate') -> str:
+    """Process an input string. Return updated document as string."""
+
+    chunked_content = chunk_doc(content)
     updated = []
-    for i, chunk in enumerate(chunked_document):
+    for i, chunk in enumerate(chunked_content):
         # Only unequal indices contain numbered reledmac paragraphs
         if not i % 2 == 0:
             chunk = ''.join([run_annotation(par, method)
