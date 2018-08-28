@@ -10,9 +10,7 @@ class TestMainProcessing:
     processed_content = document.doc_content(processed)
 
     def test_process_document(self):
-        settings['sensitive_context_match'] = True
         assert process_document(self.unprocessed) == self.processed_content
-        settings['sensitive_context_match'] = False
 
     def test_update_document(self):
         unupdated = './samewords/test/assets/simple-unupdated.tex'
