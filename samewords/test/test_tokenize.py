@@ -56,6 +56,10 @@ class TestTokenize:
         assert tokenization.wordlist.write() == text
         assert tokenization.registry == registry
 
+    def test_edtext_after_word_content(self):
+        text = (r"word\edtext{content}{\Bfootnote{note}}")
+        assert Tokenizer(text).wordlist == ['word', 'content']
+
     def test_edtext_with_nested_brackets(self):
         text = '\edtext{entry \emph{nested \emph{b}}}{\Bfootnote{fnote}} nice'
         expect = ['entry', 'nested', 'b', 'nice']

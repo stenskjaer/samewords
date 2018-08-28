@@ -5,6 +5,7 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
 
 ## [0.5.2]
 ### Added
+- Tokenize edtext after started word content as separate word.
 - Tokenize starred LaTeX commands correctly.
 - Add `process_string` method to processing interface. This methods both
   receives and returns a string.

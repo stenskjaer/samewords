@@ -188,7 +188,7 @@ class Word(UserString):
                     macro.to_closing = distance
                     return True
         raise IndexError(
-            'The word {} does not have any open macros.'.format(self))
+            'The word "{}" does not have any open macros.'.format(self))
 
     def _increment_after(self, element: Union[Macro, Element],
                              increment: int) -> None:
@@ -449,6 +449,10 @@ class Tokenizer:
                     # If we run into a macro for a word that already has one
                     # or more app elements, we should start a new word.
                     break
+                if word.content and string[pos:pos+7] == r'\edtext':
+                    # If we have an edtext macro suffixed an existing word
+                    # content, we should start a new word.
+                    break
                 if string[pos+1] in self._escape_chars:
                     word.content.append(Element(string[pos:pos+2], pos))
                     pos += 2
@@ -467,7 +471,7 @@ class Tokenizer:
                         pos += len(macro.hidden_content)
                         word.close_macro(0)
                     break
-                if macro.name == r'\edtext' and not word.content:
+                if macro.name == r'\edtext':
                     self._stack_edtext.append(self._brackets)
                     self._edtext_lvl += 1
                     word.edtext_start = True
