@@ -149,22 +149,28 @@ dashes, it could be improved to ``\\\\,-+\\\\,``.
 ``sensitive_context_match``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The value of the settings variable ``sensitive_proximity_match``
-determines whether the search for matches in the proximity is case
-sensitive. By default it is case insensitive, but if the value is set to
-``True``, it will be case sensitive.
+The value of the settings variable ``sensitive_proximity_match`` determines
+whether the search for matches in the proximity is case sensitive. By default it
+is case sensitive, which means that “Word” and “word” will not be annotated with
+``\sameword{}``. If the value is set to ``false``, it will be case insensitive.
 
 In JSON:
 
 .. code:: json
 
     {
-      "sensitive_context_match": true
+      "sensitive_context_match": false
     }
 
-That would mean that the search for “an” in the context string “An
-example” would not match. This is a sensible setting when lemma words
-are not lower cased in the critical apparatus.
+In that case “Word” and “word” would match and hence be annotated. This is a
+sensible setting when lemma words are not lower cased in the critical
+apparatus.
+
+Notice that if you disable case sensitive matching you need to use the
+configuration ``swcaseinsensitive`` when you load *Reledmac* (e.g.
+``\usepackage[swcaseinsensitive]{reledmac}``). See also §6.3.2 of the `Reledmac
+documentation
+<https://mirrors.ctan.org/macros/latex/contrib/reledmac/reledmac.pdf>`__.
 
 ``context_distance``
 ^^^^^^^^^^^^^^^^^^^^
