@@ -46,9 +46,15 @@ def chunk_doc(content: str) -> List[str]:
             # Now, add the indices of the numbered section
             indices.append([start.span()[0], end.span()[1]])
         # Add the tail from last numbered to end
-        indices.append([indices[-1][-1], len(content)+1])
+        try:
+            indices.append([indices[-1][-1], len(content)+1])
+        except IndexError:
+            raise ValueError(r'Your document did not contain one or both of '
+                             r'\beginnumbering and \endnumbering')
+
         # Chunk the text according to the indices
         chunked = [content[start:end] for start, end in indices]
+
     else:
         chunked = [content]
     return chunked
