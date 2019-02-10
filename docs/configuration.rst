@@ -24,6 +24,10 @@ the string. You do that with another backslash, so ``\\`` will result in
 a single backslash. You must remember this when noting ``TeX`` strings
 or regular expressions that contain backslashes.
 
+An example configuration file can be found in the root directory of the
+*Samewords* package or `in the online Github repository
+<https://github.com/stenskjaer/samewords/blob/master/sample_config.json>`__.
+
 Example file
 ------------
 
@@ -149,7 +153,7 @@ dashes, it could be improved to ``\\\\,-+\\\\,``.
 ``sensitive_context_match``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The value of the settings variable ``sensitive_proximity_match`` determines
+The value of the settings variable ``sensitive_context_match`` determines
 whether the search for matches in the proximity is case sensitive. By default it
 is case sensitive, which means that “Word” and “word” will not be annotated with
 ``\sameword{}``. If the value is set to ``false``, it will be case insensitive.
@@ -188,7 +192,7 @@ many ``\sameword{}`` annotations really does no harm.
 
 Punctuation may be critical when adjacent to potential sameword matches. If
 exotic punctuation is used it might not automatically be separated from the rest
-of the word. By default all characters that are not word characters, punctuation
+of the word. By default all characters that are not punctuation
 or ``\`` ``{`` or ``}`` is considered part of a word.
 
 Currently the following groups of characters are considered punctuation:
@@ -208,9 +212,6 @@ characters, regular expression statements or Unicode codepoints (e.g.
 Extended A block). The ``\u`` tells Python that we are dealing with escaped
 Unicode codepoints.
 
-If you feel bold you could of course edit the punctuation list in the settings
-file.
-
 ``multiword``
 ^^^^^^^^^^^^^
 
@@ -221,16 +222,23 @@ words of the phrase separately or all in one ``\sameword{}`` macro.
 Default setting is ``False``, meaning that each word is annotated separately.
 
 For example:
-> A word with \edtext{a word}{\Afootnote{another D}} after it.
+
+.. code-block:: text
+
+    A word with \edtext{a word}{\Afootnote{another D}} after it.
 
 If that is annotated with multiple ``\sameword{}`` macros, it will look like
-this::
+this
+
+.. code-block:: text
 
     \sameword{A} \sameword{word} with \edtext{\sameword[1]{a}
     \sameword[1]{word}}{\Afootnote{another D}} after it.
 
 This will result in an apparatus note with the numbering “A² word²”. If it is
-annotated with a single “multiword” annotation, it looks like this::
+annotated with a single “multiword” annotation, it looks like this
+
+.. code-block:: text
 
     \sameword{A word} with \edtext{\sameword[1]{a word}}{\Afootnote{another D}}
     after it.

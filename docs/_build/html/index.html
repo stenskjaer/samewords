@@ -9,10 +9,11 @@
     <title>Samewords – word disambigutaion in critical text editions &#8212; Samewords 0.3.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Installation" href="installation.html" />
@@ -28,6 +29,8 @@
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="samewords-word-disambigutaion-in-critical-text-editions">
@@ -35,12 +38,12 @@
 <p>In critical textual editions notes in the critical apparatus are
 normally made to the line where the words occur. This leads to ambiguous
 references when a critical apparatus note refers to a word that occurs
-more than once in a line. For example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">We</span> <span class="n">have</span> <span class="n">a</span> <span class="n">passage</span> <span class="n">of</span> <span class="n">text</span> <span class="n">here</span><span class="p">,</span> <span class="n">such</span> <span class="n">a</span> <span class="n">nice</span> <span class="n">place</span> <span class="k">for</span> <span class="n">a</span> <span class="n">critical</span>
-<span class="n">note</span><span class="o">.</span>
+more than once in a line. For example</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>We have a passage of text here, such a nice place for a critical
+note.
 
-<span class="o">----</span>
-<span class="mi">1</span> <span class="n">a</span><span class="p">]</span> <span class="n">om</span><span class="o">.</span> <span class="n">M</span>
+---------
+1 a] om. M
 </pre></div>
 </div>
 <p>It is very unclear which of three instances of “a” the note refers to.</p>
@@ -52,17 +55,17 @@ manually (see the <em>reledmac</em> handbook for the details on that). <em>Samew
 automates this step for the editor.</p>
 <div class="section" id="web-service-and-api">
 <h2>Web service and API<a class="headerlink" href="#web-service-and-api" title="Permalink to this headline">¶</a></h2>
-<p>See some quick results by <a class="reference external" href="https://s3.amazonaws.com/samewords-app/index.html">trying out the online web service</a>.</p>
+<p>See some quick results by <a class="reference external" href="http://samewords.stenskjaer.net/">trying out the online web service</a>.</p>
 <p>For more on this and the available API endpoint, see <a class="reference internal" href="api.html#apiinterface"><span class="std std-ref">API Interface</span></a>.</p>
 </div>
-<div class="section" id="install-and-usage">
-<h2>Install and usage<a class="headerlink" href="#install-and-usage" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="local-install-and-usage">
+<h2>Local install and usage<a class="headerlink" href="#local-install-and-usage" title="Permalink to this headline">¶</a></h2>
 <div class="code bash highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip3</span> <span class="n">install</span> <span class="n">samewords</span>
 </pre></div>
 </div>
 <p>That’s it!</p>
 <p>This requires Python 3.6 installed in your system. For more details on
-installation, see the <a class="reference internal" href="installation.html#installation"><span class="std std-ref">Installation</span></a> section.</p>
+installation, see the <a class="reference internal" href="mwe.html#installation"><span class="std std-ref">Minial working example</span></a> section.</p>
 <p>Now call the script with the file you want annotated as the only argument to get
 the annotated version back in the terminal.</p>
 <div class="code bash highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">samewords</span> <span class="n">my</span><span class="o">-</span><span class="n">awesome</span><span class="o">-</span><span class="n">edition</span><span class="o">.</span><span class="n">tex</span>
@@ -98,8 +101,10 @@ context:</p>
 <li class="toctree-l2"><a class="reference internal" href="installation.html#optional-virtual-environment">Optional: Virtual environment</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="mwe.html">Minial working example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="details.html">Annotation details</a></li>
 <li class="toctree-l1"><a class="reference internal" href="details.html#languages">Languages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="details.html#overlapping-apparatus-entries">Overlapping apparatus entries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cleaning.html">Cleaning and updating files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="configuration.html#example-file">Example file</a></li>
@@ -138,21 +143,35 @@ use the package.</p>
 
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-  <h3><a href="#">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">Samewords – word disambigutaion in critical text editions</a><ul>
-<li><a class="reference internal" href="#web-service-and-api">Web service and API</a></li>
-<li><a class="reference internal" href="#install-and-usage">Install and usage</a></li>
-<li><a class="reference internal" href="#contents">Contents</a></li>
+<h1 class="logo"><a href="#">Samewords</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mwe.html">Minial working example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="details.html">Annotation details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="details.html#languages">Languages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="details.html#overlapping-apparatus-entries">Overlapping apparatus entries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cleaning.html">Cleaning and updating files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reporting.html">Issue reporting and testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developing.html">For development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
 </ul>
-</li>
-<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
-<li><a class="reference internal" href="#disclaimer">Disclaimer</a></li>
-</ul>
+
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
@@ -161,13 +180,6 @@ use the package.</p>
   </ul></li>
 </ul>
 </div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/index.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <div class="searchformwrapper">
@@ -180,6 +192,14 @@ use the package.</p>
     </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
         </div>
       </div>
       <div class="clearer"></div>
@@ -188,8 +208,8 @@ use the package.</p>
       &copy;2018, Michael Stenskjær Christensen.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
       <a href="_sources/index.rst.txt"

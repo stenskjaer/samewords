@@ -5,14 +5,14 @@ Samewords – word disambigutaion in critical text editions
 In critical textual editions notes in the critical apparatus are
 normally made to the line where the words occur. This leads to ambiguous
 references when a critical apparatus note refers to a word that occurs
-more than once in a line. For example:
+more than once in a line. For example
 
-::
+.. code-block:: text
 
     We have a passage of text here, such a nice place for a critical
     note.
 
-    ----
+    ---------
     1 a] om. M
 
 It is very unclear which of three instances of “a” the note refers to.
@@ -27,13 +27,13 @@ automates this step for the editor.
 Web service and API
 -------------------
 
-See some quick results by `trying out the online web service <https://s3.amazonaws.com/samewords-app/index.html>`__.
+See some quick results by `trying out the online web service <http://samewords.stenskjaer.net/>`__.
 
 For more on this and the available API endpoint, see :ref:`apiinterface`.
 
 
-Install and usage
------------------
+Local install and usage
+-----------------------
 
 .. code:: bash
 
@@ -87,6 +87,7 @@ Contents
    :maxdepth: 2
 
    installation
+   mwe
    details
    cleaning
    configuration

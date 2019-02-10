@@ -9,13 +9,14 @@
     <title>Configuration &#8212; Samewords 0.3.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Issue reporting and testing" href="reporting.html" />
+    <link rel="next" title="API Interface" href="api.html" />
     <link rel="prev" title="Cleaning and updating files" href="cleaning.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -29,6 +30,8 @@
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="configuration">
@@ -47,14 +50,17 @@ you often need to use the same configuration.</p>
 <li><code class="docutils literal notranslate"><span class="pre">sensitive_context_match</span></code></li>
 <li><code class="docutils literal notranslate"><span class="pre">context_distance</span></code></li>
 <li><code class="docutils literal notranslate"><span class="pre">punctuation</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">multiword</span></code></li>
 </ul>
 <p>JSON requires backslashes to be escaped if you want to preserved them in
 the string. You do that with another backslash, so <code class="docutils literal notranslate"><span class="pre">\\</span></code> will result in
 a single backslash. You must remember this when noting <code class="docutils literal notranslate"><span class="pre">TeX</span></code> strings
 or regular expressions that contain backslashes.</p>
+<p>An example configuration file can be found in the root directory of the
+<em>Samewords</em> package or <a class="reference external" href="https://github.com/stenskjaer/samewords/blob/master/sample_config.json">in the online Github repository</a>.</p>
 <div class="section" id="example-file">
 <h2>Example file<a class="headerlink" href="#example-file" title="Permalink to this headline">¶</a></h2>
-<p>A complete configuration file could contain the following content:</p>
+<p>An example configuration file could contain the following content:</p>
 <div class="code json highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
   <span class="s2">&quot;ellipsis_patterns&quot;</span><span class="p">:</span> <span class="p">[</span>
     <span class="s2">&quot;--&quot;</span><span class="p">,</span>
@@ -152,19 +158,23 @@ dashes, it could be improved to <code class="docutils literal notranslate"><span
 </div>
 <div class="section" id="sensitive-context-match">
 <h3><code class="docutils literal notranslate"><span class="pre">sensitive_context_match</span></code><a class="headerlink" href="#sensitive-context-match" title="Permalink to this headline">¶</a></h3>
-<p>The value of the settings variable <code class="docutils literal notranslate"><span class="pre">sensitive_proximity_match</span></code>
-determines whether the search for matches in the proximity is case
-sensitive. By default it is case insensitive, but if the value is set to
-<code class="docutils literal notranslate"><span class="pre">True</span></code>, it will be case sensitive.</p>
+<p>The value of the settings variable <code class="docutils literal notranslate"><span class="pre">sensitive_proximity_match</span></code> determines
+whether the search for matches in the proximity is case sensitive. By default it
+is case sensitive, which means that “Word” and “word” will not be annotated with
+<code class="docutils literal notranslate"><span class="pre">\sameword{}</span></code>. If the value is set to <code class="docutils literal notranslate"><span class="pre">false</span></code>, it will be case insensitive.</p>
 <p>In JSON:</p>
 <div class="code json highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;sensitive_context_match&quot;</span><span class="p">:</span> <span class="n">true</span>
+  <span class="s2">&quot;sensitive_context_match&quot;</span><span class="p">:</span> <span class="n">false</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>That would mean that the search for “an” in the context string “An
-example” would not match. This is a sensible setting when lemma words
-are not lower cased in the critical apparatus.</p>
+<p>In that case “Word” and “word” would match and hence be annotated. This is a
+sensible setting when lemma words are not lower cased in the critical
+apparatus.</p>
+<p>Notice that if you disable case sensitive matching you need to use the
+configuration <code class="docutils literal notranslate"><span class="pre">swcaseinsensitive</span></code> when you load <em>Reledmac</em> (e.g.
+<code class="docutils literal notranslate"><span class="pre">\usepackage[swcaseinsensitive]{reledmac}</span></code>). See also §6.3.2 of the <a class="reference external" href="https://mirrors.ctan.org/macros/latex/contrib/reledmac/reledmac.pdf">Reledmac
+documentation</a>.</p>
 </div>
 <div class="section" id="context-distance">
 <h3><code class="docutils literal notranslate"><span class="pre">context_distance</span></code><a class="headerlink" href="#context-distance" title="Permalink to this headline">¶</a></h3>
@@ -179,7 +189,7 @@ many <code class="docutils literal notranslate"><span class="pre">\sameword{}</s
 <h3><code class="docutils literal notranslate"><span class="pre">punctuation</span></code><a class="headerlink" href="#punctuation" title="Permalink to this headline">¶</a></h3>
 <p>Punctuation may be critical when adjacent to potential sameword matches. If
 exotic punctuation is used it might not automatically be separated from the rest
-of the word. By default all characters that are not word characters, punctuation
+of the word. By default all characters that are not punctuation
 or <code class="docutils literal notranslate"><span class="pre">\</span></code> <code class="docutils literal notranslate"><span class="pre">{</span></code> or <code class="docutils literal notranslate"><span class="pre">}</span></code> is considered part of a word.</p>
 <p>Currently the following groups of characters are considered punctuation:</p>
 <ul class="simple">
@@ -195,49 +205,89 @@ characters, regular expression statements or Unicode codepoints (e.g.
 <code class="docutils literal notranslate"><span class="pre">\u0101</span></code> = ā) or ranges of Unicode codepoints (<code class="docutils literal notranslate"><span class="pre">\u0100—\u017F</span></code> = the Latin
 Extended A block). The <code class="docutils literal notranslate"><span class="pre">\u</span></code> tells Python that we are dealing with escaped
 Unicode codepoints.</p>
-<p>If you feel bold you could of course edit the punctuation list in the settings
-file.</p>
+</div>
+<div class="section" id="multiword">
+<h3><code class="docutils literal notranslate"><span class="pre">multiword</span></code><a class="headerlink" href="#multiword" title="Permalink to this headline">¶</a></h3>
+<p>In cases where an <code class="docutils literal notranslate"><span class="pre">\edtext{}{}</span></code> macro contains a phrase, and there is a phrase
+of that match in the context, it is usually possible to either annotate each
+words of the phrase separately or all in one <code class="docutils literal notranslate"><span class="pre">\sameword{}</span></code> macro.</p>
+<p>Default setting is <code class="docutils literal notranslate"><span class="pre">False</span></code>, meaning that each word is annotated separately.</p>
+<p>For example:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>A word with \edtext{a word}{\Afootnote{another D}} after it.
+</pre></div>
+</div>
+<p>If that is annotated with multiple <code class="docutils literal notranslate"><span class="pre">\sameword{}</span></code> macros, it will look like
+this</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>\sameword{A} \sameword{word} with \edtext{\sameword[1]{a}
+\sameword[1]{word}}{\Afootnote{another D}} after it.
+</pre></div>
+</div>
+<p>This will result in an apparatus note with the numbering “A² word²”. If it is
+annotated with a single “multiword” annotation, it looks like this</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>\sameword{A word} with \edtext{\sameword[1]{a word}}{\Afootnote{another D}}
+after it.
+</pre></div>
+</div>
+<p>This will result in an apparatus note withe the numbering “A word²”.</p>
+<p>Which of these solutions is prefered usually a question of the individual taste
+and intuition of the editor.</p>
+<p>In some cases this may however lead to problems: When multiple levels of
+<code class="docutils literal notranslate"><span class="pre">\edtext{}{}</span></code> annotations are nested and are in need of disambiguation, this
+might however lead to unexpected results where the apparatus note occurs as if
+it were annotated with the words separately (e.g. “A² word²”). Furthermore,
+there is a risk that these “multiword” annotations yield a result where the
+beginning or end of a <code class="docutils literal notranslate"><span class="pre">\edtext{}{}</span></code> overlaps with that of a <code class="docutils literal notranslate"><span class="pre">\sameword{}</span></code>.
+This is invalid LaTeX and will therefore not compile. The separate sameword
+annotations will never give this problem, so it is prefered as default with the
+option of the editor to enable the slightly more risky multiword approach.</p>
 </div>
 </div>
 </div>
 
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">Configuration</a><ul>
-<li><a class="reference internal" href="#example-file">Example file</a></li>
-<li><a class="reference internal" href="#parameters">Parameters</a><ul>
-<li><a class="reference internal" href="#exclude-macros"><code class="docutils literal notranslate"><span class="pre">exclude_macros</span></code></a></li>
-<li><a class="reference internal" href="#ellipsis-patterns"><code class="docutils literal notranslate"><span class="pre">ellipsis_patterns</span></code></a></li>
-<li><a class="reference internal" href="#sensitive-context-match"><code class="docutils literal notranslate"><span class="pre">sensitive_context_match</span></code></a></li>
-<li><a class="reference internal" href="#context-distance"><code class="docutils literal notranslate"><span class="pre">context_distance</span></code></a></li>
-<li><a class="reference internal" href="#punctuation"><code class="docutils literal notranslate"><span class="pre">punctuation</span></code></a></li>
+<h1 class="logo"><a href="index.html">Samewords</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mwe.html">Minial working example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="details.html">Annotation details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="details.html#languages">Languages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="details.html#overlapping-apparatus-entries">Overlapping apparatus entries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cleaning.html">Cleaning and updating files</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#example-file">Example file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#parameters">Parameters</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reporting.html">Issue reporting and testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developing.html">For development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
 </ul>
-</li>
-</ul>
+
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
       <li>Previous: <a href="cleaning.html" title="previous chapter">Cleaning and updating files</a></li>
-      <li>Next: <a href="reporting.html" title="next chapter">Issue reporting and testing</a></li>
+      <li>Next: <a href="api.html" title="next chapter">API Interface</a></li>
   </ul></li>
 </ul>
 </div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/configuration.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <div class="searchformwrapper">
@@ -250,6 +300,14 @@ file.</p>
     </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
         </div>
       </div>
       <div class="clearer"></div>
@@ -258,8 +316,8 @@ file.</p>
       &copy;2018, Michael Stenskjær Christensen.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
       <a href="_sources/configuration.rst.txt"
