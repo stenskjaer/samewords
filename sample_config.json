@@ -6,8 +6,10 @@
         "\\\\,-+\\\\,"
     ],
     "exclude_macros": [
-        "\\anotherMacro"
+        "\\myCustomMacro",
+        "\\anotherMacro",
     ],
     "sensitive_context_match": true,
-    "context_distance": 25
+    "context_distance": 25,
+    "multiword": false
 }
