@@ -6,6 +6,6 @@ editions made with LaTeX and reledmac.
 """
 __all__ = ['brackets', 'cli', 'core', 'document', 'matcher', 'settings',
            'tokenize']
-__version__ = '0.5.5'
+__version__ = '0.5.6'
 
 import samewords.core

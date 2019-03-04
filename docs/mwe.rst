@@ -17,6 +17,8 @@ Take the following small example file as *our-edition.tex*
     We have a passage of text here, such \edtext{a}{\Afootnote{om. M}} nice
     place for a critical note.
     \pend
+
+    \endnumbering
     \end{document}
 
 If we annotate that with the command ``samewords our-edition.tex`` (in the same
