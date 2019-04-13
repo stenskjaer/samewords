@@ -3,7 +3,7 @@ Samewords
 
 [![Documentation
 Status](https://readthedocs.org/projects/samewords/badge/?version=latest)](http://samewords.readthedocs.io/en/latest/?badge=latest)
-[![DOI](https://zenodo.org/badge/92066873.svg)](https://zenodo.org/badge/latestdoi/92066873)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2609228.svg)](https://doi.org/10.5281/zenodo.2609228)
 
 
 
