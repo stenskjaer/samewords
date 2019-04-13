@@ -90,7 +90,6 @@ for spans in custom lemma references. Further details, such as the number of
 context words to compare, recognized punctuation characters, and case
 sensitivity can be configured in a configuration file.
 
-The source code has been archived at *Zenodo* with the linked DOI: [@zenodo].
 The full documentation can be found at
 https://samewords.readthedocs.io/en/latest/.
 
