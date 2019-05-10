@@ -4,6 +4,7 @@ Samewords
 [![Documentation
 Status](https://readthedocs.org/projects/samewords/badge/?version=latest)](http://samewords.readthedocs.io/en/latest/?badge=latest)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2609228.svg)](https://doi.org/10.5281/zenodo.2609228)
+[![DOI](http://joss.theoj.org/papers/10.21105/joss.00941/status.svg)](https://doi.org/10.21105/joss.00941)
 
 
 
