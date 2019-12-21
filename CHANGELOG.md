@@ -3,6 +3,24 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [0.5.7]
+### Changed
+- Move to using `pipenv` for package handling.
+
+## [0.5.6]
+### Changed
+- Correct bug in example MWE in documentation.
+
+## [0.5.5]
+### Changed
+- Give better error feedback when `\beginnumbering` or `\endnumbering` are missing.
+- Update docs and sample config to better explain case sensitive matching and multiword 
+  matching.
+
+## [0.5.4]
+### Changed
+- Updated the documentation to correctly describe how case sensitivity is matched.
+
 ## [0.5.3]
 ### Added
 - Don't care about case sensitivity between lemma and edtext when annotating the
