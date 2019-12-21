@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 from samewords.settings import settings
 
+
 @contextmanager
 def temp_settings(dictionary):
     global settings

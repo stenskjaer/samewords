@@ -17,12 +17,11 @@ from typing import List
 def doc_content(filename: str) -> str:
     """Return the content of file."""
 
-    with open(filename, mode='r', encoding='utf-8') as f:
+    with open(filename, mode="r", encoding="utf-8") as f:
         try:
-            return unicodedata.normalize('NFC', f.read())
+            return unicodedata.normalize("NFC", f.read())
         except UnicodeDecodeError as e:
-            raise ValueError(
-                'The input file must be in utf-8 unicode encoding.') from e
+            raise ValueError("The input file must be in utf-8 unicode encoding.") from e
 
 
 def chunk_doc(content: str) -> List[str]:
@@ -32,9 +31,9 @@ def chunk_doc(content: str) -> List[str]:
 
     :param content: The content of the document as a string.
     """
-    starts = regex.finditer(r'\\beginnumbering\n', content)
-    ends = regex.finditer(r'\n\\endnumbering', content)
-    if '\\beginnumbering\n' in content:
+    starts = regex.finditer(r"\\beginnumbering\n", content)
+    ends = regex.finditer(r"\n\\endnumbering", content)
+    if "\\beginnumbering\n" in content:
         indices = []
         for start, end in zip(starts, ends):
             if not indices:
@@ -47,10 +46,12 @@ def chunk_doc(content: str) -> List[str]:
             indices.append([start.span()[0], end.span()[1]])
         # Add the tail from last numbered to end
         try:
-            indices.append([indices[-1][-1], len(content)+1])
+            indices.append([indices[-1][-1], len(content) + 1])
         except IndexError:
-            raise ValueError(r'Your document did not contain one or both of '
-                             r'\beginnumbering and \endnumbering')
+            raise ValueError(
+                r"Your document did not contain one or both of "
+                r"\beginnumbering and \endnumbering"
+            )
 
         # Chunk the text according to the indices
         chunked = [content[start:end] for start, end in indices]
@@ -58,6 +59,7 @@ def chunk_doc(content: str) -> List[str]:
     else:
         chunked = [content]
     return chunked
+
 
 def chunk_pars(content):
     """Given the context contained between `\beginnumbering` and
@@ -69,17 +71,16 @@ def chunk_pars(content):
     is given right after the `\beginnumbering` as in the documentation.
     """
 
-    if content.find(r'\autopar') is not -1:
-        positions = [idx.start() for idx in regex.finditer('\n\n', content)]
+    if content.find(r"\autopar") is not -1:
+        positions = [idx.start() for idx in regex.finditer("\n\n", content)]
     else:
-        positions = [idx.start()
-                     for idx in regex.finditer(r'\\pstart', content)]
+        positions = [idx.start() for idx in regex.finditer(r"\\pstart", content)]
 
     paragraphs = []
-    paragraphs.append(content[:positions[0]])
+    paragraphs.append(content[: positions[0]])
     for index, par in enumerate(positions):
         try:
-            paragraphs.append(content[par:positions[index + 1]])
+            paragraphs.append(content[par : positions[index + 1]])
         except IndexError:
             paragraphs.append(content[par:])
 

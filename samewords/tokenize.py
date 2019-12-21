@@ -13,6 +13,7 @@ Registry = List[RegistryEntry]
 
 class LatexSyntaxError(ValueError):
     """Raised when a LaTeX string has invalid syntax."""
+
     pass
 
 
@@ -30,20 +31,22 @@ class Macro(UserString):
     TODO: Don't gobble up the whole following string in matching.
     """
 
-    def __init__(self, input_string: str = '',
-                 pos: int = None, end: int = None) -> None:
+    def __init__(
+        self, input_string: str = "", pos: int = None, end: int = None
+    ) -> None:
         self.data = input_string
         super().__init__(self)
         self.name = self._identify_name()
         self.oarg = self._optional_argument()
         self.star = self._match_star()
-        self.opening = regex.match(regex.escape(self.name + self.oarg + self.star + '{'),
-                                self.data)
+        self.opening = regex.match(
+            regex.escape(self.name + self.oarg + self.star + "{"), self.data
+        )
         self.empty = self._is_empty()
-        self.pos = pos              # register start index in word
+        self.pos = pos  # register start index in word
         self.end = end
-        self.to_closing = False     # Distance in wordlist to closing bracket.
-        self.hidden_content = ''    # Content that won't count as words
+        self.to_closing = False  # Distance in wordlist to closing bracket.
+        self.hidden_content = ""  # Content that won't count as words
 
     def __len__(self) -> int:
         return len(self.full())
@@ -62,28 +65,26 @@ class Macro(UserString):
         A TeX macro can be '\' followed by either a string of letters or
         any single character. Find that.
         """
-        if self.data is not '':
-            return regex.match(r'\\(\w+|.)', self.data).group(0)
+        if self.data is not "":
+            return regex.match(r"\\(\w+|.)", self.data).group(0)
 
     def _optional_argument(self) -> str:
         """
         Identify the possible optional argument.
         """
-        match = regex.match(regex.escape(self.name) + r'(\[[^\]]+\])',
-                            self.data)
+        match = regex.match(regex.escape(self.name) + r"(\[[^\]]+\])", self.data)
         if match:
             return match.group(1)
-        return ''
+        return ""
 
     def _match_star(self) -> str:
         """
         Identify the possible star argument.
         """
-        match = regex.match(regex.escape(self.name + self.oarg) + r'(\*)',
-                            self.data)
+        match = regex.match(regex.escape(self.name + self.oarg) + r"(\*)", self.data)
         if match:
             return match.group(1)
-        return ''
+        return ""
 
     def _is_empty(self) -> bool:
         """
@@ -92,7 +93,7 @@ class Macro(UserString):
         """
         if self.opening:
             try:
-                return self.data[len(self.opening.group(0))] == '}'
+                return self.data[len(self.opening.group(0))] == "}"
             except IndexError:
                 # String ends after opening, so we assume it will have content.
                 return False
@@ -100,8 +101,8 @@ class Macro(UserString):
         return True
 
     def full(self) -> str:
-        if self.data is '':
-            return ''
+        if self.data is "":
+            return ""
         elif self.opening:
             if self.hidden_content:
                 return self.opening.group(0) + self.hidden_content[1:]
@@ -119,17 +120,17 @@ class Word(UserString):
         self.ann_apps: A list of apparatus elements that will get annotated.
     """
 
-    def __init__(self, chars: str = '') -> None:
+    def __init__(self, chars: str = "") -> None:
 
         self.data = chars
         super().__init__(self)
-        self.spaces = ''
+        self.spaces = ""
         self.comment: List[Element] = []
         self.suffixes: List[Element] = []
         self.content: List[Element] = []
         self.punctuation: List[Element] = []
-        self.clean_apps: List[Element] = []     # clean apps for analysis
-        self.ann_apps: List[Element] = []       # annotation apps
+        self.clean_apps: List[Element] = []  # clean apps for analysis
+        self.ann_apps: List[Element] = []  # annotation apps
         self.macros: List[Macro] = []
         self.edtext_start = False
         self.edtext_end = False
@@ -148,10 +149,10 @@ class Word(UserString):
         return len(self.full())
 
     def lower(self):
-        return ''.join([w.cont.lower() for w in self.content])
+        return "".join([w.cont.lower() for w in self.content])
 
     def get_text(self) -> str:
-        return ''.join([c.cont for c in self.content])
+        return "".join([c.cont for c in self.content])
 
     def add_app_entry(self, input_string: str, pos: int, index: int = None):
         """Add apparatus entry to the registry list and return string. If the
@@ -168,16 +169,16 @@ class Word(UserString):
         :return: full word including prefix and suffix.
         """
         elements = (
-                [[e.cont, e.pos] for e in self.comment] +
-                [[e.cont, e.pos] for e in self.content] +
-                [[e.full(), e.pos] for e in self.macros] +
-                [[e.cont, e.pos] for e in self.punctuation] +
-                [[e.cont, e.pos] for e in self.ann_apps] +
-                [[e.cont, e.pos] for e in self.clean_apps] +
-                [[e.cont, e.pos] for e in self.suffixes]
+            [[e.cont, e.pos] for e in self.comment]
+            + [[e.cont, e.pos] for e in self.content]
+            + [[e.full(), e.pos] for e in self.macros]
+            + [[e.cont, e.pos] for e in self.punctuation]
+            + [[e.cont, e.pos] for e in self.ann_apps]
+            + [[e.cont, e.pos] for e in self.clean_apps]
+            + [[e.cont, e.pos] for e in self.suffixes]
         )
         elements.sort(key=itemgetter(1))
-        return ''.join([element[0] for element in elements]) + self.spaces
+        return "".join([element[0] for element in elements]) + self.spaces
 
     def close_macro(self, distance: int):
         """If there are any open macros on the word, close the last of those.
@@ -187,21 +188,33 @@ class Word(UserString):
                 if macro.opening and macro.to_closing is False:
                     macro.to_closing = distance
                     return True
-        raise IndexError(
-            'The word "{}" does not have any open macros.'.format(self))
+        raise IndexError('The word "{}" does not have any open macros.'.format(self))
 
-    def _increment_after(self, element: Union[Macro, Element],
-                             increment: int) -> None:
-        elements = [self.comment, self.macros, self.content, self.suffixes,
-                    self.clean_apps, self.ann_apps, self.punctuation]
+    def _increment_after(self, element: Union[Macro, Element], increment: int) -> None:
+        elements = [
+            self.comment,
+            self.macros,
+            self.content,
+            self.suffixes,
+            self.clean_apps,
+            self.ann_apps,
+            self.punctuation,
+        ]
         for el in elements:
             for item in el:
                 if item.pos >= element.pos and item is not element:
                     item.pos += increment
 
     def _decrement_after(self, pos: int, decrement: int) -> None:
-        elements = [self.comment, self.macros, self.content, self.suffixes,
-                    self.clean_apps, self.ann_apps, self.punctuation]
+        elements = [
+            self.comment,
+            self.macros,
+            self.content,
+            self.suffixes,
+            self.clean_apps,
+            self.ann_apps,
+            self.punctuation,
+        ]
         for el in elements:
             for item in el:
                 if item.pos > pos:
@@ -266,8 +279,7 @@ class Word(UserString):
         self._decrement_after(m.pos, len(m))
         return m
 
-    def append_suffix(self, content: str,
-                      after_clean_apps: bool = False) -> None:
+    def append_suffix(self, content: str, after_clean_apps: bool = False) -> None:
         """This adds the suffix string to the list with an appropriate
         position. """
         if after_clean_apps:
@@ -280,17 +292,15 @@ class Word(UserString):
                 end_len = len(last.cont)
                 pos = end_pos + end_len
             elif self.suffixes:
-                pos = sorted([i.pos for i in self.suffixes],
-                             reverse=True)[0] + 1
+                pos = sorted([i.pos for i in self.suffixes], reverse=True)[0] + 1
             elif self.clean_apps:
                 pos = sorted([i.pos for i in self.clean_apps])[0]
             elif self.punctuation:
-                pos = sorted([i.pos for i in self.punctuation],
-                             reverse=True)[0] + 1
+                pos = sorted([i.pos for i in self.punctuation], reverse=True)[0] + 1
             else:
                 raise ValueError(
-                    'The correct position for the suffix could not be determined'
-                    'Word: {}'.format(self.full())
+                    "The correct position for the suffix could not be determined"
+                    "Word: {}".format(self.full())
                 )
         new = Element(content, pos)
         self._increment_after(new, len(content))
@@ -324,7 +334,7 @@ class Words(UserList):
         elif isinstance(index, int):
             return self.data[index]
         else:
-            msg = '{cls.__name__} indices must be integers'
+            msg = "{cls.__name__} indices must be integers"
             raise TypeError(msg.format(cls=cls))
 
     def index(self, item, default=0):
@@ -342,7 +352,7 @@ class Words(UserList):
         return default
 
     def write(self) -> str:
-        return ''.join([w.full() for w in self.data])
+        return "".join([w.full() for w in self.data])
 
     def clean(self) -> List:
         """A list strings of each Word.text item, i.e. a cleaned word list."""
@@ -350,8 +360,7 @@ class Words(UserList):
 
 
 class Tokenizer:
-
-    def __init__(self, input_str: str = '') -> None:
+    def __init__(self, input_str: str = "") -> None:
         """
         self.edtext_brackets: registry of opened brackets at the beginning of
         each edtext macro. Each integer corresponds to a higher level of
@@ -363,10 +372,10 @@ class Tokenizer:
         self.data = input_str
         # Recognized punctuation characters
         self._punctuation = regex.compile(
-            r'[{}]+'.format(''.join(settings['punctuation']))
+            r"[{}]+".format("".join(settings["punctuation"]))
         )
         # Characters that need to be escaped in LaTeX
-        self._escape_chars = '\\&%$#_{}~^'
+        self._escape_chars = "\\&%$#_{}~^"
         # keep track of current nesting level (zero indexed, so we start at -1)
         self._edtext_lvl = -1
         # keep track of opened brackets at any point
@@ -384,7 +393,7 @@ class Tokenizer:
         # the words list, which needs to be available during any tokenization.
         self._words: Words = Words()
         # non-content macros that should be ignored.
-        self._exclude_macros = settings['exclude_macros']
+        self._exclude_macros = settings["exclude_macros"]
         # the registry list
         self.registry = []
         self.wordlist = self._wordlist()
@@ -399,16 +408,16 @@ class Tokenizer:
         while pos < len(self.data):
             word, pos = self._tokenize(self.data, pos)
             if word.edtext_start:
-                count = len([m for m in word.macros if m.name == r'\edtext'])
+                count = len([m for m in word.macros if m.name == r"\edtext"])
                 while count > 0:
                     self._stack_registry.append(len(self.registry))
-                    self.registry.append({'lvl': 0, 'data': [self._index]})
+                    self.registry.append({"lvl": 0, "data": [self._index]})
                     count -= 1
             if word.edtext_end:
                 while self._closures > 0:
                     reg_index = self._stack_registry.pop()
-                    self.registry[reg_index]['data'].append(self._index)
-                    self.registry[reg_index]['lvl'] = self._edtext_lvl
+                    self.registry[reg_index]["data"].append(self._index)
+                    self.registry[reg_index]["lvl"] = self._edtext_lvl
                     self._closures -= 1
                     self._edtext_lvl -= 1
             self._words.append(word)
@@ -426,35 +435,35 @@ class Tokenizer:
         word = Word()
         while pos < len(string):
             c = string[pos]
-            if regex.match('[\w\d]', c):
-                match = regex.match('[\w\d\-\']+', string[pos:]).group(0)
+            if regex.match("[\w\d]", c):
+                match = regex.match("[\w\d\-']+", string[pos:]).group(0)
                 word.content.append(Element(match, pos))
                 pos += len(match)
                 continue
-            if c.isspace() or c == '~':
-                word.spaces = regex.match('[\s~]+', string[pos:]).group(0)
+            if c.isspace() or c == "~":
+                word.spaces = regex.match("[\s~]+", string[pos:]).group(0)
                 pos += len(word.spaces)
                 break
             if regex.search(self._punctuation, c):
                 # Exception: .5 is part of word, not punctuation.
-                if regex.match('\.\d', string[pos:]):
+                if regex.match("\.\d", string[pos:]):
                     word.content.append(Element(c, pos))
                     pos += 1
                     continue
                 word.punctuation.append(Element(c, pos))
                 pos += 1
                 continue
-            if c == '\\':
+            if c == "\\":
                 if word.clean_apps:
                     # If we run into a macro for a word that already has one
                     # or more app elements, we should start a new word.
                     break
-                if word.content and string[pos:pos+7] == r'\edtext':
+                if word.content and string[pos : pos + 7] == r"\edtext":
                     # If we have an edtext macro suffixed an existing word
                     # content, we should start a new word.
                     break
-                if string[pos+1] in self._escape_chars:
-                    word.content.append(Element(string[pos:pos+2], pos))
+                if string[pos + 1] in self._escape_chars:
+                    word.content.append(Element(string[pos : pos + 2], pos))
                     pos += 2
                     continue
                 macro = Macro(string[pos:])
@@ -465,35 +474,34 @@ class Tokenizer:
                     # If we hit a macro that is not a registered content
                     # macro, skip it (including its content, if any).
                     if macro.opening:
-                        pos -= 1    # subtract the opening {
+                        pos -= 1  # subtract the opening {
                         bracket_end = pos + len(Brackets(string, pos))
                         macro.hidden_content = string[pos:bracket_end]
                         pos += len(macro.hidden_content)
                         word.close_macro(0)
                     break
-                if macro.name == r'\edtext':
+                if macro.name == r"\edtext":
                     self._stack_edtext.append(self._brackets)
                     self._edtext_lvl += 1
                     word.edtext_start = True
-                if macro.name == r'\sameword':
+                if macro.name == r"\sameword":
                     word.has_sameword = True
                 if macro.opening:
                     # register position for later closing registration
                     self._stack_bracket.append(self._index)
                     self._brackets += 1
                 continue
-            if c == '{':
+            if c == "{":
                 # Determine of this is an app entry.
-                if (self._stack_edtext and
-                        self._stack_edtext[-1] == self._brackets):
+                if self._stack_edtext and self._stack_edtext[-1] == self._brackets:
                     bracket_end = pos + len(Brackets(string, pos))
                     word.add_app_entry(string[pos:bracket_end], pos)
-                    if '\\sameword' in string[pos:bracket_end]:
+                    if "\\sameword" in string[pos:bracket_end]:
                         word.has_sameword = True
                     word.edtext_end = True
                     pos = bracket_end
                     try:
-                        if string[pos] == '}':
+                        if string[pos] == "}":
                             # Add possible closing of parent first edtext arg
                             word.add_app_entry(string[pos], pos, -1)
                             self._register_closing(word)
@@ -509,22 +517,22 @@ class Tokenizer:
                     self._brackets += 1
                     pos += 1
                     continue
-            if c == '}':
+            if c == "}":
                 self._register_closing(word)
                 self._brackets -= 1
                 word.suffixes.append(Element(c, pos))
                 pos += 1
                 continue
-            if c == '%':
-                lb = string[pos:].find('\n')
+            if c == "%":
+                lb = string[pos:].find("\n")
                 if lb is not -1:
-                    line = string[pos:pos + lb + 1]
+                    line = string[pos : pos + lb + 1]
                 else:
                     line = string[pos:]
                 word.comment.append(Element(line, pos))
                 pos += len(line)
                 continue
-            if regex.match(r'[\U00000020-\U0010FFFF]', c):
+            if regex.match(r"[\U00000020-\U0010FFFF]", c):
                 # Matches ANY unicode codepoint and registers it.
                 word.content.append(Element(c, pos))
                 pos += 1
