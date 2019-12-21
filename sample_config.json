@@ -7,7 +7,7 @@
     ],
     "exclude_macros": [
         "\\myCustomMacro",
-        "\\anotherMacro",
+        "\\anotherMacro"
     ],
     "sensitive_context_match": true,
     "context_distance": 25,
