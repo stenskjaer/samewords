@@ -40,5 +40,8 @@ pip-delete-this-directory.txt
 # Pytest
 .pytest_cache/
 
+# Mypy
+.mypy_cache/
+
 # Emacs tex artifacts
 *auto/
