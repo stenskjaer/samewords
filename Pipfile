@@ -1,0 +1,18 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+pytest = "==5.3.2"
+black = "*"
+
+[packages]
+samewords = {editable = true,path = "."}
+regex = "==2018.8.17"
+
+[requires]
+python_version = "3.7"
+
+[pipenv]
+allow_prereleases = true
