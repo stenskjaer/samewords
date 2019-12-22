@@ -72,24 +72,22 @@ def parse_arguments():
         dest="annotate",
         action="store_true",
         help=(
-            "Annotate the input file with `\sameword{}` macros. This is the "
-            "default mode."
+            r"Annotate the input file with `\sameword{}` macros. This is the default mode."
         ),
     )
     group.add_argument(
         "--clean",
         dest="clean",
         action="store_true",
-        help=("Clean the input file for all `\sameword{}` annotations."),
+        help=(r"Clean the input file for all `\sameword{}` annotations."),
     )
     group.add_argument(
         "--update",
         dest="update",
         action="store_true",
         help=(
-            "Update any `\sameword{}` annotations. This is effectively "
-            "equivalent of first running the script with `--clean` and then "
-            "`--annotate`."
+            r"Update any `\sameword{}` annotations. This is effectively equivalent of "
+            r"first running the script with `--clean` and then `--annotate`."
         ),
     )
     parser.add_argument(

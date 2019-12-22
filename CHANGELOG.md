@@ -6,6 +6,7 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
 ## [0.5.7]
 ### Changed
 - Move to using `pipenv` for package handling.
+- Updated test suite and configurations.
 
 ## [0.5.6]
 ### Changed

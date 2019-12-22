@@ -19,23 +19,23 @@ class TestTokenize:
                 assert Tokenizer(point).wordlist == [point]
 
     def test_whitespace(self):
-        text = "short text\t with    some\n space and stuff"
+        text = r"short text\t with    some\n space and stuff"
         expect = ["short", "text", "with", "some", "space", "and", "stuff"]
         assert Tokenizer(text).wordlist == expect
         assert Tokenizer(text).wordlist.write() == text
 
     def test_latex_non_breaking_space(self):
-        text = "2~dollars"
+        text = r"2~dollars"
         expect = ["2", "dollars"]
         assert Tokenizer(text).wordlist == expect
         assert Tokenizer(text).wordlist.write() == text
 
     def test_latex_star_command(self):
-        text = "\eledsection*{Prooemium}"
+        text = r"\eledsection*{Prooemium}"
         assert self.write_tokenization(text) == text
 
     def test_single_macro(self):
-        text = "text \emph{emphasis} is nice"
+        text = r"text \emph{emphasis} is nice"
         expect = ["text", "emphasis", "is", "nice"]
         tokens = Tokenizer(text)
         assert tokens.wordlist == expect
@@ -49,7 +49,7 @@ class TestTokenize:
         assert tokens.wordlist.write() == text
 
     def test_registry(self):
-        text = "text \edtext{emphasis}{\Bfootnote{fnote}} is nice"
+        text = r"text \edtext{emphasis}{\Bfootnote{fnote}} is nice"
         expect = ["text", "emphasis", "is", "nice"]
         registry = [{"lvl": 0, "data": [1, 1]}]
         tokenization = Tokenizer(text)
@@ -62,7 +62,7 @@ class TestTokenize:
         assert Tokenizer(text).wordlist == ["word", "content"]
 
     def test_edtext_with_nested_brackets(self):
-        text = "\edtext{entry \emph{nested \emph{b}}}{\Bfootnote{fnote}} nice"
+        text = r"\edtext{entry \emph{nested \emph{b}}}{\Bfootnote{fnote}} nice"
         expect = ["entry", "nested", "b", "nice"]
         registry = [{"lvl": 0, "data": [0, 2]}]
         tokenization = Tokenizer(text)

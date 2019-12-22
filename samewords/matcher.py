@@ -142,7 +142,7 @@ class Matcher:
 
     def update(self) -> Words:
         """
-        Given a registry, find all edtext elements that contain a `\sameword{}`
+        Given a registry, find all edtext elements that contain a `\\sameword{}`
         annotation and check whether it is still correct. If not, update the
         annotation.
         """
@@ -463,7 +463,7 @@ class Matcher:
 
     def _find_lemma_pos(self, app_note: Element) -> Tuple[int, int]:
         """Given an apparatus note Element return the start and end index of
-        the `\lemma{}` macro and return -1 for both start and end if it's not
+        the `\\lemma{}` macro and return -1 for both start and end if it's not
         present. Before returning a positive result, the offset from the
         brackets is included. """
         lemma_pos = app_note.cont.find(r"\lemma")

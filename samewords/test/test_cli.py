@@ -25,7 +25,6 @@ class TestConfigFileContent:
 
 
 class TestCLIArguments:
-    @mark.slow
     def test_default_annotate_file(self):
         proc = subprocess.Popen(
             ["samewords", "./samewords/test/assets/da-49-l1q1.tex"],
@@ -37,7 +36,6 @@ class TestCLIArguments:
             result = f.read()
         assert out.decode().strip() == result.strip()
 
-    @mark.slow
     def test_clean_file(self):
         proc = subprocess.Popen(
             [
@@ -53,7 +51,6 @@ class TestCLIArguments:
             result = f.read()
         assert out.decode().strip() == result.strip()
 
-    @mark.slow
     def test_update_file(self):
         proc = subprocess.Popen(
             ["samewords", "./samewords/test/assets/simple-unupdated.tex", "--update"],

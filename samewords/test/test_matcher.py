@@ -231,7 +231,7 @@ class TestAnnotate:
             assert self.run_annotation(text) == expect_multi
 
     def test_custom_multiword(self):
-        """Macro `\exclude` is explicitly excluded, so what is compared is
+        r"""Macro `\exclude` is explicitly excluded, so what is compared is
         'Hákonar' and 'Hákonar' which is then matched and annotated. """
         text = (
             r"Han var sonr \edtext{Hákon\emph{ar}\exclude{Håkon II} "
@@ -382,84 +382,84 @@ class TestAnnotate:
         assert self.run_cleanup(expect) == text
 
     def test_last_ellipsis_word_not_last_index(self):
-        text = "B \edtext{F and some B %\n}{\lemma{F--B}}"
+        text = "B \\edtext{F and some B %\n}{\\lemma{F--B}}"
         expect = (
-            "\sameword{B} \edtext{F and some "
-            "\sameword[1]{B} %\n}{\lemma{F--\sameword{B}}}"
+            "\\sameword{B} \\edtext{F and some "
+            "\\sameword[1]{B} %\n}{\\lemma{F--\\sameword{B}}}"
         )
         assert self.run_annotation(text) == expect
 
     def test_first_ellipsis_word_not_first_index(self):
-        text = "F \edtext{ % \nF and B}{\lemma{F--B}}"
+        text = "F \\edtext{ % \nF and B}{\\lemma{F--B}}"
         expect = (
-            "\sameword{F} \edtext{ % \n"
-            "\sameword[1]{F} and B}{\lemma{\sameword{F}--B}}"
+            "\\sameword{F} \\edtext{ % \n"
+            "\\sameword[1]{F} and B}{\\lemma{\\sameword{F}--B}}"
         )
         assert self.run_annotation(text) == expect
 
     def test_first_and_last_ellipsis_word_not_first_and_last_index(self):
-        text = "B F \edtext{ % \nF and B %\n}{\lemma{F--B}}"
+        text = "B F \\edtext{ % \nF and B %\n}{\\lemma{F--B}}"
         expect = (
-            "\sameword{B} \sameword{F} \edtext{ % \n\sameword[1]{F} and "
-            "\sameword[1]{B} %\n}{\lemma{\sameword{F}--\sameword{B}}}"
+            "\\sameword{B} \\sameword{F} \\edtext{ % \n\\sameword[1]{F} and "
+            "\\sameword[1]{B} %\n}{\\lemma{\\sameword{F}--\\sameword{B}}}"
         )
         assert self.run_annotation(text) == expect
 
     def test_ellipsis_lemma_word_not_first_or_last_index(self):
-        text = "F B \edtext{ F and B}{\lemma{ % \n F--B % \n}\Afootnote{test}}"
+        text = "F B \\edtext{ F and B}{\\lemma{ % \n F--B % \n}\\Afootnote{test}}"
         expect = (
-            "\sameword{F} \sameword{B} \edtext{ \sameword[1]{F} and "
-            "\sameword[1]{B}}{\lemma{ % \n \sameword{F}--\sameword{B}"
-            " % \n}\Afootnote{test}}"
+            "\\sameword{F} \\sameword{B} \\edtext{ \\sameword[1]{F} and "
+            "\\sameword[1]{B}}{\\lemma{ % \n \\sameword{F}--\\sameword{B}"
+            " % \n}\\Afootnote{test}}"
         )
         assert self.run_annotation(text) == expect
 
     def test_edtext_with_editorial_brackets_1(self):
-        text = "B, F \edtext{(F and B)}{\lemma{F--B}\Afootnote{test}}"
+        text = r"B, F \edtext{(F and B)}{\lemma{F--B}\Afootnote{test}}"
         expect = (
-            "\sameword{B}, \sameword{F} \edtext{(\sameword[1]{F} and "
-            "\sameword[1]{B})}{\lemma{\sameword{F}--\sameword{B}}"
-            "\Afootnote{test}}"
+            r"\sameword{B}, \sameword{F} \edtext{(\sameword[1]{F} and "
+            r"\sameword[1]{B})}{\lemma{\sameword{F}--\sameword{B}}"
+            r"\Afootnote{test}}"
         )
         assert self.run_annotation(text) == expect
 
     def test_edtext_with_editorial_brackets_2(self):
-        text = "B, F, \edtext{⟨F and B⟩}{\lemma{F--B}\Afootnote{test}}"
+        text = r"B, F, \edtext{⟨F and B⟩}{\lemma{F--B}\Afootnote{test}}"
         expect = (
-            "\sameword{B}, \sameword{F}, \edtext{⟨\sameword[1]{F} and "
-            "\sameword[1]{B}⟩}{\lemma{\sameword{F}--\sameword{B}}"
-            "\Afootnote{test}}"
+            r"\sameword{B}, \sameword{F}, \edtext{⟨\sameword[1]{F} and "
+            r"\sameword[1]{B}⟩}{\lemma{\sameword{F}--\sameword{B}}"
+            r"\Afootnote{test}}"
         )
         assert self.run_annotation(text) == expect
 
     def test_edtext_with_editorial_brackets_3(self):
-        text = "B, F, \edtext{{{}F and B{}}}{\lemma{F--B}\Afootnote{test}}"
+        text = r"B, F, \edtext{{{}F and B{}}}{\lemma{F--B}\Afootnote{test}}"
         expect = (
-            "\sameword{B}, \sameword{F}, \edtext{{{}\sameword[1]{F} and "
-            "\sameword[1]{B}{}}}{\lemma{\sameword{F}--\sameword{B}}"
-            "\Afootnote{test}}"
+            r"\sameword{B}, \sameword{F}, \edtext{{{}\sameword[1]{F} and "
+            r"\sameword[1]{B}{}}}{\lemma{\sameword{F}--\sameword{B}}"
+            r"\Afootnote{test}}"
         )
         assert self.run_annotation(text) == expect
 
     def test_edtext_with_editorial_brackets_custom_macro(self):
-        text = "F \edtext{\supplied{F} and B}{\lemma{F--B}}"
+        text = r"F \edtext{\supplied{F} and B}{\lemma{F--B}}"
         expect = (
-            "\sameword{F} \edtext{\supplied{\sameword[1]{F}} and "
-            "B}{\lemma{\sameword{F}--B}}"
+            r"\sameword{F} \edtext{\supplied{\sameword[1]{F}} and "
+            r"B}{\lemma{\sameword{F}--B}}"
         )
         assert self.run_annotation(text) == expect
 
     def test_edtext_with_custom_punctuation(self):
-        text = "B˧ \edtext{B}{}"
-        expect = "\sameword{B}˧ \edtext{\sameword[1]{B}}{}"
+        text = r"B˧ \edtext{B}{}"
+        expect = r"\sameword{B}˧ \edtext{\sameword[1]{B}}{}"
         with temp_settings({"punctuation": settings["punctuation"] + ["˧"]}):
             assert self.run_annotation(text) == expect
 
     def test_edtext_with_exotic_punctuation(self):
-        text = "o “o ⸀o o. o \edtext{o}{}"
+        text = r"o “o ⸀o o. o \edtext{o}{}"
         expect = (
-            "\sameword{o} “\sameword{o} ⸀\sameword{o} \sameword{o}. "
-            "\sameword{o} \edtext{\sameword[1]{o}}{}"
+            r"\sameword{o} “\sameword{o} ⸀\sameword{o} \sameword{o}. "
+            r"\sameword{o} \edtext{\sameword[1]{o}}{}"
         )
         assert self.run_annotation(text) == expect
 
@@ -567,11 +567,11 @@ class TestAnnotate:
             r"it}\Afootnote{note lvl 1}} after"
         )
         expect = (
-            "before \sameword{and} \edtext{first here \edtext{"
-            "\sameword[2]{and} another \edtext{\sameword[3]{and}}{"
-            "\lemma{\sameword{and}}\Afootnote{lvl 3}} that's it}{\lemma{"
-            "\sameword{and} \dots{} it}\Afootnote{lvl 2}}}{\lemma{first "
-            "\dots{} it}\Afootnote{note lvl 1}} after"
+            r"before \sameword{and} \edtext{first here \edtext{"
+            r"\sameword[2]{and} another \edtext{\sameword[3]{and}}{"
+            r"\lemma{\sameword{and}}\Afootnote{lvl 3}} that's it}{\lemma{"
+            r"\sameword{and} \dots{} it}\Afootnote{lvl 2}}}{\lemma{first "
+            r"\dots{} it}\Afootnote{note lvl 1}} after"
         )
         assert self.run_annotation(text) == expect
         assert self.run_cleanup(expect) == text
@@ -579,11 +579,11 @@ class TestAnnotate:
     def test_nested_ldots_lemma(self):
         text = (
             r"sw and \edtext{sw so \edtext{\edtext{sw}{\lemma{"
-            "sw}\Bfootnote{lvl 3 note}} another thing \edtext{and more}{"
-            "\lemma{and more}\Bfootnote{lvl 3 note}}}{\lemma{sw another "
-            "thing and more}\Bfootnote{lvl 2 note}}}{\lemma{sw \ldots "
-            "more}\Afootnote{lvl 1 note}} and a sw after and one more "
-            "\edtext{flat}{\lemma{flat}\Bfootnote{note here}} entry."
+            r"sw}\Bfootnote{lvl 3 note}} another thing \edtext{and more}{"
+            r"\lemma{and more}\Bfootnote{lvl 3 note}}}{\lemma{sw another "
+            r"thing and more}\Bfootnote{lvl 2 note}}}{\lemma{sw \ldots "
+            r"more}\Afootnote{lvl 1 note}} and a sw after and one more "
+            r"\edtext{flat}{\lemma{flat}\Bfootnote{note here}} entry."
         )
         expect = (
             r"\sameword{sw} and \edtext{\sameword[1]{sw} so \edtext{"
@@ -773,7 +773,7 @@ class TestAnnotate:
         assert self.run_cleanup(expect) == text
 
     def test_custom_macros(self):
-        """Macro `\exclude` is explicitly excluded, so what is compared is
+        r"""Macro `\exclude` is explicitly excluded, so what is compared is
         'Sortes' and 'Sortes' which is then matched and annotated. """
         text = (
             r"Han var sonr \edtext{Hákon\emph{ar}\exclude{Håkon II}}{"
@@ -951,7 +951,7 @@ class TestAnnotate:
         assert self.run_annotation(text) == text
 
     def test_annotation_around_comments(self):
-        text = """
+        text = r"""
 word % some word commented out
 word
 w%
@@ -969,7 +969,7 @@ w% "W" or "w"?
 ord
 word
 """
-        expect = """
+        expect = r"""
 \sameword{word} % some word commented out
 \sameword{word}
 \sameword{w%
@@ -1098,18 +1098,18 @@ class TestUpdate:
 
     def test_nested_ambiguity(self):
         text = (
-            "but \sameword{and} \edtext{first here \edtext{"
-            "\sameword[2]{but} another \edtext{\sameword[3]{but}}{"
-            "\lemma{\sameword{but}}\Afootnote{lvl 3}} that's it}{\lemma{"
-            "\sameword{but} \dots{} it}\Afootnote{lvl 2}}}{\lemma{first "
-            "\dots{} it}\Afootnote{note lvl 1}} after"
+            r"but \sameword{and} \edtext{first here \edtext{"
+            r"\sameword[2]{but} another \edtext{\sameword[3]{but}}{"
+            r"\lemma{\sameword{but}}\Afootnote{lvl 3}} that's it}{\lemma{"
+            r"\sameword{but} \dots{} it}\Afootnote{lvl 2}}}{\lemma{first "
+            r"\dots{} it}\Afootnote{note lvl 1}} after"
         )
         expect = (
-            "\sameword{but} and \edtext{first here \edtext{"
-            "\sameword[2]{but} another \edtext{\sameword[3]{but}}{"
-            "\lemma{\sameword{but}}\Afootnote{lvl 3}} that's it}{\lemma{"
-            "\sameword{but} \dots{} it}\Afootnote{lvl 2}}}{\lemma{first "
-            "\dots{} it}\Afootnote{note lvl 1}} after"
+            r"\sameword{but} and \edtext{first here \edtext{"
+            r"\sameword[2]{but} another \edtext{\sameword[3]{but}}{"
+            r"\lemma{\sameword{but}}\Afootnote{lvl 3}} that's it}{\lemma{"
+            r"\sameword{but} \dots{} it}\Afootnote{lvl 2}}}{\lemma{first "
+            r"\dots{} it}\Afootnote{note lvl 1}} after"
         )
         assert self.run_update(text) == expect
 
@@ -1488,23 +1488,23 @@ class TestDefineSearchWords:
         return cont
 
     def test_single_lemma_word(self):
-        text = "\edtext{item}{\lemma{item}\Bfootnote{fnote}}"
+        text = r"\edtext{item}{\lemma{item}\Bfootnote{fnote}}"
         assert self.run_wordlist(text) == ["item"]
 
     def test_multiword_lemma_first(self):
-        text = "\edtext{item and more}{\lemma{item and more}\Bfootnote{fnote}}"
+        text = r"\edtext{item and more}{\lemma{item and more}\Bfootnote{fnote}}"
         assert self.run_wordlist(text) == ["item", "and", "more"]
 
     def test_ellipsis_lemma_first(self):
-        text = "\edtext{one a b c more}{\lemma{one ... more}\Bfootnote{fnote}}"
+        text = r"\edtext{one a b c more}{\lemma{one ... more}\Bfootnote{fnote}}"
         assert self.run_wordlist(text) == ["one", "more"]
 
     def test_single_no_lemma(self):
-        text = "\edtext{item}{\Bfootnote{fnote}}"
+        text = r"\edtext{item}{\Bfootnote{fnote}}"
         assert self.run_wordlist(text) == ["item"]
 
     def test_multiword_no_lemma(self):
-        text = "\edtext{item and more}{\Bfootnote{fnote}}"
+        text = r"\edtext{item and more}{\Bfootnote{fnote}}"
         assert self.run_wordlist(text) == ["item", "and", "more"]
 
     def test_nested_multiwords_no_lemma(self):

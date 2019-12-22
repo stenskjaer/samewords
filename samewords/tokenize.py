@@ -435,18 +435,18 @@ class Tokenizer:
         word = Word()
         while pos < len(string):
             c = string[pos]
-            if regex.match("[\w\d]", c):
-                match = regex.match("[\w\d\-']+", string[pos:]).group(0)
+            if regex.match(r"[\w\d]", c):
+                match = regex.match(r"[\w\d\-']+", string[pos:]).group(0)
                 word.content.append(Element(match, pos))
                 pos += len(match)
                 continue
             if c.isspace() or c == "~":
-                word.spaces = regex.match("[\s~]+", string[pos:]).group(0)
+                word.spaces = regex.match(r"[\s~]+", string[pos:]).group(0)
                 pos += len(word.spaces)
                 break
             if regex.search(self._punctuation, c):
                 # Exception: .5 is part of word, not punctuation.
-                if regex.match("\.\d", string[pos:]):
+                if regex.match(r"\.\d", string[pos:]):
                     word.content.append(Element(c, pos))
                     pos += 1
                     continue
