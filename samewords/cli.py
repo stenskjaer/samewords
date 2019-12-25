@@ -139,9 +139,7 @@ def main():
     if config:
         parse_config_file(config)
 
-    if not output:
-        print(samewords.core.process_document(filename, procedure))
-    else:
+    if output:
         if os.path.isdir(output):
             _, output_filename = os.path.split(filename)
             output_dir = output
@@ -164,3 +162,5 @@ def main():
         print("Conversion succeeded. Saving file to {}".format(output_result))
         with open(output_result, mode="w") as f:
             f.write(output_content)
+    else:
+        print(samewords.core.process_document(filename, procedure))
