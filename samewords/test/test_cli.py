@@ -38,18 +38,29 @@ class TestCLIArguments:
             result = f.read()
         assert out.decode().strip() == result.strip()
 
-    def test_clean_file(self):
+    def test_config_file_parameter(self):
         proc = subprocess.Popen(
             [
                 "samewords",
-                "./samewords/test/assets/da-49-l1q1-processed.tex",
-                "--clean",
+                input_file,
+                f"--config-file={Path(__root__).parent}/sample_config.json",
             ],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
         out, err = proc.communicate()
-        with open("./samewords/test/assets/da-49-l1q1.tex") as f:
+        with open(result_file) as f:
+            result = f.read()
+        assert out.decode().strip() == result.strip()
+
+    def test_clean_file(self):
+        proc = subprocess.Popen(
+            ["samewords", result_file, "--clean"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        out, err = proc.communicate()
+        with open(input_file) as f:
             result = f.read()
         assert out.decode().strip() == result.strip()
 
