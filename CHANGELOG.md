@@ -3,6 +3,14 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Changed
+- Tests setup generalized to run in different contexts.
+
+### Fixed
+- Remove bug adding config-file path to the output file (#42).
+
+
 ## [0.5.7]
 ### Changed
 - Move to using `pipenv` for package handling.
