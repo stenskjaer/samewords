@@ -1,13 +1,18 @@
+import os
+
+from samewords import __root__
+from samewords.test import __testroot__
 from samewords.document import *
+
+input_file = os.path.join(__testroot__, "assets/da-49-l1q1.tex")
+result_file = os.path.join(__testroot__, "assets/da-49-l1q1-processed.tex")
+multi_begins = doc_content(os.path.join(__root__, "test/assets/multi_begins.tex"))
 
 
 def test_document_content():
-    with open("./samewords/test/assets/da-49-l1q1.tex", "rb") as f:
+    with open(input_file, "rb") as f:
         content = f.read().decode("utf-8")
-    assert doc_content("./samewords/test/assets/da-49-l1q1.tex") == content
-
-
-multi_begins = doc_content("./samewords/test/assets/multi_begins.tex")
+    assert doc_content(input_file) == content
 
 
 class TestDocumentChunking:
@@ -26,7 +31,7 @@ class TestDocumentChunking:
         assert chunk_doc(multi_begins) == content
 
     def test_no_numbered_text(self):
-        document = doc_content("./samewords/test/assets/no_numbers.tex")
+        document = doc_content(os.path.join(__root__, "test/assets/no_numbers.tex"))
         assert chunk_doc(document) == [document]
 
 

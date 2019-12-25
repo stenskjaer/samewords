@@ -1,14 +1,18 @@
+import os
 import subprocess
+from pathlib import Path
 
-from pytest import mark
-
-from samewords import cli
+from samewords import cli, __root__
+from samewords.test import __testroot__
 from samewords.settings import settings
+
+input_file = os.path.join(__testroot__, "assets/da-49-l1q1.tex")
+result_file = os.path.join(__testroot__, "assets/da-49-l1q1-processed.tex")
 
 
 class TestConfigFileContent:
     def test_config_file_parsing(self):
-        fname = "./samewords/test/assets/sample_config.json"
+        fname = os.path.join(__testroot__, "assets/sample_config.json")
         old = {
             "ellipsis_patterns": settings["ellipsis_patterns"],
             "exclude_macros": settings["exclude_macros"],
@@ -19,7 +23,7 @@ class TestConfigFileContent:
         assert "\\.\\.\\." in settings["ellipsis_patterns"]
         assert "-+" in settings["ellipsis_patterns"]
         assert "\\anotherMacro" in settings["exclude_macros"]
-        assert settings["sensitive_context_match"] == True
+        assert settings["sensitive_context_match"] is True
         assert settings["context_distance"] == 25
         settings.update(old)
 
@@ -27,12 +31,10 @@ class TestConfigFileContent:
 class TestCLIArguments:
     def test_default_annotate_file(self):
         proc = subprocess.Popen(
-            ["samewords", "./samewords/test/assets/da-49-l1q1.tex"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            ["samewords", input_file], stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
         out, err = proc.communicate()
-        with open("./samewords/test/assets/da-49-l1q1-processed.tex") as f:
+        with open(result_file) as f:
             result = f.read()
         assert out.decode().strip() == result.strip()
 
@@ -53,11 +55,15 @@ class TestCLIArguments:
 
     def test_update_file(self):
         proc = subprocess.Popen(
-            ["samewords", "./samewords/test/assets/simple-unupdated.tex", "--update"],
+            [
+                "samewords",
+                os.path.join(__root__, "test/assets/simple-unupdated.tex"),
+                "--update",
+            ],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
         out, err = proc.communicate()
-        with open("./samewords/test/assets/simple-updated.tex") as f:
+        with open(os.path.join(__root__, "test/assets/simple-updated.tex")) as f:
             result = f.read()
         assert out.decode().strip() == result.strip()
