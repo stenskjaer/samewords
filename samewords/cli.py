@@ -30,9 +30,7 @@ def load_config(filename) -> Dict:
 def parse_config_file(filename: str) -> None:
     """Parse the config file and update the global settings.
     If successful, True, otherwise return False."""
-    print(filename)
     filename = os.path.expanduser(filename)
-    print(filename)
     try:
         user_conf = load_config(filename)
         settings["ellipsis_patterns"] += user_conf.get("ellipsis_patterns", [])
