@@ -111,6 +111,11 @@ class Macro(UserString):
         else:
             return self.name
 
+    def is_open(self) -> bool:
+        """Determine whether the macro has an opening but no registered closing,
+        which means that it will be closed."""
+        return self.opening and self.to_closing is False
+
 
 class Word(UserString):
     """
@@ -180,12 +185,20 @@ class Word(UserString):
         elements.sort(key=itemgetter(1))
         return "".join([element[0] for element in elements]) + self.spaces
 
+    def has_open_macros(self) -> bool:
+        """Determine whether there are any open macros on the word."""
+        if self.macros:
+            for macro in self.macros:
+                if macro.is_open():
+                    return True
+        return False
+
     def close_macro(self, distance: int):
         """If there are any open macros on the word, close the last of those.
         This means that we close inner macros first."""
         if self.macros:
             for macro in reversed(self.macros):
-                if macro.opening and macro.to_closing is False:
+                if macro.is_open():
                     macro.to_closing = distance
                     return True
         raise IndexError('The word "{}" does not have any open macros.'.format(self))
@@ -549,6 +562,6 @@ class Tokenizer:
         except IndexError:
             # Word not entered in Words wordlist or it has no macro.
             # Register on current word macro if it exists.
-            if word.macros:
+            if word.has_open_macros():
                 word.close_macro(0)
                 self._stack_bracket.pop()
