@@ -1,13 +1,11 @@
 import os
 import subprocess
-from pathlib import Path
 
-from samewords import cli, __root__
 from samewords.test import __testroot__
 from samewords.settings import settings
 
-input_file = os.path.join(__testroot__, "assets/da-49-l1q1.tex")
-result_file = os.path.join(__testroot__, "assets/da-49-l1q1-processed.tex")
+unprocessed_file = os.path.join(__testroot__, "assets/da-49-l1q1.tex")
+processed_file = os.path.join(__testroot__, "assets/da-49-l1q1-processed.tex")
 
 
 class TestConfigFileContent:
@@ -31,25 +29,23 @@ class TestConfigFileContent:
 class TestCLIArguments:
     def test_default_annotate_file(self):
         proc = subprocess.Popen(
-            ["samewords", input_file], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            ["samewords", unprocessed_file],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
         )
         out, err = proc.communicate()
-        with open(result_file) as f:
+        with open(processed_file) as f:
             result = f.read()
         assert out.decode().strip() == result.strip()
 
     def test_clean_file(self):
         proc = subprocess.Popen(
-            [
-                "samewords",
-                "./samewords/test/assets/da-49-l1q1-processed.tex",
-                "--clean",
-            ],
+            ["samewords", processed_file, "--clean"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
         out, err = proc.communicate()
-        with open("./samewords/test/assets/da-49-l1q1.tex") as f:
+        with open(unprocessed_file) as f:
             result = f.read()
         assert out.decode().strip() == result.strip()
 
@@ -57,13 +53,13 @@ class TestCLIArguments:
         proc = subprocess.Popen(
             [
                 "samewords",
-                os.path.join(__root__, "test/assets/simple-unupdated.tex"),
+                os.path.join(__testroot__, "assets/simple-unupdated.tex"),
                 "--update",
             ],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
         out, err = proc.communicate()
-        with open(os.path.join(__root__, "test/assets/simple-updated.tex")) as f:
+        with open(os.path.join(__testroot__, "assets/simple-updated.tex")) as f:
             result = f.read()
         assert out.decode().strip() == result.strip()
