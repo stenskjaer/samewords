@@ -24,7 +24,7 @@ class TestConfigFileContent:
         assert "-+" in settings["ellipsis_patterns"]
         assert "\\anotherMacro" in settings["exclude_macros"]
         assert settings["sensitive_context_match"] is True
-        assert settings["context_distance"] == 25
+        assert settings["context_distance"] == 20
         settings.update(old)
 
 
@@ -43,7 +43,7 @@ class TestCLIArguments:
             [
                 "samewords",
                 input_file,
-                f"--config-file={Path(__root__).parent}/sample_config.json",
+                f"--config-file={__testroot__}/assets/sample_config.json",
             ],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
