@@ -24,6 +24,24 @@ class TestTokenize:
         assert Tokenizer(text).wordlist == expect
         assert Tokenizer(text).wordlist.write() == text
 
+    def test_empty_macro_with_braces_inside_braces(self):
+        text = r"{word\anymacro{}}"
+        expect = ["word"]
+        assert Tokenizer(text).wordlist == expect
+        assert Tokenizer(text).wordlist.write() == text
+
+    def test_empty_macro_without_braces_inside_braces(self):
+        text = r"{word\anymacro }"
+        expect = ["word", ""]
+        assert Tokenizer(text).wordlist == expect
+        assert Tokenizer(text).wordlist.write() == text
+
+    def test_empty_macro_with_braces_and_space_inside_braces(self):
+        text = r"{word\anymacro{} }"
+        expect = ["word", ""]
+        assert Tokenizer(text).wordlist == expect
+        assert Tokenizer(text).wordlist.write() == text
+
     def test_latex_non_breaking_space(self):
         text = r"2~dollars"
         expect = ["2", "dollars"]
