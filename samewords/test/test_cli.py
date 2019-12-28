@@ -1,6 +1,7 @@
 import os
 import subprocess
 
+from samewords import cli
 from samewords.test import __testroot__
 from samewords.settings import settings
 
